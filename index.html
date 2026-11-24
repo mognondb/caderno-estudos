@@ -279,13 +279,6 @@ body.reading{overflow:hidden}
 mark.mt-m{background:color-mix(in srgb,var(--m) 45%,transparent);color:inherit;border-radius:2px;cursor:pointer;padding:0 1px}
 mark.mt-m.com-nota{border-bottom:2px dotted var(--ink)}
 mark.mt-m.pisca{outline:3px solid var(--accent)}
-.voz-player{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 10px;box-shadow:0 8px 28px rgba(0,0,0,.22);max-width:calc(100% - 20px)}
-.voz-player select{max-width:150px;font-size:13px;padding:4px 6px}
-.so-estreito{display:none}.so-largo{display:contents}
-@media (max-width:600px){.materia .so-largo{display:none}.materia .so-estreito{display:inline-flex}
-  .voz-player{flex-wrap:nowrap;gap:3px;padding:6px;width:max-content;max-width:calc(100% - 12px)}
-  .voz-player .btn{padding:5px 7px}.voz-player select{max-width:92px}.voz-player #voz-onde{display:none}}
-.lendo-voz{background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:4px;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 12%,transparent);transition:background .2s}
 .materia .rd-bar .swl{user-select:none;-webkit-user-select:none}
 @media (max-width:600px){.materia .rd-bar{gap:6px;padding:6px 8px}.materia .swl-t{display:none}.materia .swl{padding:4px 7px}.materia .swl .dot{width:14px;height:14px}.materia .rd-title{flex-basis:calc(100% - 90px)}.mt-texto{font-size:17px}}
 </style>
@@ -1656,7 +1649,7 @@ function barraLeitor(b){
    +'<div class="row" aria-label="Zoom"><button class="btn sm" data-act="rd-zoom" data-dir="-1" aria-label="Diminuir">−</button><span class="small hours" id="rd-zoom">100%</span><button class="btn sm" data-act="rd-zoom" data-dir="1" aria-label="Aumentar">+</button></div>'
    +'<div class="row" role="toolbar" aria-label="Ferramentas">'+[["ler","Ler"],["marca","Marcar"],["nota","Nota"],["caneta","Caneta"],["apagar","Apagar"]].map(([k,l])=>'<button class="btn sm tool" data-act="rd-ferramenta" data-tool="'+k+'" aria-pressed="'+(k==="ler")+'">'+l+'</button>').join("")+'</div>'
    +'<div class="row" role="group" aria-label="Cor e significado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="rd-cor" data-cor="'+k+'" aria-pressed="'+(k==="amarelo")+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span>'+esc(lg[k])+'</button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="voz-iniciar" title="Ouvir a partir desta página">🔊 Ouvir</button><button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><div id="rd-pages"><div class="empty">Abrindo o PDF…</div></div></div><aside class="rd-side" id="rd-side" hidden></aside></div></div>';
 }
 const ZOOMS=[1,1.25,1.5,2,2.5];
@@ -1753,7 +1746,7 @@ function pintarLateral(){
    +(notas.length?notas.map((x,k)=>'<button class="item" style="--c:'+(CORES_AN[x.a.cor]||CORES_AN.amarelo)+'" data-act="rd-ir" data-n="'+x.n+'"><span class="tt">'+(k+1)+'. p. '+x.n+' · '+esc(lg[x.a.cor]||"")+'</span><span class="sub">'+esc(x.a.texto||"(sem texto)")+'</span></button>').join(""):'<p class="small muted">Use a ferramenta Nota e toque no texto para anotar.</p>')
    +'<button class="btn sm" data-act="rd-fichamento"'+(notas.length?"":" disabled")+'>Criar fichamento com as notas</button>';
 }
-function fecharLeitor(){if(typeof pararVoz==="function")pararVoz(true);
+function fecharLeitor(){
   if(!R.livroId)return;
   const it=itemDeLeitura(R.livroId),b=it&&it.x,col=it?it.col:"livros";
   if(b&&R.pdf&&!S.readOnly){
@@ -2134,7 +2127,7 @@ function abrirMateria(id){
   $("reader-root").innerHTML='<div class="reader materia" role="dialog" aria-label="Leitor de matéria"><div class="rd-bar">'
    +'<button class="btn sm" data-act="rd-fechar">‹ Fechar</button><span class="rd-title">'+esc(a.titulo)+'</span>'
    +'<div class="row" role="group" aria-label="Marcar o trecho selecionado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="mt-marcar" data-cor="'+k+'" title="Marcar como '+esc(lg[k])+'" aria-label="Marcar como '+esc(lg[k])+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span><span class="swl-t">'+esc(lg[k])+'</span></button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="voz-iniciar" title="Ouvir a partir do trecho na tela">🔊 Ouvir</button><button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
    +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm ghost danger" data-act="mt-descartar" title="Não é relevante: tirar das listas">Descartar</button></span><button class="btn sm so-estreito" data-act="mt-mais" aria-label="Mais ações">⋯</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><article class="mt-texto"><header class="mt-cab"><div class="small muted">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.secao?' · '+esc(a.secao):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.autor?' · '+esc(a.autor):'')+'</div><h1>'+esc(a.titulo)+'</h1>'+(a.resumo?'<p class="mt-fina">'+esc(a.resumo)+'</p>':'')+'</header>'
    +'<div id="mt-corpo"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
@@ -2201,155 +2194,6 @@ function ficharMateria(){
   const linhas=l.map(m=>"> "+m.texto.replace(/\s+/g," ").trim()+"\n\n"+"**"+(lg[m.cor]||m.cor)+"**"+(m.nota?": "+m.nota.trim():"")+"\n");
   const id=a.id;fecharLeitor();
   novaNota({artigoId:id,titulo:"Fichamento — "+a.titulo,texto:(l.length?"## Trechos marcados\n\n"+linhas.join("\n"):"")+"\n## Síntese com minhas palavras\n\n"});
-}
-
-/* =====================================================================
-   18. Ouvir: leitura em voz alta (voz do próprio aparelho)
-   Funciona no leitor de matérias (por parágrafo) e no leitor de PDF
-   (página a página, a partir da página aberta).
-   ===================================================================== */
-const V={ativo:false,tocando:false,fila:[],i:0,vel:1,voz:null,gen:0,fimFonte:false,wake:null};
-const VELS=[0.8,1,1.2,1.4,1.7];
-const vozDisponivel=()=>typeof window.speechSynthesis!=="undefined"&&typeof window.SpeechSynthesisUtterance!=="undefined";
-const BOA_VOZ=/natural|neural|premium|enhanced|aprimorad|online/i;
-function vozesPt(){return (vozDisponivel()?speechSynthesis.getVoices():[]).filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>(/BR/i.test(b.lang)-/BR/i.test(a.lang))||(BOA_VOZ.test(b.name)-BOA_VOZ.test(a.name))||(b.localService-a.localService))}
-function escolherVoz(){
-  const l=vozesPt();let nome="";try{nome=localStorage.getItem("voz-nome")||""}catch(e){}
-  return l.find(v=>v.name===nome)||l.find(v=>/BR/i.test(v.lang)&&BOA_VOZ.test(v.name))||l.find(v=>/francisca|thalita|luciana|google português do brasil|daniel/i.test(v.name))||l[0]||null;
-}
-if(vozDisponivel()){try{speechSynthesis.onvoiceschanged=()=>{if(!V.voz)V.voz=escolherVoz();pintarPlayer()}}catch(e){}}
-try{V.vel=Number(localStorage.getItem("voz-vel"))||1}catch(e){}
-
-/* divide um texto em pedaços curtos (frases), que todos os navegadores leem sem cortar */
-function pedacos(t){
-  t=String(t||"").replace(/\s+/g," ").trim();if(!t)return [];
-  const fr=t.match(/[^.!?;:…]+[.!?;:…]+["”’)]*\s*|[^.!?;:…]+$/g)||[t],out=[];let cur="";
-  for(const f of fr){
-    if((cur+f).length>220&&cur){out.push(cur.trim());cur=""}
-    if(f.length>260){for(let i=0;i<f.length;i+=240)out.push(f.slice(i,i+240));continue}
-    cur+=f;
-  }
-  if(cur.trim())out.push(cur.trim());
-  return out;
-}
-
-/* ---------- fontes ---------- */
-function blocosDaMateria(){
-  const c=$("mt-corpo");if(!c)return [];
-  const els=[...c.querySelectorAll("p,h2,h3,h4,h5,li,blockquote,figcaption,td")].filter(e=>!e.querySelector("p,li,blockquote")&&e.textContent.trim());
-  const cab=document.querySelector(".mt-cab h1");
-  const l=[];if(cab)pedacos(cab.textContent).forEach(t=>l.push({t,el:cab}));
-  els.forEach(el=>pedacos(el.textContent).forEach(t=>l.push({t,el})));
-  return l;
-}
-function indiceVisivel(l){
-  const sc=$("rd-scroll");if(!sc)return 0;const box=sc.getBoundingClientRect(),topo=box.top+70;
-  if(sc.scrollTop<20)return 0;
-  let i=l.findIndex(x=>{const r=x.el.getBoundingClientRect();return r.top>=box.top-4&&r.top<box.bottom});
-  if(i<0)i=l.findIndex(x=>x.el.getBoundingClientRect().bottom>topo);
-  return i<0?0:i;
-}
-async function blocosDaPagina(n){
-  if(!R.pdf||n>R.pdf.numPages)return null;
-  try{
-    const page=await R.pdf.getPage(n),tc=await page.getTextContent();
-    let t="";for(const it of tc.items){t+=it.str;t+=it.hasEOL?" ":(/\s$/.test(it.str)?"":"")}
-    t=t.replace(/-\s+(?=[a-zà-ú])/g,"").replace(/\s+/g," ").trim();
-    const l=pedacos(t).map(x=>({t:x,pagina:n}));
-    return l.length?l:[{t:"",pagina:n,vazia:true}];
-  }catch(e){return [{t:"",pagina:n,vazia:true}]}
-}
-
-/* ---------- motor ---------- */
-async function iniciarVoz(){
-  if(!vozDisponivel()){toast("Este navegador não tem leitura em voz alta.");return}
-  pararVoz(true);
-  V.voz=escolherVoz();V.ativo=true;V.fimFonte=false;V.gen++;
-  if(R.web){V.fila=blocosDaMateria();V.i=indiceVisivel(V.fila);V.fimFonte=true}
-  else if(R.pdf){V.prox=R.cur||1;V.fila=[];V.i=0;await carregarProximaPagina()}
-  if(!V.fila.length){toast("Não encontrei texto para ler aqui."+(R.pdf?" Este PDF pode ser uma imagem escaneada.":""));V.ativo=false;return}
-  pedirTelaLigada();
-  tocar();pintarPlayer();
-}
-async function carregarProximaPagina(){
-  for(let tent=0;tent<4&&!V.fimFonte;tent++){
-    const l=await blocosDaPagina(V.prox);
-    if(!l){V.fimFonte=true;break}
-    V.prox++;const bons=l.filter(x=>!x.vazia);
-    if(bons.length){V.fila.push(...bons);return}
-  }
-}
-function tocar(){
-  if(!V.ativo)return;
-  const it=V.fila[V.i];
-  if(!it){
-    if(!V.fimFonte&&R.pdf){carregarProximaPagina().then(()=>{if(V.fila[V.i])tocar();else terminarVoz()});return}
-    terminarVoz();return;
-  }
-  const g=++V.gen;
-  try{speechSynthesis.cancel()}catch(e){}
-  const u=new SpeechSynthesisUtterance(it.t);
-  u.lang=(V.voz&&V.voz.lang)||"pt-BR";if(V.voz)u.voice=V.voz;u.rate=V.vel;
-  u.onstart=()=>{if(g!==V.gen)return;destacarVoz(it)};
-  u.onend=()=>{if(g!==V.gen||!V.tocando)return;V.i++;tocar()};
-  u.onerror=e=>{if(g!==V.gen)return;if(e&&(e.error==="interrupted"||e.error==="canceled"))return;V.i++;setTimeout(tocar,50)};
-  V.tocando=true;speechSynthesis.speak(u);
-  if(!R.pdf&&V.i>=V.fila.length-1)V.fimFonte=true;
-  if(R.pdf&&!V.fimFonte&&V.fila.length-V.i<4)carregarProximaPagina();
-  pintarPlayer();
-}
-function destacarVoz(it){
-  document.querySelectorAll(".lendo-voz").forEach(e=>e.classList.remove("lendo-voz"));
-  if(it.el){it.el.classList.add("lendo-voz");const r=it.el.getBoundingClientRect(),sc=$("rd-scroll");if(sc){const s=sc.getBoundingClientRect();if(r.top<s.top+40||r.bottom>s.bottom-90)it.el.scrollIntoView({behavior:"smooth",block:"center"})}}
-  if(it.pagina&&R.pages){const pg=R.pages[it.pagina-1];if(pg&&R.cur!==it.pagina)pg.el.scrollIntoView({behavior:"smooth",block:"start"})}
-  const p=$("voz-onde");if(p)p.textContent=it.pagina?"p. "+it.pagina:Math.round(100*V.i/Math.max(1,V.fila.length))+"%";
-}
-function pausarVoz(){V.tocando=false;V.gen++;try{speechSynthesis.cancel()}catch(e){}soltarTela();pintarPlayer()}
-function continuarVoz(){if(!V.ativo)return;pedirTelaLigada();tocar()}
-function pularVoz(d){
-  if(!V.ativo||!V.fila.length)return;
-  const el=k=>V.fila[k]&&V.fila[k].el;let j=V.i;
-  if(el(V.i)){
-    if(d>0){const a=el(V.i);while(j<V.fila.length-1&&el(j)===a)j++}
-    else{const a=el(V.i);let ini=j;while(ini>0&&el(ini-1)===a)ini--;
-      if(ini<V.i)j=ini;else{j=Math.max(0,ini-1);const b=el(j);while(j>0&&el(j-1)===b)j--}}
-  }else j=Math.max(0,Math.min(V.fila.length-1,V.i+(d>0?2:-2)));
-  V.i=j;
-  if(V.tocando)tocar();else{const it=V.fila[V.i];if(it)destacarVoz(it);pintarPlayer()}
-}
-function mudarVelocidade(){
-  const i=VELS.indexOf(V.vel);V.vel=VELS[(i+1)%VELS.length];try{localStorage.setItem("voz-vel",String(V.vel))}catch(e){}
-  if(V.tocando)tocar();else pintarPlayer();
-}
-function terminarVoz(){V.tocando=false;soltarTela();pintarPlayer();toast("Leitura em voz alta terminou.")}
-function pararVoz(silencioso){
-  V.ativo=false;V.tocando=false;V.gen++;V.fila=[];V.i=0;
-  try{if(vozDisponivel())speechSynthesis.cancel()}catch(e){}
-  document.querySelectorAll(".lendo-voz").forEach(e=>e.classList.remove("lendo-voz"));
-  soltarTela();const p=$("voz-player");if(p)p.remove();
-}
-async function pedirTelaLigada(){try{if(navigator.wakeLock&&!V.wake){V.wake=await navigator.wakeLock.request("screen");V.wake.addEventListener("release",()=>{V.wake=null})}}catch(e){}}
-function soltarTela(){try{if(V.wake){V.wake.release();V.wake=null}}catch(e){}}
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&V.tocando)pedirTelaLigada()});
-
-/* ---------- player ---------- */
-function pintarPlayer(){
-  const raiz=document.querySelector(".reader");if(!raiz)return;
-  let p=$("voz-player");
-  if(!V.ativo){if(p)p.remove();return}
-  if(!p){p=document.createElement("div");p.id="voz-player";p.className="voz-player";p.setAttribute("role","group");p.setAttribute("aria-label","Leitura em voz alta");raiz.appendChild(p)}
-  const vozes=vozesPt();
-  p.innerHTML='<button class="btn sm ghost" data-act="voz-voltar" aria-label="Parágrafo anterior" title="Parágrafo anterior">⏮</button>'
-   +(V.tocando?'<button class="btn sm primary" data-act="voz-pausar" aria-label="Pausar">⏸ Pausar</button>':'<button class="btn sm primary" data-act="voz-continuar" aria-label="Continuar">▶ Continuar</button>')
-   +'<button class="btn sm ghost" data-act="voz-avancar" aria-label="Próximo parágrafo" title="Próximo parágrafo">⏭</button>'
-   +'<button class="btn sm" data-act="voz-vel" aria-label="Velocidade">'+String(V.vel).replace(".",",")+'×</button>'
-   +(vozes.length>1?'<select id="voz-sel" aria-label="Voz">'+vozes.map(v=>'<option value="'+esc(v.name)+'"'+(V.voz&&V.voz.name===v.name?" selected":"")+'>'+esc(v.name.replace(/\s*\(.*\)$/,""))+'</option>').join("")+'</select>':'')
-   +'<span class="small muted" id="voz-onde"></span><button class="btn sm ghost" data-act="voz-parar" aria-label="Fechar a leitura em voz alta">✕</button>';
-  const it=V.fila[V.i];const o=$("voz-onde");if(o&&it)o.textContent=it.pagina?"p. "+it.pagina:Math.round(100*V.i/Math.max(1,V.fila.length))+"%";
-}
-function trocarVoz(nome){
-  V.voz=vozesPt().find(v=>v.name===nome)||V.voz;try{localStorage.setItem("voz-nome",nome)}catch(e){}
-  if(V.tocando)tocar();
 }
 
 /* =====================================================================
@@ -2467,14 +2311,7 @@ const ACOES={
   "mk-apagar":el=>confirmar(el,"Confirmar",()=>apagarMarca(el.dataset.id)),
   "mt-lateral":()=>{fecharModal();const s=$("mt-side");if(!s)return;s.hidden=!s.hidden;pintarLateralMateria()},
   "mt-ir":el=>{const m=document.querySelector('mark[data-id="'+el.dataset.id+'"]');if(m){m.scrollIntoView({behavior:"smooth",block:"center"});m.classList.add("pisca");setTimeout(()=>m.classList.remove("pisca"),1200)}if(window.innerWidth<760){const s=$("mt-side");if(s)s.hidden=true}},
-  "voz-iniciar":()=>iniciarVoz(),
-  "voz-pausar":()=>pausarVoz(),
-  "voz-continuar":()=>continuarVoz(),
-  "voz-voltar":()=>pularVoz(-1),
-  "voz-avancar":()=>pularVoz(1),
-  "voz-vel":()=>mudarVelocidade(),
-  "voz-parar":()=>pararVoz(),
-  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
+    "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
   "mt-site":()=>{fecharModal();const a=artigo(R.livroId),lk=a&&linkSeguro(a.link);if(lk)window.open(lk,"_blank","noopener")},
   "mt-fichar":()=>{fecharModal();ficharMateria()},
   "imp-atualizar":()=>atualizarImprensa(true),
@@ -2588,7 +2425,6 @@ document.addEventListener("change",e=>{
   if(el.classList.contains("motivo")){const v=el.value.trim();salvarSemana(d=>{d.motivos=d.motivos||{};if(v)d.motivos[el.dataset.dia]=v;else delete d.motivos[el.dataset.dia]}).catch(()=>{});return}
   if(el.id==="af-fonte"||el.id==="af-status"){S.af[el.id.slice(3)]=el.value;render();return}
   if(["fl-etapa","fl-trilha","fl-status"].includes(el.id)){const k=el.id.slice(3);S.fl[k]=k==="etapa"&&!isNaN(el.value)?Number(el.value):el.value;render();return}
-  if(el.id==="voz-sel"){trocarVoz(el.value);return}
   if(el.id==="tf-ordem"){S.tf.ordem=el.value;pintarTudo();return}
   if(el.id==="nf-tipo"||el.id==="nf-livro"){S.nf[el.id.slice(3)]=el.value;pintarListaNotas();return}
   if(el.id==="ne-tipo"&&el.value==="conjuntura"&&S.draft&&$("ne-texto")&&!$("ne-texto").value.trim())$("ne-texto").value=cfg().modeloConjuntura||DEFAULT_MODELO_CONJUNTURA;
