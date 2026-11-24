@@ -541,6 +541,25 @@ const CORES_AN={amarelo:"#f2c400",verde:"#2fb36b",azul:"#3b8fe0",rosa:"#e8559a"}
 const DEFAULT_LEGENDA={amarelo:"Tese",verde:"Conceito",azul:"Exemplo",rosa:"Dúvida"};
 const CHECK_SVG='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const VIEWS=["hoje","semana","biblioteca","caderno","plano","busca","historico"];
+const ehNome=c=>!!c&&c.tipo==="nome";
+const tipoReg=aba=>aba==="nomes"?"nome":"conceito";
+const REG={
+  conceito:{aba:"conceitos",titulo:"Conceitos",um:"conceito",Um:"Conceito",termo:"Nome do conceito",busca:"Buscar conceito ou autor",def:"Definição geral",
+    secao:"Como cada autor trata o conceito",add:"+ Autor",rem:"Remover autor",quem:"Autor",txt:"Como o conceito aparece neste autor",
+    ex:"Ex.: reificação em Marx (fetichismo), em Lukács e em Althusser.",vazio:"Nenhum conceito ainda.",
+    intro:"Escolha um conceito ou crie um novo. Registre a definição, como cada autor trata o conceito e os fichamentos em que ele aparece."},
+  nome:{aba:"nomes",titulo:"Nomes",um:"nome",Um:"Nome",termo:"Nome (pessoa, autor, organização)",busca:"Buscar nome, texto ou assunto",def:"Quem é",
+    secao:"Onde aparece nas leituras",add:"+ Citação",rem:"Remover citação",quem:"Citado por",txt:"O que o texto diz sobre essa pessoa",
+    ex:"Ex.: Proudhon em A Miséria da Filosofia, em O Capital e em Lenin.",vazio:"Nenhum nome ainda.",
+    intro:"Registre pessoas, autores e organizações citados nas leituras. Cada vez que o nome aparecer, acrescente uma citação: o caderno junta os textos, ciclos e trilhas em que ele surge."}
+};
+const regsDo=tipo=>S.conceitos.filter(c=>tipo==="nome"?ehNome(c):!ehNome(c));
+function aparicoes(c){
+  const ls=[...new Set((c.leituras||[]).map(l=>l.livroId).filter(Boolean))].map(id=>itemDeLeitura?(itemDeLeitura(id)||{}).x:null).filter(Boolean);
+  const ciclos=[...new Set(ls.map(b=>b.etapa).filter(e=>e!=null&&e!==""))].sort((a,b)=>a-b);
+  const trs=[...new Set(ls.map(b=>b.trilha).filter(Boolean))];
+  return {textos:ls,ciclos,trilhas:trs};
+}
 const HASH_ANTIGO={livros:["biblioteca","textos"],topicos:["biblioteca","topicos"],fichamentos:["caderno","fichamentos"],sinteses:["caderno","sinteses"],conceitos:["caderno","conceitos"]};
 
 /* =====================================================================
@@ -776,7 +795,7 @@ function revisaoHtml(){
   const l=revisaoItens();
   if(!l.length)return '<div class="sub">Revisão: ainda não há fichamentos ou conceitos com mais de duas semanas.</div>';
   return '<div class="sub"><strong>Revise antes de escrever:</strong></div>'+l.map(it=>it.k==="c"
-    ?'<button class="item" data-act="conceito-ir" data-id="'+it.x.id+'"><span class="tt">'+esc(it.x.termo)+'</span><span class="sub">Conceito</span></button>'
+    ?'<button class="item" data-act="conceito-ir" data-id="'+it.x.id+'"><span class="tt">'+esc(it.x.termo)+'</span><span class="sub">'+(ehNome(it.x)?"Nome":"Conceito")+'</span></button>'
     :'<button class="item" style="--c:'+T(it.x.trilha).cor+'" data-act="nota-ir" data-id="'+it.x.id+'"><span class="tt">'+esc(it.x.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[it.x.tipo]||"")+(livro(it.x.livroId)?" · "+esc(livro(it.x.livroId).titulo):"")+'</span></button>').join("");
 }
 function conteudoTrilha(t){
@@ -961,7 +980,7 @@ function telaTopicos(){
 }
 function telaPasta(tp){
   const tr=topTrilha(tp),ls=textosDoTopico(tp),ns=notasDoTopico(tp),fich=ns.filter(n=>!ehEscrito(n.tipo)),sint=ns.filter(n=>ehEscrito(n.tipo));
-  const ids=new Set(ns.map(n=>n.id)),concs=S.conceitos.filter(c=>(c.notas||[]).some(id=>ids.has(id))||(c.leituras||[]).some(l=>ls.some(b=>b.id===l.livroId)));
+  const ids=new Set(ns.map(n=>n.id)),ligados=S.conceitos.filter(c=>(c.notas||[]).some(id=>ids.has(id))||(c.leituras||[]).some(l=>ls.some(b=>b.id===l.livroId))),concs=ligados.filter(c=>!ehNome(c)),nomes=ligados.filter(ehNome);
   const item=n=>'<button class="item" style="--c:'+T(n.trilha||tr).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>';
   let h='<div><button class="btn sm ghost" data-act="topico-fechar">‹ Todos os tópicos</button></div>'
    +'<section class="card" style="--c:'+T(tr).cor+';border-left:4px solid var(--c)"><div class="spread"><div><div class="small muted">'+esc((tp.eixo?tp.eixo+" · ":"")+T(tr).curto)+'</div><h2>'+esc(tp.nome)+'</h2></div>'
@@ -974,13 +993,14 @@ function telaPasta(tp){
   h+='<section class="card"><div class="spread"><h2>Fichamentos <span class="pill">'+fich.length+'</span></h2><button class="btn sm" data-act="topico-anotar" data-id="'+tp.id+'"'+dis()+'>+ Anotar</button></div>'+(fich.length?'<div class="items" style="max-height:none">'+fich.map(item).join("")+'</div>':'<p class="small muted">Nenhum fichamento ainda.</p>')+'</section>';
   h+='<section class="card"><div class="spread"><h2>Sínteses <span class="pill">'+sint.length+'</span></h2><button class="btn sm" data-act="topico-sintese" data-id="'+tp.id+'"'+dis()+'>+ Escrever</button></div>'+(sint.length?'<div class="items" style="max-height:none">'+sint.map(item).join("")+'</div>':'<p class="small muted">Nenhuma síntese sobre este tópico ainda.</p>')+'</section>';
   if(concs.length)h+='<section class="card"><h2>Conceitos ligados</h2><div class="row">'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div></section>';
+  if(nomes.length)h+='<section class="card"><h2>Nomes citados</h2><div class="row">'+nomes.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div></section>';
   return h;
 }
 
 /* ---------- Caderno (fichamentos, sínteses, conceitos) ---------- */
 function telaCaderno(){
-  const seg='<div class="seg" role="group" aria-label="Caderno">'+[["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"]].map(([k,l])=>'<button data-act="cad-aba" data-tab="'+k+'" aria-pressed="'+(S.cadTab===k)+'">'+l+'</button>').join("")+'</div>';
-  return seg+(S.cadTab==="conceitos"?telaConceitos():telaNotas());
+  const seg='<div class="seg" role="group" aria-label="Caderno">'+[["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"],["nomes","Nomes"]].map(([k,l])=>'<button data-act="cad-aba" data-tab="'+k+'" aria-pressed="'+(S.cadTab===k)+'">'+l+'</button>').join("")+'</div>';
+  return seg+(S.cadTab==="conceitos"||S.cadTab==="nomes"?telaConceitos():telaNotas());
 }
 function notasFiltradas(){
   const f=S.nf,q=f.q.trim().toLowerCase(),modo=S.cadTab,tipos=tiposDe(modo);
@@ -1020,26 +1040,37 @@ function editorNota(){
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
 function telaConceitos(){
-  const lista='<div class="list"><div class="spread"><h2>Conceitos</h2><button class="btn primary" data-act="conceito-novo"'+dis()+'>+ Novo</button></div>'
-   +'<input type="search" id="cq" placeholder="Buscar conceito ou autor" aria-label="Buscar conceito ou autor" value="'+esc(S.cq)+'"><div class="items" id="conc-itens"></div></div>';
-  return '<div class="split'+(S.cdraft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.cdraft?editorConceito():'<div class="empty">Escolha um conceito ou crie um novo. Registre a definição, como cada autor trata o conceito e os fichamentos em que ele aparece.</div>')+'</div></div>';
+  const tipo=tipoReg(S.cadTab),L=REG[tipo];
+  const lista='<div class="list"><div class="spread"><h2>'+L.titulo+'</h2><button class="btn primary" data-act="conceito-novo" data-tipo="'+tipo+'"'+dis()+'>+ Novo</button></div>'
+   +'<input type="search" id="cq" placeholder="'+L.busca+'" aria-label="'+L.busca+'" value="'+esc(S.cq)+'"><div class="items" id="conc-itens"></div></div>';
+  return '<div class="split'+(S.cdraft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.cdraft?editorConceito():'<div class="empty">'+L.intro+'</div>')+'</div></div>';
 }
 function pintarListaConceitos(){
-  const el=$("conc-itens");if(!el)return;const q=S.cq.trim().toLowerCase();
-  const l=S.conceitos.filter(c=>!q||(String(c.termo)+" "+String(c.definicao)+" "+(c.leituras||[]).map(x=>x.autor+" "+x.texto).join(" ")).toLowerCase().includes(q)).sort((a,b)=>String(a.termo).localeCompare(String(b.termo),"pt"));
-  el.innerHTML=l.length?l.map(c=>{const aut=[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))];return '<button class="item" data-act="conceito-abrir" data-id="'+c.id+'" aria-current="'+(!!S.cdraft&&S.cdraft.id===c.id)+'"><span class="tt">'+esc(c.termo||"Sem nome")+'</span><span class="sub">'+(aut.length?esc(aut.join(", ")):"Nenhum autor ainda")+' · '+plural((c.notas||[]).length,"fichamento","fichamentos")+'</span></button>'}).join("")
-    :'<div class="small muted" style="padding:8px">Nenhum conceito ainda.</div>';
+  const el=$("conc-itens");if(!el)return;const q=S.cq.trim().toLowerCase(),tipo=tipoReg(S.cadTab);
+  const l=regsDo(tipo).filter(c=>!q||(String(c.termo)+" "+String(c.definicao)+" "+String(c.periodo||"")+" "+(c.leituras||[]).map(x=>x.autor+" "+x.texto+" "+((itemDeLeitura(x.livroId)||{}).x||{}).titulo).join(" ")).toLowerCase().includes(q)).sort((a,b)=>String(a.termo).localeCompare(String(b.termo),"pt"));
+  el.innerHTML=l.length?l.map(c=>{
+    let sub;
+    if(tipo==="nome"){const a=aparicoes(c);sub=(c.periodo?esc(c.periodo)+' · ':'')+(a.textos.length?plural(a.textos.length,"texto","textos")+(a.ciclos.length?' · '+(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):''):'Ainda sem citações')}
+    else{const aut=[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))];sub=(aut.length?esc(aut.join(", ")):"Nenhum autor ainda")+' · '+plural((c.notas||[]).length,"fichamento","fichamentos")}
+    return '<button class="item" data-act="conceito-abrir" data-id="'+c.id+'" aria-current="'+(!!S.cdraft&&S.cdraft.id===c.id)+'"><span class="tt">'+esc(c.termo||"Sem nome")+'</span><span class="sub">'+sub+'</span></button>'}).join("")
+    :'<div class="small muted" style="padding:8px">'+REG[tipo].vazio+'</div>';
 }
 function editorConceito(){
-  const c=S.cdraft,livs=livrosOrdenados();
+  const c=S.cdraft,livs=livrosOrdenados(),nome=ehNome(c),L=REG[nome?"nome":"conceito"];
+  const arts=nome?S.artigos.slice().sort((a,b)=>String(b.data||"").localeCompare(String(a.data||""))):[];
   let h='<div class="editor" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><span class="savestate" id="csave" aria-live="polite">'+esc(S.csave)+'</span></div>'
-   +'<input class="title" type="text" id="ce-termo" placeholder="Nome do conceito" aria-label="Nome do conceito" value="'+esc(c.termo||"")+'">'
-   +'<label class="f">Definição geral<textarea id="ce-def" rows="4" class="short">'+esc(c.definicao||"")+'</textarea></label>'
-   +'<div class="stack"><div class="spread"><strong class="small">Como cada autor trata o conceito</strong><button class="btn sm" data-act="conceito-autor"'+dis()+'>+ Autor</button></div>';
-  if(!c.leituras.length)h+='<p class="small muted">Ex.: reificação em Marx (fetichismo), em Lukács e em Althusser.</p>';
+   +'<input class="title" type="text" id="ce-termo" placeholder="'+L.termo+'" aria-label="'+L.termo+'" value="'+esc(c.termo||"")+'">'
+   +(nome?'<label class="f">Época e lugar<input type="text" id="ce-periodo" placeholder="Ex.: 1809–1865, França" value="'+esc(c.periodo||"")+'"></label>':'')
+   +'<label class="f">'+L.def+'<textarea id="ce-def" rows="'+(nome?3:4)+'" class="short"'+(nome?' placeholder="Quem foi, qual papel teve, por que importa para os seus estudos"':'')+'>'+esc(c.definicao||"")+'</textarea></label>';
+  if(nome&&c.id){const a=aparicoes(c);if(a.textos.length)h+='<div class="row small"><span class="muted">Aparece em:</span>'+(a.ciclos.length?'<span class="pill">'+(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", ")+'</span>':'')+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>'}
+  h+='<div class="stack"><div class="spread"><strong class="small">'+L.secao+'</strong><button class="btn sm" data-act="conceito-autor"'+dis()+'>'+L.add+'</button></div>';
+  if(!c.leituras.length)h+='<p class="small muted">'+L.ex+'</p>';
   c.leituras.forEach((l,i)=>{
-    h+='<div class="leitura"><div class="grid"><label class="f">Autor<input type="text" data-cl="autor" data-i="'+i+'" value="'+esc(l.autor||"")+'"></label><label class="f">Texto de referência<select data-cl="livroId" data-i="'+i+'"><option value="">—</option>'+livs.map(b=>'<option value="'+b.id+'"'+(l.livroId===b.id?" selected":"")+'>'+esc(b.titulo)+'</option>').join("")+'</select></label></div>'
-     +'<textarea rows="3" class="short" data-cl="texto" data-i="'+i+'" aria-label="Como o conceito aparece neste autor" placeholder="Como o conceito aparece neste autor">'+esc(l.texto||"")+'</textarea><div><button class="btn sm ghost" data-act="conceito-autor-remover" data-i="'+i+'">Remover autor</button></div></div>';
+    const opts='<option value="">—</option>'+livs.map(b=>'<option value="'+b.id+'"'+(l.livroId===b.id?" selected":"")+'>'+esc(b.titulo)+'</option>').join("")+(arts.length?'<optgroup label="Imprensa">'+arts.map(a=>'<option value="'+a.id+'"'+(l.livroId===a.id?" selected":"")+'>'+esc(a.titulo)+'</option>').join("")+'</optgroup>':'');
+    const sel='<label class="f">'+(nome?"Texto em que aparece":"Texto de referência")+'<select data-cl="livroId" data-i="'+i+'">'+opts+'</select></label>';
+    const aut='<label class="f">'+L.quem+'<input type="text" data-cl="autor" data-i="'+i+'" value="'+esc(l.autor||"")+'"'+(nome?' placeholder="Autor do texto (opcional)"':'')+'></label>';
+    h+='<div class="leitura"><div class="grid">'+(nome?sel+aut:aut+sel)+'</div>'
+     +'<textarea rows="3" class="short" data-cl="texto" data-i="'+i+'" aria-label="'+L.txt+'" placeholder="'+L.txt+'">'+esc(l.texto||"")+'</textarea><div><button class="btn sm ghost" data-act="conceito-autor-remover" data-i="'+i+'">'+L.rem+'</button></div></div>';
   });
   return h+'</div><div><strong class="small">Fichamentos ligados</strong><input type="search" id="cnq" placeholder="Filtrar fichamentos" aria-label="Filtrar fichamentos" value="'+esc(S.cnq)+'" style="width:100%;margin:6px 0"><div id="conc-notas" class="checklist"></div></div>'
    +'<div class="spread"><button class="btn sm danger" data-act="conceito-excluir"'+(c.id?"":" disabled")+'>Excluir</button><button class="btn primary" data-act="conceito-salvar"'+dis()+'>Salvar</button></div></div>';
@@ -1097,16 +1128,16 @@ function telaPlano(){
     +'<li><strong>Leitura com data marcada fora da rotina:</strong> Semana › “+ Leitura extraordinária”.</li>'
     +'<li><strong>Biblioteca › Textos:</strong> adicione, mude status e ciclo direto no cartão; o ⋯ tem ler, anexar PDF, editar, ordem, anotações e excluir. Ao concluir um texto, o próximo da trilha entra sozinho.</li>'
     +'<li><strong>Biblioteca › Tópicos:</strong> cada tópico é uma pasta com textos, PDFs, fichamentos e sínteses.</li>'
-    +'<li><strong>Leitor de PDF:</strong> Marcar, Nota e Caneta, com cores de significado fixo; “+ Conceito” registra no glossário; “Notas” vira fichamento.</li>'
+    +'<li><strong>Leitor de PDF:</strong> Marcar, Nota e Caneta, com cores de significado fixo; “+ Conceito” e “+ Nome” registram no Caderno; “Notas” vira fichamento.</li>'
     +'<li><strong>Biblioteca › Imprensa:</strong> matérias de O Futuro e Em Defesa do Comunismo, atualizadas todo dia. Não contam como tempo de estudo. Para ler e anotar aqui, salve a matéria em PDF e use ⋯ › Anexar PDF.</li>'
-    +'<li><strong>Caderno:</strong> fichamentos (notas de leitura), sínteses (seus textos) e conceitos.</li>'
+    +'<li><strong>Caderno:</strong> fichamentos (notas de leitura), sínteses (seus textos), conceitos e nomes (pessoas, autores e organizações citados nas leituras, com os textos e ciclos em que aparecem).</li>'
     +'<li><strong>Novo ciclo:</strong> Plano › Ciclos › “+ Novo ciclo”; depois mude o ciclo atual no topo desta aba.</li>'
     +'<li><strong>Cópia de segurança:</strong> Plano › Backup.</li></ul>');
   return h;
 }
 
 /* ---------- Busca ---------- */
-function telaBusca(){return '<h2>Buscar no caderno</h2><input type="search" id="bq" placeholder="Livro, autor, tópico, conceito ou palavra de um fichamento" aria-label="Buscar no caderno" value="'+esc(S.bq)+'" style="width:100%;font-size:16px;padding:10px"><div id="bres" class="group"></div>'}
+function telaBusca(){return '<h2>Buscar no caderno</h2><input type="search" id="bq" placeholder="Livro, autor, tópico, conceito, nome ou palavra de um fichamento" aria-label="Buscar no caderno" value="'+esc(S.bq)+'" style="width:100%;font-size:16px;padding:10px"><div id="bres" class="group"></div>'}
 function pintarBusca(){
   const el=$("bres");if(!el)return;const q=S.bq.trim().toLowerCase();
   if(q.length<2){el.innerHTML='<p class="small muted">Digite pelo menos duas letras.</p>';return}
@@ -1116,7 +1147,8 @@ function pintarBusca(){
    +sec("Tópicos",S.topicos.filter(t=>tem(t.nome,t.descricao,t.eixo)).slice(0,30).map(t=>'<button class="item" style="--c:'+T(topTrilha(t)).cor+'" data-act="topico-abrir" data-id="'+t.id+'"><span class="tt">'+esc(t.nome)+'</span><span class="sub">'+STATUS_T[t.status]+(t.eixo?" · "+esc(t.eixo):"")+'</span></button>').join(""))
    +sec("Imprensa",S.artigos.filter(a=>tem(a.titulo,a.secao)).slice(0,30).map(a=>'<div class="strip" style="--c:var(--muted);align-items:center"><div class="body"><div class="tt">'+esc(a.titulo)+'</div><div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+'</div></div><div class="row">'+(a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div>').join(""))
    +sec("Fichamentos e sínteses",S.notas.filter(n=>tem(n.titulo,n.texto)).slice(0,40).map(n=>'<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+'</span></button>').join(""))
-   +sec("Conceitos",S.conceitos.filter(c=>tem(c.termo,c.definicao,...(c.leituras||[]).map(l=>l.autor+" "+l.texto))).slice(0,30).map(c=>'<button class="item" data-act="conceito-ir" data-id="'+c.id+'"><span class="tt">'+esc(c.termo)+'</span><span class="sub">Conceito</span></button>').join(""));
+   +sec("Conceitos",regsDo("conceito").filter(c=>tem(c.termo,c.definicao,...(c.leituras||[]).map(l=>l.autor+" "+l.texto))).slice(0,30).map(c=>'<button class="item" data-act="conceito-ir" data-id="'+c.id+'"><span class="tt">'+esc(c.termo)+'</span><span class="sub">Conceito</span></button>').join(""))
+   +sec("Nomes",regsDo("nome").filter(c=>tem(c.termo,c.definicao,c.periodo,...(c.leituras||[]).map(l=>l.autor+" "+l.texto))).slice(0,30).map(c=>{const a=aparicoes(c);return '<button class="item" data-act="conceito-ir" data-id="'+c.id+'"><span class="tt">'+esc(c.termo)+'</span><span class="sub">Nome'+(c.periodo?' · '+esc(c.periodo):'')+(a.textos.length?' · '+plural(a.textos.length,"texto","textos"):'')+'</span></button>'}).join(""));
   el.innerHTML=h||'<p class="small muted">Nada encontrado para “'+esc(S.bq)+'”.</p>';
 }
 
@@ -1356,19 +1388,19 @@ function abrirNota(id){
 }
 function lerConceito(){
   const c=S.cdraft;if(!c)return;
-  if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-def"))c.definicao=$("ce-def").value;
+  if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-periodo"))c.periodo=$("ce-periodo").value;if($("ce-def"))c.definicao=$("ce-def").value;
   document.querySelectorAll("[data-cl]").forEach(el=>{const l=c.leituras[Number(el.dataset.i)];if(l)l[el.dataset.cl]=el.value});
 }
 function salvarConceito(){
   clearTimeout(concTimer);const c=S.cdraft;if(!c||!S.db||S.readOnly)return Promise.resolve();
   if(!c.id&&!String(c.termo||"").trim())return Promise.resolve();
   if(!c.id)c.id=novoId("conceitos");
-  const data={termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
+  const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
   estadoConc("Salvando…");
   return save("conceitos/"+c.id,data).then(()=>{const t=new Date();estadoConc("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaConceitos()}).catch(()=>estadoConc("Erro ao salvar"));
 }
 function agendarConceito(){clearTimeout(concTimer);estadoConc("Alterações não salvas");concTimer=setTimeout(salvarConceito,1800)}
-function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno","conceitos")}
+function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno",ehNome(c)?"nomes":"conceitos")}
 
 /* =====================================================================
    10. PDFs e leitor
@@ -1412,7 +1444,7 @@ function barraLeitor(b){
    +'<div class="row" aria-label="Zoom"><button class="btn sm" data-act="rd-zoom" data-dir="-1" aria-label="Diminuir">−</button><span class="small hours" id="rd-zoom">100%</span><button class="btn sm" data-act="rd-zoom" data-dir="1" aria-label="Aumentar">+</button></div>'
    +'<div class="row" role="toolbar" aria-label="Ferramentas">'+[["ler","Ler"],["marca","Marcar"],["nota","Nota"],["caneta","Caneta"],["apagar","Apagar"]].map(([k,l])=>'<button class="btn sm tool" data-act="rd-ferramenta" data-tool="'+k+'" aria-pressed="'+(k==="ler")+'">'+l+'</button>').join("")+'</div>'
    +'<div class="row" role="group" aria-label="Cor e significado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="rd-cor" data-cor="'+k+'" aria-pressed="'+(k==="amarelo")+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span>'+esc(lg[k])+'</button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><div id="rd-pages"><div class="empty">Abrindo o PDF…</div></div></div><aside class="rd-side" id="rd-side" hidden></aside></div></div>';
 }
 const ZOOMS=[1,1.25,1.5,2,2.5];
@@ -1523,26 +1555,28 @@ function fecharLeitor(){
   Object.keys(R).forEach(k=>delete R[k]);
   $("reader-root").innerHTML="";document.body.classList.remove("reading");
 }
-async function registrarConceito(nome,texto,pagina){
+async function registrarConceito(nome,texto,pagina,tipo){
+  tipo=tipo==="nome"?"nome":"conceito";const L=REG[tipo];
   nome=String(nome||"").trim();if(!nome||!S.db)return;
   const it=itemDeLeitura(R.livroId),b=it&&it.col==="livros"?it.x:null,linha=(String(texto||"").trim()+" (p. "+pagina+")").trim(),agora=new Date().toISOString();
-  const ex=S.conceitos.find(c=>String(c.termo).trim().toLowerCase()===nome.toLowerCase());
+  const ex=regsDo(tipo).find(c=>String(c.termo).trim().toLowerCase()===nome.toLowerCase());
   if(ex){
     const data=clone(strip(ex));data.leituras=data.leituras||[];
     const l=data.leituras.find(x=>x.livroId===R.livroId);
     if(l)l.texto=(l.texto?l.texto+"\n":"")+linha;else data.leituras.push({autor:b?b.autor||"":"",livroId:R.livroId||"",texto:linha});
-    data.atualizado=agora;await save("conceitos/"+ex.id,data);toast("Conceito “"+ex.termo+"” atualizado com este texto.");
+    data.atualizado=agora;await save("conceitos/"+ex.id,data);toast(L.Um+" “"+ex.termo+"” atualizado com este texto.");
   }else{
-    await save("conceitos/"+novoId("conceitos"),{termo:nome,definicao:"",leituras:[{autor:b?b.autor||"":"",livroId:R.livroId||"",texto:linha}],notas:[],atualizado:agora});
-    toast("Conceito “"+nome+"” criado no glossário.");
+    await save("conceitos/"+novoId("conceitos"),{...(tipo==="nome"?{tipo:"nome",periodo:""}:{}),termo:nome,definicao:"",leituras:[{autor:b?b.autor||"":"",livroId:R.livroId||"",texto:linha}],notas:[],atualizado:agora});
+    toast(L.Um+" “"+nome+"” criado no Caderno.");
   }
 }
-function dialogoConceitoPdf(){
-  abrirModal('<div class="dialog" role="dialog" aria-labelledby="cp-h"><h2 id="cp-h">Registrar conceito · p. '+R.cur+'</h2>'
-   +'<label class="f">Conceito<input type="text" id="cp-nome" list="cp-lista" placeholder="Nome do conceito (novo ou existente)"><datalist id="cp-lista">'+S.conceitos.map(c=>'<option value="'+esc(c.termo)+'"></option>').join("")+'</datalist></label>'
-   +'<label class="f">Como aparece neste texto<textarea id="cp-texto" rows="4" placeholder="Explique com suas palavras"></textarea></label>'
-   +'<p class="small muted">Se o conceito já existir, este trecho é acrescentado a ele; se não, um conceito novo é criado.</p>'
-   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="cp-salvar">Registrar</button></div></div>');
+function dialogoConceitoPdf(tipo){
+  const nome=tipo==="nome";
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="cp-h"><h2 id="cp-h">'+(nome?"Registrar nome":"Registrar conceito")+' · p. '+R.cur+'</h2>'
+   +'<label class="f">'+(nome?"Nome":"Conceito")+'<input type="text" id="cp-nome" list="cp-lista" placeholder="'+(nome?"Pessoa, autor ou organização (novo ou existente)":"Nome do conceito (novo ou existente)")+'"><datalist id="cp-lista">'+regsDo(nome?"nome":"conceito").map(c=>'<option value="'+esc(c.termo)+'"></option>').join("")+'</datalist></label>'
+   +'<label class="f">'+(nome?"O que o texto diz sobre essa pessoa":"Como aparece neste texto")+'<textarea id="cp-texto" rows="4" placeholder="Explique com suas palavras"></textarea></label>'
+   +'<p class="small muted">'+(nome?"Se o nome já existir, esta citação é acrescentada a ele; se não, um nome novo é criado.":"Se o conceito já existir, este trecho é acrescentado a ele; se não, um conceito novo é criado.")+'</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="cp-salvar" data-tipo="'+(nome?"nome":"conceito")+'">Registrar</button></div></div>');
   setTimeout(()=>{const x=$("cp-nome");if(x)x.focus()},30);
 }
 function ligarPonteiroDoLeitor(){
@@ -1801,7 +1835,7 @@ function render(){
   const telas={hoje:telaHoje,semana:telaSemana,biblioteca:telaBiblioteca,caderno:telaCaderno,plano:telaPlano,busca:telaBusca,historico:telaHistorico};
   document.body.dataset.view=S.view;
   main.innerHTML=aviso()+telas[S.view]();
-  if(S.view==="caderno"){if(S.cadTab==="conceitos"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
+  if(S.view==="caderno"){if(S.cadTab==="conceitos"||S.cadTab==="nomes"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
   if(S.view==="busca"){pintarBusca();const q=$("bq");if(q&&document.activeElement!==q&&!S.bq)q.focus()}
   pintarCronometro();
 }
@@ -1879,7 +1913,7 @@ const ACOES={
   "topico-anotar":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({topicoId:tp.id,titulo:tp.nome})},
   "topico-sintese":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({tipo:"sintese",topicoId:tp.id,titulo:"Síntese — "+tp.nome,texto:""})},
   /* caderno */
-  "cad-aba":async el=>{await guardarRascunhos();S.cadTab=el.dataset.tab;S.draft=null;S.cdraft=null;render()},
+  "cad-aba":async el=>{await guardarRascunhos();S.cadTab=el.dataset.tab;S.cq="";S.draft=null;S.cdraft=null;render()},
   "nota-nova":()=>S.cadTab==="sinteses"?novaNota({tipo:"sintese",trilha:"sintese",titulo:"",texto:"",livroId:S.nf.livro!=="todos"?S.nf.livro:""}):novaNota({livroId:S.nf.livro!=="todos"?S.nf.livro:""}),
   "nota-abrir":async el=>{if(S.draft){lerNota();await salvarNota()}abrirNota(el.dataset.id)},
   "nota-ir":async el=>{fecharModal();await guardarRascunhos();abrirNota(el.dataset.id)},
@@ -1890,14 +1924,14 @@ const ACOES={
   "notas-copiar":()=>{const l=notasFiltradas();if(!l.length)return toast("Nada para copiar.");copy(l.map(notaTexto).join("\n---\n\n"))},
   "nota-excluir":el=>{if(!S.draft||!S.draft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(notaTimer);remove("notas/"+S.draft.id).then(()=>{S.draft=null;render();toast("Excluído.")}).catch(()=>{})})},
   "nf-limpar-topico":()=>{S.nf.topico="todos";render()},
-  "conceito-novo":async()=>{await guardarRascunhos();abrirConceito({id:null,termo:"",definicao:"",leituras:[],notas:[]});S.csave="Novo";setTimeout(()=>{const x=$("ce-termo");if(x)x.focus()},60)},
+  "conceito-novo":async el=>{await guardarRascunhos();abrirConceito({id:null,...(el.dataset.tipo==="nome"?{tipo:"nome",periodo:""}:{}),termo:"",definicao:"",leituras:[],notas:[]});S.csave="Novo";setTimeout(()=>{const x=$("ce-termo");if(x)x.focus()},60)},
   "conceito-abrir":async el=>{if(S.cdraft){lerConceito();await salvarConceito()}abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
   "conceito-ir":async el=>{fecharModal();await guardarRascunhos();abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
   "conceito-fechar":async()=>{lerConceito();await salvarConceito();S.cdraft=null;render()},
   "conceito-salvar":()=>{lerConceito();salvarConceito()},
   "conceito-autor":()=>{lerConceito();S.cdraft.leituras.push({autor:"",livroId:"",texto:""});render();setTimeout(()=>{const l=document.querySelectorAll('[data-cl="autor"]');if(l.length)l[l.length-1].focus()},30)},
   "conceito-autor-remover":el=>{lerConceito();S.cdraft.leituras.splice(Number(el.dataset.i),1);render();agendarConceito()},
-  "conceito-excluir":el=>{if(!S.cdraft||!S.cdraft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(concTimer);remove("conceitos/"+S.cdraft.id).then(()=>{S.cdraft=null;render();toast("Conceito excluído.")}).catch(()=>{})})},
+  "conceito-excluir":el=>{if(!S.cdraft||!S.cdraft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(concTimer);const era=ehNome(S.cdraft)?"Nome":"Conceito";remove("conceitos/"+S.cdraft.id).then(()=>{S.cdraft=null;render();toast(era+" excluído.")}).catch(()=>{})})},
   /* plano */
   "plano-salvar":()=>{const n=clone(cfg());n.etapaAtual=Number($("pl-etapa").value);n.inicioEtapa=$("pl-inicio").value||n.inicioEtapa||iso(mondayOf(new Date()));n.rotacao=rotacao().map((t,i)=>$("pl-rot-"+i)?$("pl-rot-"+i).value:t);salvarConfig(n,"Plano atualizado.")},
   "rot-mais":()=>{const n=clone(cfg());n.rotacao=rotacao().map((t,i)=>$("pl-rot-"+i)?$("pl-rot-"+i).value:t);n.rotacao.push(bookTrilhas()[0]||"sintese");S.secAberta="ciclo";salvarConfig(n,"Semana adicionada à rotação.")},
@@ -1925,8 +1959,9 @@ const ACOES={
   "rd-zoom":el=>{const i=ZOOMS.indexOf(R.zoom),j=Math.max(0,Math.min(ZOOMS.length-1,i+Number(el.dataset.dir)));if(j===i)return;const pag=R.cur;R.zoom=ZOOMS[j];aplicarZoom();setTimeout(()=>{const pg=R.pages[pag-1];if(pg)pg.el.scrollIntoView({block:"start"})},30)},
   "rd-lateral":()=>{const sd=$("rd-side");if(sd){sd.hidden=!sd.hidden;pintarLateral()}},
   "rd-ir":el=>{const pg=R.pages&&R.pages[Number(el.dataset.n)-1];if(pg)pg.el.scrollIntoView({block:"start",behavior:"smooth"});if(window.innerWidth<=760){$("rd-side").hidden=true}},
-  "rd-conceito":()=>dialogoConceitoPdf(),
-  "cp-salvar":()=>{const nome=$("cp-nome").value,tx=$("cp-texto").value;if(!nome.trim())return toast("Escreva o nome do conceito.");fecharModal();registrarConceito(nome,tx,R.cur).catch(()=>{})},
+  "rd-conceito":()=>dialogoConceitoPdf("conceito"),
+  "rd-nome":()=>dialogoConceitoPdf("nome"),
+  "cp-salvar":el=>{const tipo=el.dataset.tipo||"conceito",nome=$("cp-nome").value,tx=$("cp-texto").value;if(!nome.trim())return toast(tipo==="nome"?"Escreva o nome.":"Escreva o nome do conceito.");fecharModal();registrarConceito(nome,tx,R.cur,tipo).catch(()=>{})},
   "np-salvar":()=>{
     const c=S.noteCtx;if(!c||!R.livroId)return fecharModal();
     const txt=$("np-texto").value.trim(),conc=$("np-conc")?$("np-conc").value.trim():"";
