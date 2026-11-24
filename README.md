@@ -19,20 +19,18 @@ Leva uns 10 minutos. O passo 2 é mais confortável num computador.
       Coloque seu e-mail e uma senha e marque "Auto Confirm User". Esse é o seu login no caderno.
    f) Authentication › Sign In / Providers: desligue "Allow new users to sign up",
       para ninguém mais conseguir criar conta.
-   g) Project Settings › API (ou API Keys): copie a Project URL e a chave "anon public"
-      (ou "publishable"). Você vai colar as duas no passo 4.
+   g) A URL do projeto e a chave publishable já estão gravadas no index.html.
 
 3. A PÁGINA
    Já está publicada pelo GitHub Pages em https://mognondb.github.io/caderno-estudos/
    (Settings › Pages › Deploy from a branch › main › / (root)).
 
 4. PRIMEIRO ACESSO
-   a) Abra o endereço. Cole a Project URL e a chave e toque em Conectar.
-   b) Entre com o e-mail e a senha do passo 2e.
-   c) Plano › Backup e agenda › Restaurar backup… e escolha o arquivo do passo 1.
+   a) Abra o endereço e entre com o e-mail e a senha do passo 2e.
+   b) Plano › Backup e agenda › Restaurar backup… e escolha o arquivo do passo 1.
 
 5. NO CELULAR
-   Abra o endereço no navegador, cole URL e chave, entre e use "Adicionar à tela inicial".
+   Abra o endereço no navegador, entre e use "Adicionar à tela inicial".
    Ele vira um ícone como de aplicativo. Você só faz login uma vez por aparelho.
 
 BOM SABER
