@@ -29,6 +29,8 @@ async function baixar(url: string): Promise<string> {
   } finally { clearTimeout(t); }
 }
 
+const chaveLink = (u: string) => String(u || "").replace(/^https?:\/\/(www\.)?/i, "").replace(/[?#].*$/, "").replace(/\/+$/, "").toLowerCase();
+type Existente = { id: string; data: Record<string, unknown> };
 async function idDe(fonte: string, url: string): Promise<string> {
   const h = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(url.replace(/[?#].*$/, "").replace(/\/+$/, "")));
   return fonte + "-" + [...new Uint8Array(h)].slice(0, 10).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -49,7 +51,7 @@ const textoPuro = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g
 type Materia = { id: string; fonteId: string; titulo: string; link: string; data: string; secao: string; autor: string; resumo: string; imagem: string; conteudo: string };
 
 /* ---------- Em Defesa do Comunismo (Ghost: RSS com texto completo) ---------- */
-async function emDefesa(existentes: Set<string>): Promise<Materia[]> {
+async function emDefesa(existentes: Map<string, Existente>): Promise<Materia[]> {
   const base = "https://emdefesadocomunismo.com.br";
   const xml = await baixar(base + "/rss/");
   const itens = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map((m) => m[1]);
@@ -57,8 +59,9 @@ async function emDefesa(existentes: Set<string>): Promise<Materia[]> {
   for (const it of itens) {
     const link = tag(it, "link");
     if (!/^https:\/\//.test(link)) continue;
-    const id = await idDe("edc", link);
-    if (existentes.has(id)) continue;
+    const ex = existentes.get(chaveLink(link));
+    if (ex && ex.data.conteudo) continue;
+    const id = ex ? ex.id : await idDe("edc", link);
     let conteudo = tag(it, "content:encoded");
     if (!conteudo) { try { conteudo = (await extrair(link)).conteudo; } catch { conteudo = tag(it, "description"); } }
     const cats = tags(it, "category").filter((c) => !/^recentes?$/i.test(c));
@@ -114,7 +117,7 @@ function dataNoTexto(t: string): Date | null {
 }
 
 /* ---------- Jornal O Futuro (lista de links /artigo/ na capa) ---------- */
-async function oFuturo(existentes: Set<string>): Promise<Materia[]> {
+async function oFuturo(existentes: Map<string, Existente>): Promise<Materia[]> {
   const base = "https://jornalofuturo.com.br";
   const capa = await baixar(base + "/");
   const links: string[] = [];
@@ -124,8 +127,9 @@ async function oFuturo(existentes: Set<string>): Promise<Materia[]> {
   }
   const out: Materia[] = [];
   for (const link of links) {
-    const id = await idDe("ofuturo", link);
-    if (existentes.has(id)) continue;
+    const ex = existentes.get(chaveLink(link));
+    if (ex && ex.data.conteudo) continue;
+    const id = ex ? ex.id : await idDe("ofuturo", link);
     try {
       const x = await extrair(link);
       if (!x.titulo || !x.conteudo) continue;
@@ -145,9 +149,13 @@ Deno.serve(async (req) => {
   if (eu || !u?.user) return resposta({ erro: "Faça login no caderno." }, 401);
   const dono = u.user.id;
 
-  const { data: linhas, error: el } = await sb.from("docs").select("id").eq("col", "artigos");
-  if (el) return resposta({ erro: "Não consegui ler o banco: " + el.message }, 500);
-  const existentes = new Set((linhas || []).map((r: { id: string }) => r.id));
+  const existentes = new Map<string, Existente>();
+  for (let de = 0; ; de += 1000) {
+    const { data: linhas, error: el } = await sb.from("docs").select("id,data").eq("col", "artigos").range(de, de + 999);
+    if (el) return resposta({ erro: "Não consegui ler o banco: " + el.message }, 500);
+    for (const r of (linhas || []) as Existente[]) { const k = chaveLink(String(r.data?.link || "")); if (k) existentes.set(k, r); }
+    if (!linhas || linhas.length < 1000) break;
+  }
 
   const fontes: Record<string, { novas: number; erro?: string }> = {};
   const todas: Materia[] = [];
@@ -158,9 +166,18 @@ Deno.serve(async (req) => {
 
   const agora = new Date().toISOString();
   if (todas.length) {
-    const rows = todas.map(({ id, ...m }) => ({ owner: dono, col: "artigos", id, data: { ...m, status: "novo", salvo: false, criado: agora, auto: true }, updated_at: agora }));
-    const { error } = await sb.from("docs").upsert(rows, { onConflict: "owner,col,id", ignoreDuplicates: true });
+    const rows = todas.map(({ id, ...m }) => {
+      const ex = existentes.get(chaveLink(m.link));
+      const antigo = ex ? ex.data : null;
+      // matéria que já estava no caderno: completa o texto e mantém o que o usuário marcou
+      const data = antigo
+        ? { ...m, ...Object.fromEntries(Object.entries(antigo).filter(([k, v]) => v !== "" && v != null && !["conteudo", "resumo", "imagem", "autor"].includes(k))), conteudo: m.conteudo, auto: true }
+        : { ...m, status: "novo", salvo: false, criado: agora, auto: true };
+      return { owner: dono, col: "artigos", id, data, updated_at: agora };
+    });
+    const { error } = await sb.from("docs").upsert(rows, { onConflict: "owner,col,id" });
     if (error) return resposta({ erro: "Não consegui gravar: " + error.message, fontes }, 500);
   }
-  return resposta({ novas: todas.length, fontes });
+  const completadas = todas.filter((m) => existentes.has(chaveLink(m.link))).length;
+  return resposta({ novas: todas.length - completadas, completadas, fontes });
 });

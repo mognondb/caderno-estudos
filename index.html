@@ -1870,7 +1870,7 @@ async function atualizarImprensa(manual){
     gravarNum("imprensa-ultima",Date.now());
     const erros=Object.entries((r&&r.fontes)||{}).filter(([k,v])=>v&&v.erro).map(([k,v])=>(FONTES[k]||{nome:k}).nome+": "+v.erro);
     S.impErro=erros.join(" · ");
-    if(manual||(r&&r.novas))toast(r&&r.novas?plural(r.novas,"matéria nova","matérias novas")+" na Imprensa.":"Nenhuma matéria nova."+(erros.length?" Houve erro em uma fonte.":""));
+    {const c=(r&&r.completadas)||0,nv=(r&&r.novas)||0;if(manual||nv||c)toast((nv?plural(nv,"matéria nova","matérias novas"):"Nenhuma matéria nova")+(c?" e "+plural(c,"matéria completada","matérias completadas")+" com o texto":"")+"."+(erros.length?" Houve erro em uma fonte.":""))}
   }catch(e){
     S.impErro=String(e&&e.message||e);
     if(manual)toast("Não foi possível atualizar: "+S.impErro.slice(0,140),8000);
@@ -1911,7 +1911,7 @@ function telaImprensa(){
   const ult=ultimaImprensa(),quando=ult?new Date(ult):null;
   let h='<div class="spread"><p class="small muted" style="margin:0;flex:1;min-width:220px">Matérias de O Futuro e de Em Defesa do Comunismo, com o texto completo para ler e anotar aqui. Leituras daqui não contam como tempo de estudo.</p>'
    +(window.cadernoImprensa?'<div class="row"><span class="small muted">'+(S.impRodando?"Buscando matérias…":quando?"Atualizado "+(iso(quando)===iso(new Date())?"hoje":fmtDM(quando))+" às "+pad(quando.getHours())+":"+pad(quando.getMinutes()):"")+'</span><button class="btn sm" data-act="imp-atualizar"'+(S.impRodando?" disabled":"")+'>Atualizar agora</button></div>':'')+'</div>'
-   +(S.impErro?'<div class="banner small">Problema ao buscar: '+esc(S.impErro)+(/404|not found|não encontrad/i.test(S.impErro)?' — a função “imprensa” ainda não foi instalada no Supabase.':'')+'</div>':'')
+   +(S.impErro?'<div class="banner small">Problema ao buscar: '+esc(S.impErro)+(/404|not found|não encontrad|failed to send|401|jwt/i.test(S.impErro)?' — o caderno não conseguiu falar com a função “imprensa”. Confira se ela está instalada no Supabase com o nome imprensa e com “Verify JWT” desligado.':'')+'</div>':'')
    +'<div class="filters"><select id="af-fonte" aria-label="Fonte"><option value="todas">Todas as fontes</option>'+Object.keys(FONTES).filter(k=>k!=="outra"||S.artigos.some(a=>a.fonteId==="outra")).map(k=>'<option value="'+k+'"'+(f.fonte===k?" selected":"")+'>'+FONTES[k].nome+'</option>').join("")+'</select>'
    +'<select id="af-status" aria-label="Situação">'+[["novos","Não lidas ("+novos+")"],["salvos","Salvas"],["todos","Todas"]].map(([k,l])=>'<option value="'+k+'"'+(f.status===k?" selected":"")+'>'+l+'</option>').join("")+'</select></div>';
   const l=artigosFiltrados();
