@@ -906,9 +906,9 @@ function telaHoje(){
    +'<div class="row" id="timer-box">'+timerHtml()+'</div></div><div class="small muted">Estudado nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a></div></section>';
   if(!bl.keys.length){
     let prox=null;for(let k=1;k<=7&&!prox;k++){const dt=addDays(hoje,k),l=slotsPadrao()[dt.getDay()]||[];if(l.length)prox={dt,l}}
-    return h+avulsasDeHoje()+'<div class="empty">Hoje não há estudo planejado.'+(prox?'<br><span class="small">Próximo: '+DIAS.find(x=>x.i===prox.dt.getDay()).nome+', '+prox.l.map(s=>esc(T(resolveTrilha(s.trilha,weekIndex(mondayOf(prox.dt)))).curto)).join(" + ")+'.</span>':'')+'</div>';
+    return h+avulsasDeHoje()+'<div class="empty">Hoje não há estudo planejado.'+(prox?'<br><span class="small">Próximo: '+DIAS.find(x=>x.i===prox.dt.getDay()).nome+', '+prox.l.map(s=>esc(T(resolveTrilha(s.trilha,weekIndex(mondayOf(prox.dt)))).curto)).join(" + ")+'.</span>':'')+'</div>'+imprensaDoDia();
   }
-  return h+'<section class="day today" aria-label="Blocos de hoje">'+bl.extras.map(blocoExtra).join("")+bl.slots.map(s=>blocoSlot(d,s,N)).join("")+rodapeDia(d,bl.keys,"Não estudei hoje")+'</section>'+avulsasDeHoje();
+  return h+'<section class="day today" aria-label="Blocos de hoje">'+bl.extras.map(blocoExtra).join("")+bl.slots.map(s=>blocoSlot(d,s,N)).join("")+rodapeDia(d,bl.keys,"Não estudei hoje")+'</section>'+avulsasDeHoje()+imprensaDoDia();
 }
 
 /* ---------- Semana ---------- */
@@ -1837,7 +1837,7 @@ const IMP_INTERVALO=2*3600e3;
 function ultimaImprensa(){try{return Number(localStorage.getItem("imprensa-ultima"))||0}catch(e){return 0}}
 async function atualizarImprensa(manual){
   if(!window.cadernoImprensa||S.impRodando||S.readOnly)return;
-  S.impRodando=true;S.impErro="";if(S.view==="biblioteca")agendarRender();
+  S.impRodando=true;S.impErro="";if(S.view==="biblioteca"||S.view==="hoje")agendarRender();
   try{
     const r=await window.cadernoImprensa();
     try{localStorage.setItem("imprensa-ultima",String(Date.now()))}catch(e){}
@@ -1847,9 +1847,32 @@ async function atualizarImprensa(manual){
   }catch(e){
     S.impErro=String(e&&e.message||e);
     if(manual)toast("Não foi possível atualizar: "+S.impErro.slice(0,140),8000);
-  }finally{S.impRodando=false;if(S.view==="biblioteca")agendarRender()}
+  }finally{S.impRodando=false;if(S.view==="biblioteca"||S.view==="hoje")agendarRender()}
 }
 function talvezAtualizarImprensa(){if(window.cadernoImprensa&&!S.impRodando&&Date.now()-ultimaImprensa()>IMP_INTERVALO)atualizarImprensa(false)}
+/* ---------- seção do Hoje: notícias do dia ---------- */
+function linhaImprensa(a){
+  const lk=linkSeguro(a.link),lida=a.status==="lido";
+  return '<div class="strip'+(lida?" done":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":"var(--t-c6)")+';align-items:center"><div class="body"><div class="tt"'+(lida?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
+   +'<div class="sub">'+[a.secao?esc(a.secao):"",a.data?fmtDM(parseISO(a.data)):""].filter(Boolean).join(" · ")+(lida?'':' <span class="pill hot">Nova</span>')+'</div></div>'
+   +'<div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir</a>':''))+'</div></div>';
+}
+function imprensaDoDia(){
+  talvezAtualizarImprensa();
+  if(!S.artigos.length&&!window.cadernoImprensa)return "";
+  const hoje=iso(new Date()),ontem=iso(addDays(new Date(),-1)),porData=(a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||""));
+  const fut=S.artigos.filter(a=>a.fonteId==="ofuturo");
+  let dia=hoje,lf=fut.filter(a=>a.data===hoje);
+  if(!lf.length){dia=ontem;lf=fut.filter(a=>a.data===ontem)}
+  lf.sort(porData);
+  const edc=S.artigos.filter(a=>a.fonteId==="edc").sort(porData)[0];
+  let h='<section class="card"><div class="spread"><h2>Imprensa</h2><a class="btn sm ghost" href="#biblioteca" data-act="bib-aba" data-tab="imprensa">Ver tudo ›</a></div>';
+  h+='<div class="small muted">O Futuro · '+(lf.length?(dia===hoje?"hoje":"ontem"):"hoje e ontem")+'</div>'
+    +(lf.length?lf.map(linhaImprensa).join(""):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando as notícias…":"Nenhuma notícia de hoje nem de ontem.")+'</p>');
+  h+='<div class="small muted">Em Defesa do Comunismo · último texto</div>'
+    +(edc?linhaImprensa(edc):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando…":"Nenhum texto ainda.")+'</p>');
+  return h+'</section>';
+}
 function telaImprensa(){
   talvezAtualizarImprensa();
   const f=S.af,novos=S.artigos.filter(a=>a.status!=="lido").length;
