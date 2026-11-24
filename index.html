@@ -275,6 +275,14 @@ body.reading{overflow:hidden}
 .mt-texto a{color:var(--accent)}
 .mt-fina{font-size:19px;color:var(--muted)}
 .mt-cab{border-bottom:1px solid var(--line);margin-bottom:18px;padding-bottom:8px}
+details.grupo-notas{border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;background:var(--surface);margin-bottom:8px}
+details.grupo-notas>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap}
+details.grupo-notas>summary::-webkit-details-marker{display:none}
+details.grupo-notas>summary::before{content:"▸";color:var(--muted);margin-right:-2px;transition:transform .15s}
+details.grupo-notas[open]>summary::before{transform:rotate(90deg)}
+.gn-tit{display:flex;flex-direction:column;flex:1;min-width:160px}.gn-tit .sub,.gn-meta .sub{font-size:12px;color:var(--muted)}
+.gn-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.gn-itens{padding:0 8px 8px;display:flex;flex-direction:column;gap:6px}
 .mt-fim{font-family:var(--body);margin:26px 0 6px;display:flex;justify-content:center}
 .mt-fim .btn.primary{padding:10px 18px}
 .mt-dica{font-family:var(--body);border-top:1px solid var(--line);padding-top:10px;margin-top:24px}
@@ -1119,10 +1127,41 @@ function telaNotas(){
    +'<div class="items" id="nota-itens"></div><button class="btn sm" data-act="notas-copiar">Copiar a lista filtrada</button></div>';
   return '<div class="split'+(S.draft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.draft?editorNota():'<div class="empty">'+(sint?"Escolha uma síntese ou escreva uma nova.":"Escolha um fichamento ou crie um novo.")+'</div>')+'</div></div>';
 }
+function itemNota(n,mostrarFonte){
+  const b=livro(n.livroId),tp=n.topicoId&&topico(n.topicoId),ar=n.artigoId&&artigo(n.artigoId);
+  const quando=n.criado||n.atualizado;
+  return '<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-abrir" data-id="'+n.id+'" aria-current="'+(!!S.draft&&S.draft.id===n.id)+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'
+   +[n.paginas?"p. "+esc(n.paginas):"",TIPOS_NOTA[n.tipo]||"",mostrarFonte&&b?esc(b.titulo):"",tp?esc(tp.nome):"",mostrarFonte&&ar?esc(ar.titulo):"",quando?"registrado em "+fmtDM(new Date(quando)):"",n.atualizado&&n.criado&&n.atualizado.slice(0,10)!==n.criado.slice(0,10)?"editado em "+fmtDM(new Date(n.atualizado)):""].filter(Boolean).join(" · ")+'</span></button>';
+}
+const pagNum=n=>{const m=String(n.paginas||"").match(/\d+/);return m?Number(m[0]):Infinity};
+function gruposDeNotas(l){
+  const g=new Map();
+  l.forEach(n=>{
+    let k,titulo,sub="",cor="var(--muted)";
+    if(n.livroId&&livro(n.livroId)){const b=livro(n.livroId);k="l:"+b.id;titulo=b.titulo;sub=[b.autor,b.etapa?"Ciclo "+b.etapa:""].filter(Boolean).join(" · ");cor=T(b.trilha).cor}
+    else if(n.artigoId&&artigo(n.artigoId)){const a=artigo(n.artigoId);k="a:"+a.id;titulo=a.titulo;sub=(FONTES[a.fonteId]||FONTES.outra).nome;cor="var(--t-c6)"}
+    else if(n.topicoId&&topico(n.topicoId)){const t=topico(n.topicoId);k="t:"+t.id;titulo=t.nome;sub="Tópico"}
+    else{k="x";titulo="Sem texto ligado";sub=""}
+    if(!g.has(k))g.set(k,{k,titulo,sub,cor,notas:[]});g.get(k).notas.push(n);
+  });
+  const gs=[...g.values()];
+  gs.forEach(x=>{x.notas.sort((a,b)=>pagNum(a)-pagNum(b)||String(a.criado||a.atualizado||"").localeCompare(String(b.criado||b.atualizado||"")));x.ultima=x.notas.reduce((m,n)=>String(n.atualizado||n.criado||"")>m?String(n.atualizado||n.criado||""):m,"")});
+  gs.sort((a,b)=>(a.k==="x")-(b.k==="x")||b.ultima.localeCompare(a.ultima));
+  return gs;
+}
 function pintarListaNotas(){
   const el=$("nota-itens");if(!el)return;const l=notasFiltradas();
-  el.innerHTML=l.length?l.map(n=>{const b=livro(n.livroId),tp=n.topicoId&&topico(n.topicoId);return '<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-abrir" data-id="'+n.id+'" aria-current="'+(!!S.draft&&S.draft.id===n.id)+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(b?" · "+esc(b.titulo):"")+(tp?" · "+esc(tp.nome):"")+(n.artigoId&&artigo(n.artigoId)?" · "+esc(artigo(n.artigoId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>'}).join("")
-    :'<div class="small muted" style="padding:8px">Nada por aqui ainda.</div>';
+  if(!l.length){el.innerHTML='<div class="small muted" style="padding:8px">Nada por aqui ainda.</div>';return}
+  if(S.cadTab!=="fichamentos"){el.innerHTML=l.map(n=>itemNota(n,true)).join("");return}
+  S.nfAbertos=S.nfAbertos||{};
+  const filtrando=!!(S.nf.q&&S.nf.q.trim())||S.nf.livro!=="todos";
+  const atual=S.draft&&S.draft.id;
+  el.innerHTML=gruposDeNotas(l).map(g=>{
+    const aberto=filtrando||S.nfAbertos[g.k]||(atual&&g.notas.some(n=>n.id===atual));
+    return '<details class="grupo-notas" data-grupo="'+esc(g.k)+'"'+(aberto?" open":"")+' style="--c:'+g.cor+'"><summary><span class="gn-tit"><strong>'+esc(g.titulo)+'</strong>'+(g.sub?'<span class="sub">'+esc(g.sub)+'</span>':'')+'</span>'
+     +'<span class="gn-meta"><span class="pill">'+plural(g.notas.length,"fichamento","fichamentos")+'</span>'+(g.ultima?'<span class="sub">último em '+fmtDM(new Date(g.ultima))+'</span>':'')+'</span></summary>'
+     +'<div class="gn-itens">'+g.notas.map(n=>itemNota(n,false)).join("")+'</div></details>';
+  }).join("");
 }
 function leituraNota(){
   const d=S.draft,concs=S.conceitos.filter(c=>(c.notas||[]).includes(d.id)),it=itemDeLeitura(d.livroId||d.artigoId),tp=d.topicoId?topico(d.topicoId):null;
@@ -2228,7 +2267,7 @@ function pintarLateralMateria(){
 function ficharMateria(){
   const a=artigo(R.livroId);if(!a)return;const lg=legenda();
   const l=R.marcas.slice().sort((x,y)=>x.inicio-y.inicio);
-  const linhas=l.map(m=>"> "+m.texto.replace(/\s+/g," ").trim()+"\n\n"+"**"+(lg[m.cor]||m.cor)+"**"+(m.nota?": "+m.nota.trim():"")+"\n");
+  const linhas=l.map(m=>"> "+m.texto.replace(/\s+/g," ").trim()+"\n"+(m.nota&&m.nota.trim()?"\n"+m.nota.trim()+"\n":""));
   const id=a.id;fecharLeitor();
   novaNota({artigoId:id,titulo:"Fichamento — "+a.titulo,texto:(l.length?"## Trechos marcados\n\n"+linhas.join("\n"):"")+"\n## Síntese com minhas palavras\n\n"});
 }
@@ -2481,7 +2520,8 @@ document.addEventListener("input",e=>{
   if(el.id&&el.id.startsWith("ne-")){lerNota();agendarNota();return}
   if(S.cdraft&&(el.id==="ce-termo"||el.id==="ce-def"||(el.dataset&&el.dataset.cl))){lerConceito();agendarConceito()}
 });
-document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.sec")&&d.open)S.secAberta=d.dataset.sec},true);
+document.addEventListener("toggle",e=>{
+  const gr=e.target.closest&&e.target.closest("details.grupo-notas");if(gr&&e.target===gr){S.nfAbertos=S.nfAbertos||{};S.nfAbertos[gr.dataset.grupo]=gr.open;return}const d=e.target;if(d.matches&&d.matches("details.sec")&&d.open)S.secAberta=d.dataset.sec},true);
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(modalAberto())fecharModal();else if(leitorAberto())fecharLeitor()});
 window.addEventListener("hashchange",async()=>{
   const antes=S.view;
