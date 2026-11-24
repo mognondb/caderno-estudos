@@ -282,6 +282,9 @@ mark.mt-m.pisca{outline:3px solid var(--accent)}
 .sb-erro{color:#c0392b;margin:0}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#1c2028">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -1853,23 +1856,32 @@ function artigosFiltrados(){
     .sort((a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||"")));
 }
 /* ---------- atualização automática (função "imprensa" no Supabase) ---------- */
-const IMP_INTERVALO=2*3600e3;
-function ultimaImprensa(){try{return Number(localStorage.getItem("imprensa-ultima"))||0}catch(e){return 0}}
+const IMP_INTERVALO=2*3600e3,IMP_ESPERA_ERRO=30*60e3,IMP_LIMITE=60e3;
+function lerNum(k){try{return Number(localStorage.getItem(k))||0}catch(e){return 0}}
+function gravarNum(k,v){try{localStorage.setItem(k,String(v))}catch(e){}}
+function ultimaImprensa(){return lerNum("imprensa-ultima")}
 async function atualizarImprensa(manual){
   if(!window.cadernoImprensa||S.impRodando||S.readOnly)return;
-  S.impRodando=true;S.impErro="";if(S.view==="biblioteca"||S.view==="hoje")agendarRender();
+  S.impRodando=true;S.impErro="";S.impTentativa=Date.now();gravarNum("imprensa-tentativa",S.impTentativa);
+  const repintar=()=>{if(S.view==="biblioteca"||S.view==="hoje")agendarRender()};
+  repintar();
   try{
-    const r=await window.cadernoImprensa();
-    try{localStorage.setItem("imprensa-ultima",String(Date.now()))}catch(e){}
+    const r=await Promise.race([window.cadernoImprensa(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("a busca demorou demais (mais de 1 minuto)")),IMP_LIMITE))]);
+    gravarNum("imprensa-ultima",Date.now());
     const erros=Object.entries((r&&r.fontes)||{}).filter(([k,v])=>v&&v.erro).map(([k,v])=>(FONTES[k]||{nome:k}).nome+": "+v.erro);
     S.impErro=erros.join(" · ");
-    if(manual||r.novas)toast(r.novas?plural(r.novas,"matéria nova","matérias novas")+" na Imprensa.":"Nenhuma matéria nova."+(erros.length?" Houve erro em uma fonte.":""));
+    if(manual||(r&&r.novas))toast(r&&r.novas?plural(r.novas,"matéria nova","matérias novas")+" na Imprensa.":"Nenhuma matéria nova."+(erros.length?" Houve erro em uma fonte.":""));
   }catch(e){
     S.impErro=String(e&&e.message||e);
     if(manual)toast("Não foi possível atualizar: "+S.impErro.slice(0,140),8000);
-  }finally{S.impRodando=false;if(S.view==="biblioteca"||S.view==="hoje")agendarRender()}
+  }finally{S.impRodando=false;repintar()}
 }
-function talvezAtualizarImprensa(){if(window.cadernoImprensa&&!S.impRodando&&Date.now()-ultimaImprensa()>IMP_INTERVALO)atualizarImprensa(false)}
+function talvezAtualizarImprensa(){
+  if(!window.cadernoImprensa||S.impRodando||S.impAgendada)return;
+  const agora=Date.now(),tent=Math.max(S.impTentativa||0,lerNum("imprensa-tentativa"));
+  if(agora-ultimaImprensa()<IMP_INTERVALO||agora-tent<IMP_ESPERA_ERRO)return;
+  S.impAgendada=true;setTimeout(()=>{S.impAgendada=false;atualizarImprensa(false)},400);
+}
 /* ---------- seção do Hoje: notícias do dia ---------- */
 function linhaImprensa(a){
   const lk=linkSeguro(a.link),lida=a.status==="lido";
