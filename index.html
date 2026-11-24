@@ -317,6 +317,8 @@ mark.mt-m.pisca{outline:3px solid var(--accent)}
    ===================================================================== */
 const SUPABASE_URL = "https://yiijoqesiadcuoqmyogf.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_C7gWfaR3_bFOe06KhJeAOA_bE3AY-MB";
+// Endereço (slug) da função que busca as matérias da Imprensa, na ordem em que são tentados.
+const FUNCOES_IMPRENSA = ["rapid-service", "imprensa"];
 
 (function(){
   const BUCKET = "pdfs";
@@ -505,10 +507,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_C7gWfaR3_bFOe06KhJeAOA_bE3AY-MB";
 
   /* ---------- Imprensa: chama a função "imprensa" do Supabase ---------- */
   if(sb) window.cadernoImprensa = async function(){
-    let {data, error} = await sb.functions.invoke("imprensa", {body: {}});
-    if(error && (!error.context || error.context.status === 404 || !error.context.status)){
-      const alt = await sb.functions.invoke("Imprensa", {body: {}});
-      if(!alt.error){data = alt.data;error = null}
+    let data = null, error = null;
+    for(const nome of FUNCOES_IMPRENSA){
+      ({data, error} = await sb.functions.invoke(nome, {body: {}}));
+      const st = error && error.context && error.context.status;
+      if(!error || (st && st !== 404)) break;
     }
     if(error){
       let msg = error.message || "erro";

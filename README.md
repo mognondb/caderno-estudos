@@ -36,7 +36,7 @@ Leva uns 10 minutos. O passo 2 é mais confortável num computador.
 IMPRENSA (matérias de O Futuro e Em Defesa do Comunismo)
    A busca das matérias roda numa função do Supabase. Para instalar (uma vez só):
    a) Supabase › Edge Functions › Deploy a new function › Via Editor.
-   b) Nome da função: imprensa
+   b) Nome da função: imprensa (o caderno também procura "rapid-service"; veja FUNCOES_IMPRENSA no index.html)
    c) Apague o código de exemplo e cole todo o conteúdo de
       https://raw.githubusercontent.com/mognondb/caderno-estudos/main/supabase/functions/imprensa/index.ts
    d) Clique em Deploy.
