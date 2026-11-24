@@ -45,6 +45,12 @@ IMPRENSA (matérias de O Futuro e Em Defesa do Comunismo)
    Depois disso, a aba Imprensa busca as matérias sozinha (no máximo a cada 2 horas)
    ou quando você toca em "Atualizar agora".
 
+CÓPIAS AUTOMÁTICAS (backups na nuvem)
+   O caderno guarda sozinho, uma vez por semana, uma cópia completa numa pasta privada do
+   Supabase e mantém as 8 mais recentes (Plano › Backup e agenda). Para criar a pasta, uma vez só:
+   SQL Editor › New query › cole o conteúdo de supabase/backups.sql › Run.
+   A cada 30 dias o Hoje lembra de baixar um backup para guardar fora do Supabase.
+
 BOM SABER
 - PDFs: até 20 MB cada. O plano gratuito do Supabase tem 1 GB para arquivos e 500 MB para dados.
 - Se o projeto ficar uma semana sem uso, o Supabase o pausa. Basta entrar em supabase.com
