@@ -283,6 +283,13 @@ details.grupo-notas[open]>summary::before{transform:rotate(90deg)}
 .gn-tit{display:flex;flex-direction:column;flex:1;min-width:160px}.gn-tit .sub,.gn-meta .sub{font-size:12px;color:var(--muted)}
 .gn-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .gn-itens{padding:0 8px 8px;display:flex;flex-direction:column;gap:6px}
+.so-estreito{display:none}.so-largo{display:contents}
+@media (max-width:600px){.materia .so-largo{display:none}.materia .so-estreito{display:inline-flex}}
+.gt-lista{display:flex;flex-direction:column;gap:4px;max-height:40vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px}
+.gt-op{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+.gt-op:hover{background:var(--sunk)}.gt-op input{width:18px;height:18px;flex:none}
+.gt-op .sub{color:var(--muted);font-size:13px}
+.pill-topico{cursor:pointer;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12px}
 .mt-fim{font-family:var(--body);margin:26px 0 6px;display:flex;justify-content:center}
 .mt-fim .btn.primary{padding:10px 18px}
 .mt-dica{font-family:var(--body);border-top:1px solid var(--line);padding-top:10px;margin-top:24px}
@@ -842,7 +849,7 @@ const topTrilha=tp=>tp.trilha||"livres";
 function topicosDe(t){return S.topicos.filter(x=>topTrilha(x)===t)}
 function topicosAtivos(t){return topicosDe(t).filter(x=>x.status==="lendo").sort(byOrdemT)}
 function textosDoTopico(tp){return S.livros.filter(b=>b.topicoId===tp.id).sort((a,b)=>((ORD_ST[a.status]??4)-(ORD_ST[b.status]??4))||byOrdem(a,b))}
-function notasDoTopico(tp){const ids=new Set(textosDoTopico(tp).map(b=>b.id));return S.notas.filter(n=>n.topicoId===tp.id||(n.livroId&&ids.has(n.livroId))).sort((a,b)=>String(b.atualizado||"").localeCompare(String(a.atualizado||"")))}
+function notasDoTopico(tp){const ids=new Set(textosDoTopico(tp).map(b=>b.id));if(typeof ligadosAoTopico==="function"){const lg=ligadosAoTopico(tp);lg.livros.forEach(b=>ids.add(b.id));lg.artigos.forEach(a=>ids.add(a.id))}return S.notas.filter(n=>n.topicoId===tp.id||(n.livroId&&ids.has(n.livroId))||(n.artigoId&&ids.has(n.artigoId))).sort((a,b)=>String(b.atualizado||"").localeCompare(String(a.atualizado||"")))}
 async function mudarStatusTopico(tp,status){
   const antes=tp.status;
   await save("topicos/"+tp.id,{...strip(tp),status});
@@ -1077,7 +1084,7 @@ function telaTopicos(){
     const l=S.topicos.filter(x=>(x.eixo||"")===e).sort((a,b)=>((ORD_ST[a.status]??4)-(ORD_ST[b.status]??4))||byOrdemT(a,b));
     h+='<section class="group"><div class="group-h"><h2>'+(e?esc(e):"Sem eixo")+'</h2><span class="pill">'+l.length+'</span></div>';
     l.forEach(tp=>{
-      const nt=textosDoTopico(tp).length,nn=notasDoTopico(tp).length;
+      const lgT=ligadosAoTopico(tp),nt=textosDoTopico(tp).length+lgT.livros.length+lgT.artigos.length,nn=notasDoTopico(tp).length;
       h+='<button class="book topic-card '+esc(tp.status)+'" style="--c:'+T(topTrilha(tp)).cor+'" data-act="topico-abrir" data-id="'+tp.id+'"><div><div class="tt">'+esc(tp.nome)+'</div>'+(tp.descricao?'<div class="sub">'+esc(tp.descricao)+'</div>':'')
         +'<div class="meta" style="margin-top:4px"><span class="pill">'+plural(nt,"texto","textos")+'</span><span class="pill">'+plural(nn,"anotação","anotações")+'</span></div></div>'
         +'<div class="side"><span class="pill'+(tp.status==="lendo"?" hot":"")+'">'+STATUS_T[tp.status]+'</span><span class="sub">Abrir ›</span></div></button>';
@@ -1088,16 +1095,19 @@ function telaTopicos(){
 }
 function telaPasta(tp){
   const tr=topTrilha(tp),ls=textosDoTopico(tp),ns=notasDoTopico(tp),fich=ns.filter(n=>!ehEscrito(n.tipo)),sint=ns.filter(n=>ehEscrito(n.tipo));
-  const ids=new Set(ns.map(n=>n.id)),ligados=S.conceitos.filter(c=>(c.notas||[]).some(id=>ids.has(id))||(c.leituras||[]).some(l=>ls.some(b=>b.id===l.livroId))),concs=ligados.filter(c=>!ehNome(c)),nomes=ligados.filter(ehNome);
+  const ids=new Set(ns.map(n=>n.id)),lig=ligadosAoTopico(tp),todosTextos=[...ls,...lig.livros,...lig.artigos],ligados=S.conceitos.filter(c=>(c.notas||[]).some(id=>ids.has(id))||(c.leituras||[]).some(l=>todosTextos.some(b=>b.id===l.livroId))),concs=ligados.filter(c=>!ehNome(c)),nomes=ligados.filter(ehNome);
   const item=n=>'<button class="item" style="--c:'+T(n.trilha||tr).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>';
   let h='<div><button class="btn sm ghost" data-act="topico-fechar">‹ Todos os tópicos</button></div>'
    +'<section class="card" style="--c:'+T(tr).cor+';border-left:4px solid var(--c)"><div class="spread"><div><div class="small muted">'+esc((tp.eixo?tp.eixo+" · ":"")+T(tr).curto)+'</div><h2>'+esc(tp.nome)+'</h2></div>'
    +'<div class="row">'+selectStatus({...tp,trilha:tr},"topico-status",STATUS_T)+'<button class="btn more ghost" data-act="topico-menu" data-id="'+tp.id+'" aria-label="Mais ações">⋯</button></div></div>'
    +(tp.descricao?'<p>'+esc(tp.descricao)+'</p>':'')
    +'<p class="small muted">'+(tp.status==="lendo"?"Está na agenda do dia de "+esc(T(tr).curto)+".":"Fora da agenda. Mude para “Estudando” para aparecer no calendário.")+'</p></section>';
-  h+='<section class="card"><div class="spread"><h2>Textos <span class="pill">'+ls.length+'</span></h2><div class="row"><button class="btn sm" data-act="topico-texto" data-id="'+tp.id+'"'+dis()+'>+ Texto</button>'+(S.assets?'<button class="btn sm" data-act="topico-pdf" data-id="'+tp.id+'"'+dis()+'>Importar PDF</button>':'')+'</div></div>'
-   +(ls.length?ls.map(b=>'<div class="strip" style="--c:'+T(b.trilha).cor+';align-items:center"><div class="body"><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+esc(b.autor||"")+(b.paginasTotal?(b.autor?" · ":"")+(Number(b.paginasLidas)||0)+"/"+b.paginasTotal+" p.":"")+'</div></div>'
-      +'<div class="row">'+selectStatus(b,"livro-status",STATUS)+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="livro-menu" data-id="'+b.id+'" aria-label="Mais ações">⋯</button></div></div>').join(""):'<p class="small muted">Nenhum texto ainda. O que você ler sobre este assunto, agora ou no futuro, fica guardado aqui.</p>')+'</section>';
+  const lg2=ligadosAoTopico(tp),nTot=ls.length+lg2.livros.length+lg2.artigos.length;
+  h+='<section class="card"><div class="spread"><h2>Textos <span class="pill">'+nTot+'</span></h2><div class="row"><button class="btn sm" data-act="topico-texto" data-id="'+tp.id+'"'+dis()+'>+ Texto</button>'+(S.assets?'<button class="btn sm" data-act="topico-pdf" data-id="'+tp.id+'"'+dis()+'>Importar PDF</button>':'')+'<button class="btn sm" data-act="topico-ligar" data-id="'+tp.id+'"'+dis()+'>+ Ligar texto</button></div></div>'
+   +(ls.length?(lg2.livros.length+lg2.artigos.length?'<div class="small muted">Fila de estudo do tópico</div>':'')+ls.map(b=>'<div class="strip" style="--c:'+T(b.trilha).cor+';align-items:center"><div class="body"><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+esc(b.autor||"")+(b.paginasTotal?(b.autor?" · ":"")+(Number(b.paginasLidas)||0)+"/"+b.paginasTotal+" p.":"")+'</div></div>'
+      +'<div class="row">'+selectStatus(b,"livro-status",STATUS)+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="livro-menu" data-id="'+b.id+'" aria-label="Mais ações">⋯</button></div></div>').join(""):'')
+   +linhasLigadosAoTopico(tp)
+   +(nTot?'':'<p class="small muted">Nenhum texto ainda. Use “+ Texto” para um texto novo, ou “+ Ligar texto” para trazer uma matéria da Imprensa ou um livro que já está no caderno. Também dá para guardar pelo leitor, no botão 📁 Tópico.</p>')+'</section>';
   h+='<section class="card"><div class="spread"><h2>Fichamentos <span class="pill">'+fich.length+'</span></h2><button class="btn sm" data-act="topico-anotar" data-id="'+tp.id+'"'+dis()+'>+ Anotar</button></div>'+(fich.length?'<div class="items" style="max-height:none">'+fich.map(item).join("")+'</div>':'<p class="small muted">Nenhum fichamento ainda.</p>')+'</section>';
   h+='<section class="card"><div class="spread"><h2>Sínteses <span class="pill">'+sint.length+'</span></h2><button class="btn sm" data-act="topico-sintese" data-id="'+tp.id+'"'+dis()+'>+ Escrever</button></div>'+(sint.length?'<div class="items" style="max-height:none">'+sint.map(item).join("")+'</div>':'<p class="small muted">Nenhuma síntese sobre este tópico ainda.</p>')+'</section>';
   if(concs.length)h+='<section class="card"><h2>Conceitos ligados</h2><div class="row">'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div></section>';
@@ -1408,6 +1418,7 @@ function menuLivro(id){
     ["avulsa-livro","Registrar leitura fora do horário",attr({id})],
     ["anotar-livro","Anotar",attr({id})],
     nn&&["livro-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
+    ["gt-abrir",topicosDoTexto(b).length?"Guardar em tópicos ("+topicosDoTexto(b).length+")":"Guardar em tópico",attr({id})],
     ["livro-editar","Editar",attr({id})],
     ["livro-subir","Subir na ordem",attr({id})],
     ["livro-descer","Descer na ordem",attr({id})],
@@ -1690,7 +1701,7 @@ function barraLeitor(b){
    +'<div class="row" aria-label="Zoom"><button class="btn sm" data-act="rd-zoom" data-dir="-1" aria-label="Diminuir">−</button><span class="small hours" id="rd-zoom">100%</span><button class="btn sm" data-act="rd-zoom" data-dir="1" aria-label="Aumentar">+</button></div>'
    +'<div class="row" role="toolbar" aria-label="Ferramentas">'+[["ler","Ler"],["marca","Marcar"],["nota","Nota"],["caneta","Caneta"],["apagar","Apagar"]].map(([k,l])=>'<button class="btn sm tool" data-act="rd-ferramenta" data-tool="'+k+'" aria-pressed="'+(k==="ler")+'">'+l+'</button>').join("")+'</div>'
    +'<div class="row" role="group" aria-label="Cor e significado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="rd-cor" data-cor="'+k+'" aria-pressed="'+(k==="amarelo")+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span>'+esc(lg[k])+'</button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
+   +'<button class="btn sm" data-act="gt-abrir">📁 Tópico</button><button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><div id="rd-pages"><div class="empty">Abrindo o PDF…</div></div></div><aside class="rd-side" id="rd-side" hidden></aside></div></div>';
 }
 const ZOOMS=[1,1.25,1.5,2,2.5];
@@ -2064,7 +2075,7 @@ function telaImprensa(){
       +'<div class="side"><div class="row">'+(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm" data-act="artigo-restaurar" data-id="'+a.id+'">Restaurar</button></div></div></article>';
     return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
       +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
-      +'<div class="meta" style="margin-top:4px">'+(a.status==="lendo"?'<span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
+      +'<div class="meta" style="margin-top:4px">'+(a.status==="lendo"?'<span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+pillsTopicos(a)+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
       +'<div class="side"><div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
       +'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div></article>';
   }).join("");
@@ -2077,6 +2088,7 @@ function menuArtigo(id){
     ["artigo-lido",a.status==="lido"?"Marcar como não lida":"Marcar como lida",attr({id})],
     ["artigo-salvar",a.salvo?"Tirar dos salvos":"Salvar para depois",attr({id})],
     ["artigo-anotar","Anotar ou fichar",attr({id})],
+    ["gt-abrir",topicosDoTexto(a).length?"Guardar em tópicos ("+topicosDoTexto(a).length+")":"Guardar em tópico",attr({id})],
     nn&&["artigo-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
     ["artigo-descartar","Descartar (não é relevante)",attr({id}),"danger"]
   ]);
@@ -2096,6 +2108,7 @@ function dialogoArtigo(){
    para que a atualização automática não traga a matéria de volta. */
 async function descartarArtigo(id){
   const a=artigo(id);if(!a)return;
+  if(topicosDoTexto(a).length){toast("Esta matéria está guardada em tópico. Tire do tópico antes de descartar.",6000);return}
   const nn=S.notas.filter(n=>n.artigoId===id).length;
   await save("artigos/"+id,{fonteId:a.fonteId||"outra",titulo:a.titulo||"",link:a.link||"",data:a.data||"",secao:a.secao||"",status:"descartado",salvo:false,descartadoEm:new Date().toISOString(),criado:a.criado||""});
   try{await remove("marcas/"+id)}catch(e){}
@@ -2169,7 +2182,7 @@ function abrirMateria(id){
   $("reader-root").innerHTML='<div class="reader materia" role="dialog" aria-label="Leitor de matéria"><div class="rd-bar">'
    +'<button class="btn sm" data-act="rd-fechar">‹ Fechar</button><span class="rd-title">'+esc(a.titulo)+'</span>'
    +'<div class="row" role="group" aria-label="Marcar o trecho selecionado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="mt-marcar" data-cor="'+k+'" title="Marcar como '+esc(lg[k])+'" aria-label="Marcar como '+esc(lg[k])+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span><span class="swl-t">'+esc(lg[k])+'</span></button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="gt-abrir" data-id="'+a.id+'">📁 Tópico</button><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
    +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm ghost danger" data-act="mt-descartar" title="Não é relevante: tirar das listas">Descartar</button></span><button class="btn sm so-estreito" data-act="mt-mais" aria-label="Mais ações">⋯</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><article class="mt-texto"><header class="mt-cab"><div class="small muted">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.secao?' · '+esc(a.secao):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.autor?' · '+esc(a.autor):'')+'</div><h1>'+esc(a.titulo)+'</h1>'+(a.resumo?'<p class="mt-fina">'+esc(a.resumo)+'</p>':'')+'</header>'
    +'<div id="mt-corpo"></div><div id="mt-fim" class="mt-fim"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
@@ -2270,6 +2283,108 @@ function ficharMateria(){
   const linhas=l.map(m=>"> "+m.texto.replace(/\s+/g," ").trim()+"\n"+(m.nota&&m.nota.trim()?"\n"+m.nota.trim()+"\n":""));
   const id=a.id;fecharLeitor();
   novaNota({artigoId:id,titulo:"Fichamento — "+a.titulo,texto:(l.length?"## Trechos marcados\n\n"+linhas.join("\n"):"")+"\n## Síntese com minhas palavras\n\n"});
+}
+
+/* =====================================================================
+   19. Guardar textos em tópicos
+   Qualquer texto (livro ou matéria da Imprensa) pode ser guardado em um
+   ou mais tópicos, pelo campo "topicos" (lista de ids). Isso não tira o
+   livro do seu ciclo nem da fila: só o liga à pasta do tópico.
+   ===================================================================== */
+const topicosDoTexto=x=>((x&&x.topicos)||[]).filter(id=>topico(id));
+function ligadosAoTopico(tp){
+  const tem=x=>(x.topicos||[]).includes(tp.id);
+  return {
+    livros:S.livros.filter(b=>b.topicoId!==tp.id&&tem(b)).sort((a,b)=>String(a.titulo).localeCompare(String(b.titulo),"pt")),
+    artigos:S.artigos.filter(tem).sort((a,b)=>String(b.data||"").localeCompare(String(a.data||"")))
+  };
+}
+function pillsTopicos(x){
+  return topicosDoTexto(x).map(id=>'<button class="pill pill-topico" data-act="topico-abrir" data-id="'+id+'" title="Abrir o tópico">📁 '+esc(topico(id).nome)+'</button>').join("");
+}
+
+/* ---------- diálogo: guardar este texto em tópicos ---------- */
+function dialogoGuardarEmTopico(textoId){
+  const it=itemDeLeitura(textoId);if(!it)return;const x=it.x,marcados=new Set(topicosDoTexto(x));
+  const tps=S.topicos.slice().sort((a,b)=>String(a.eixo||"").localeCompare(String(b.eixo||""),"pt")||String(a.nome).localeCompare(String(b.nome),"pt"));
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="gt-h"><h2 id="gt-h">Guardar em tópico</h2><p class="small muted" style="margin-top:-4px">'+esc(x.titulo)+'</p>'
+   +(tps.length?'<div class="gt-lista">'+tps.map(t=>'<label class="gt-op"><input type="checkbox" value="'+t.id+'"'+(marcados.has(t.id)?" checked":"")+(x.topicoId===t.id?" checked disabled":"")+'><span><strong>'+esc(t.nome)+'</strong>'+(t.eixo?'<span class="sub"> · '+esc(t.eixo)+'</span>':'')+'</span></label>').join("")+'</div>'
+      :'<p class="small muted">Você ainda não tem tópicos. Crie o primeiro abaixo.</p>')
+   +'<label class="f">Criar um tópico novo<input type="text" id="gt-novo" placeholder="Ex.: Desenvolvimentismo" autocomplete="off"></label>'
+   +'<p class="small muted">O texto continua onde está (ciclo, fila ou Imprensa) e passa a aparecer também na pasta do tópico, com seus fichamentos e marcações.</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="gt-salvar" data-id="'+esc(textoId)+'">Guardar</button></div></div>');
+  const n=$("gt-novo");if(n&&!tps.length)n.focus();
+}
+async function salvarGuardarEmTopico(textoId){
+  const it=itemDeLeitura(textoId);if(!it||S.readOnly)return;const x=it.x;
+  const escolhidos=[...document.querySelectorAll('.gt-lista input[type=checkbox]:checked:not(:disabled)')].map(i=>i.value);
+  const novoNome=(($("gt-novo")||{}).value||"").trim();
+  let criado=null;
+  if(novoNome){
+    const igual=S.topicos.find(t=>String(t.nome).trim().toLowerCase()===novoNome.toLowerCase());
+    if(igual)escolhidos.push(igual.id);
+    else{
+      criado=novoId("topicos");
+      const tr=x.trilha&&bookTrilhas().includes(x.trilha)?x.trilha:(bookTrilhas().includes("livres")?"livres":bookTrilhas()[0]);
+      await save("topicos/"+criado,{nome:novoNome,descricao:"",eixo:"",trilha:tr,status:"fila",ordem:Math.max(0,...S.topicos.map(t=>Number(t.ordem)||0))+10});
+      escolhidos.push(criado);
+    }
+  }
+  const lista=[...new Set(escolhidos)].filter(id=>id!==x.topicoId);
+  const antes=topicosDoTexto(x).filter(id=>id!==x.topicoId);
+  fecharModal();
+  if(lista.join()!==antes.join())await save(it.col+"/"+x.id,{...strip(x),topicos:lista});
+  const nomes=lista.map(id=>id===criado?novoNome:(topico(id)||{}).nome).filter(Boolean);
+  toast(nomes.length?"Guardado em "+nomes.map(n=>"“"+n+"”").join(", ")+".":"Texto tirado dos tópicos.");
+}
+async function tirarDoTopico(tpId,textoId){
+  const it=itemDeLeitura(textoId);if(!it)return;const x=it.x;
+  await save(it.col+"/"+x.id,{...strip(x),topicos:(x.topicos||[]).filter(id=>id!==tpId)});
+  toast("Texto tirado do tópico.");
+}
+
+/* ---------- diálogo a partir da pasta: ligar um texto que já existe ---------- */
+function dialogoLigarTexto(tpId){
+  const tp=topico(tpId);if(!tp)return;
+  const lig=new Set([...S.livros,...S.artigos].filter(x=>(x.topicos||[]).includes(tpId)||x.topicoId===tpId).map(x=>x.id));
+  const livs=livrosOrdenados().filter(b=>!lig.has(b.id)),arts=S.artigos.filter(a=>!lig.has(a.id)).sort((a,b)=>String(b.data||"").localeCompare(String(a.data||"")));
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="lt-h"><h2 id="lt-h">Ligar texto a “'+esc(tp.nome)+'”</h2>'
+   +'<label class="f">Texto<select id="lt-texto"><option value="">Escolha um livro ou matéria…</option>'
+   +(arts.length?'<optgroup label="Imprensa">'+arts.map(a=>'<option value="'+a.id+'">'+esc(a.titulo)+(a.data?" ("+fmtDM(parseISO(a.data))+")":"")+'</option>').join("")+'</optgroup>':'')
+   +(livs.length?'<optgroup label="Livros e textos">'+livs.map(b=>'<option value="'+b.id+'">'+esc(b.titulo)+(b.autor?" — "+esc(b.autor):"")+'</option>').join("")+'</optgroup>':'')+'</select></label>'
+   +'<p class="small muted">Para um texto novo, que ainda não está no caderno, use “+ Texto”.</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="lt-salvar" data-id="'+tpId+'">Ligar</button></div></div>');
+}
+async function salvarLigarTexto(tpId){
+  const id=($("lt-texto")||{}).value;if(!id){toast("Escolha um texto.");return}
+  const it=itemDeLeitura(id);if(!it)return;const x=it.x;
+  fecharModal();
+  await save(it.col+"/"+x.id,{...strip(x),topicos:[...new Set([...(x.topicos||[]),tpId])]});
+  toast("Texto ligado ao tópico.");
+}
+
+/* ---------- seção da pasta ---------- */
+function linhasLigadosAoTopico(tp){
+  const {livros,artigos}=ligadosAoTopico(tp);
+  const nNotas=id=>S.notas.filter(n=>n.livroId===id||n.artigoId===id).length;
+  const linhaArt=a=>{const lk=linkSeguro(a.link),nn=nNotas(a.id);
+    return '<div class="strip'+(a.status==="lido"?" done":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":"var(--t-c6)")+';align-items:center"><div class="body"><div class="tt">'+esc(a.titulo)+'</div><div class="sub">'
+     +[(FONTES[a.fonteId]||FONTES.outra).nome,a.data?fmtDM(parseISO(a.data)):"",a.status==="lido"?"lida":a.status==="lendo"?"em leitura"+(a.progresso>0.02?" "+Math.round(a.progresso*100)+"%":""):"não lida",nn?plural(nn,"anotação","anotações"):""].filter(Boolean).join(" · ")+'</div></div>'
+     +'<div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir</a>':''))
+     +'<button class="btn more ghost" data-act="tp-ligado-menu" data-id="'+a.id+'" data-tp="'+tp.id+'" aria-label="Mais ações">⋯</button></div></div>'};
+  const linhaLiv=b=>{const nn=nNotas(b.id);
+    return '<div class="strip" style="--c:'+T(b.trilha).cor+';align-items:center"><div class="body"><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+[b.autor?esc(b.autor):"",b.etapa?"Ciclo "+b.etapa:"",STATUS[b.status]||"",nn?plural(nn,"anotação","anotações"):""].filter(Boolean).join(" · ")+'</div></div>'
+     +'<div class="row">'+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="tp-ligado-menu" data-id="'+b.id+'" data-tp="'+tp.id+'" aria-label="Mais ações">⋯</button></div></div>'};
+  return (artigos.length?'<div class="small muted">Da Imprensa</div>'+artigos.map(linhaArt).join(""):'')+(livros.length?'<div class="small muted">De outros ciclos e trilhas</div>'+livros.map(linhaLiv).join(""):'');
+}
+function menuLigado(id,tpId){
+  const it=itemDeLeitura(id);if(!it)return;const x=it.x;
+  menu(x.titulo,[
+    (x.conteudo||x.pdfId)&&["ler","Ler",attr({id})],
+    ["gt-abrir","Guardar em outros tópicos",attr({id})],
+    S.notas.some(n=>n.livroId===id||n.artigoId===id)&&[it.col==="artigos"?"artigo-notas":"livro-notas","Ver anotações",attr({id})],
+    ["tp-tirar","Tirar deste tópico",attr({id,tp:tpId}),"danger"]
+  ]);
 }
 
 /* =====================================================================
@@ -2387,15 +2502,21 @@ const ACOES={
   "mk-apagar":el=>confirmar(el,"Confirmar",()=>apagarMarca(el.dataset.id)),
   "mt-lateral":()=>{fecharModal();const s=$("mt-side");if(!s)return;s.hidden=!s.hidden;pintarLateralMateria()},
   "mt-ir":el=>{const m=document.querySelector('mark[data-id="'+el.dataset.id+'"]');if(m){m.scrollIntoView({behavior:"smooth",block:"center"});m.classList.add("pisca");setTimeout(()=>m.classList.remove("pisca"),1200)}if(window.innerWidth<760){const s=$("mt-side");if(s)s.hidden=true}},
-    "mt-concluir":()=>concluirMateria(false),
+    "gt-abrir":el=>{fecharModal();dialogoGuardarEmTopico(el.dataset.id||R.livroId)},
+  "gt-salvar":el=>{salvarGuardarEmTopico(el.dataset.id).catch(()=>{})},
+  "topico-ligar":el=>dialogoLigarTexto(el.dataset.id),
+  "lt-salvar":el=>{salvarLigarTexto(el.dataset.id).catch(()=>{})},
+  "tp-ligado-menu":el=>menuLigado(el.dataset.id,el.dataset.tp),
+  "tp-tirar":el=>confirmar(el,"Confirmar",()=>{fecharModal();tirarDoTopico(el.dataset.tp,el.dataset.id).catch(()=>{})}),
+  "mt-concluir":()=>concluirMateria(false),
   "mt-reabrir":()=>reabrirMateria(),
-  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
+  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["gt-abrir","Guardar em tópico",attr({id:R.livroId})],["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
   "mt-site":()=>{fecharModal();const a=artigo(R.livroId),lk=a&&linkSeguro(a.link);if(lk)window.open(lk,"_blank","noopener")},
   "mt-fichar":()=>{fecharModal();ficharMateria()},
   "imp-atualizar":()=>atualizarImprensa(true),
   "pdf-anexar":el=>{fecharModal();pedirPdf({livro:el.dataset.id})},
   "topico-novo":()=>dialogoTopico(null),
-  "topico-abrir":el=>{S.topicoAberto=el.dataset.id;S.bibTab="topicos";irPara("biblioteca");window.scrollTo(0,0)},
+  "topico-abrir":el=>{fecharModal();if(leitorAberto())fecharLeitor();S.topicoAberto=el.dataset.id;S.bibTab="topicos";irPara("biblioteca");window.scrollTo(0,0)},
   "topico-fechar":()=>{S.topicoAberto=null;render()},
   "topico-menu":el=>menuTopico(el.dataset.id),
   "topico-editar":el=>{fecharModal();dialogoTopico(topico(el.dataset.id))},
