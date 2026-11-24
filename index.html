@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caderno de Estudos Marxistas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Caderno de trabalho: uma coluna central; cada trilha é uma faixa de cor à esquerda */
+  --bg:#f3f4f6; --surface:#ffffff; --sunk:#eceef2; --ink:#1a1f2b; --muted:#5b6272; --line:#dadde4;
+  --accent:#a8231c; --accent-soft:#f6e3e1; --ok:#1c735b;
+  --t-marx:#a8231c; --t-teoria:#34479c; --t-al:#1c735b; --t-lateral:#94661f; --t-sintese:#64528a; --t-rotativo:#5b6272;
+  --t-c6:#1f6a85; --t-c7:#8a2f61; --t-c8:#56702a;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171d; --surface:#1c2028; --sunk:#232833; --ink:#e7e9ee; --muted:#9aa1b0; --line:#323846;
+    --accent:#e2675e; --accent-soft:#3a2224; --ok:#4fbf9c;
+    --t-marx:#e2675e; --t-teoria:#8797e6; --t-al:#4fbf9c; --t-lateral:#d6a55a; --t-sintese:#ad98d6; --t-rotativo:#9aa1b0;
+    --t-c6:#5fb3d1; --t-c7:#d97fb2; --t-c8:#a3c46a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171d; --surface:#1c2028; --sunk:#232833; --ink:#e7e9ee; --muted:#9aa1b0; --line:#323846;
+  --accent:#e2675e; --accent-soft:#3a2224; --ok:#4fbf9c;
+  --t-marx:#e2675e; --t-teoria:#8797e6; --t-al:#4fbf9c; --t-lateral:#d6a55a; --t-sintese:#ad98d6; --t-rotativo:#9aa1b0;
+  --t-c6:#5fb3d1; --t-c7:#d97fb2; --t-c8:#a3c46a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;font-weight:600}
+h2{font-size:20px} h3{font-size:16px}
+p{margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+[hidden]{display:none!important}
+
+/* Cabeçalho e navegação */
+header.top{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px;margin:0 auto;padding:10px 16px 0;display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.brand h1{font-size:19px}
+.brand .side{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs a{padding:8px 12px;text-decoration:none;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+main{max-width:1080px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* Elementos básicos */
+.muted{color:var(--muted)} .small{font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:500;font-size:14px;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.btn.sm{padding:3px 9px;font-size:13px}
+.btn.danger{color:var(--accent);border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.more{padding:3px 10px;font-size:16px;line-height:1.1;letter-spacing:1px}
+select,input[type=text],input[type=number],input[type=date],input[type=time],input[type=search],textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:14px;max-width:100%}
+textarea{width:100%;resize:vertical}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+label.f>*{color:var(--ink)}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--sunk);color:var(--muted);font-weight:500;white-space:nowrap}
+.pill.hot{background:var(--accent);color:#fff}
+.pill.soft{background:var(--accent-soft);color:var(--accent)}
+.banner{background:var(--accent-soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
+.seg{display:inline-flex;background:var(--sunk);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;color:var(--muted);font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.meter{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.meter>span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.hours{font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+select.mini{font-size:12px;padding:2px 6px;border-radius:99px}
+select.st-lendo{background:var(--c,var(--accent));color:#fff;border-color:var(--c,var(--accent))}
+select.st-concluido{color:var(--ok);border-color:var(--ok)}
+select.st-pausado{border-style:dashed;color:var(--muted)}
+
+/* Faixas (blocos de estudo, livros, itens) */
+.strip{border-left:4px solid var(--c);background:var(--sunk);border-radius:0 8px 8px 0;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.strip .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.lab .n{text-transform:none;letter-spacing:0;font-weight:400}
+.tt{font-family:var(--display);font-size:15px;line-height:1.35;font-weight:600}
+.sub{font-size:13px;color:var(--muted)}
+.acts{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.strip.done{opacity:.6}
+.strip.skipped{background:transparent;border:1px dashed var(--line);border-left:4px dashed var(--c)}
+.strip.skipped .tt{text-decoration:line-through;color:var(--muted)}
+.miss{color:var(--accent)}
+.check{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--muted);background:var(--surface);cursor:pointer;display:grid;place-items:center;padding:0;color:#fff}
+.check[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.check svg{width:16px;height:16px}
+.linkish{background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.linkish:hover{text-decoration:underline}
+
+/* Semana */
+.weeknav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.weeknav .range{font-family:var(--display);font-size:17px;min-width:140px;text-align:center}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.day-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.day-foot{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:8px}
+.day-foot input{flex:1;min-width:140px;font-size:13px}
+.now-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.now{border-left:4px solid var(--c);padding:4px 10px;background:var(--sunk);border-radius:0 6px 6px 0}
+.editbar{background:var(--surface);border:1px dashed var(--muted);border-radius:10px;padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.strip.edit{align-items:center;flex-wrap:wrap}
+.strip.edit select{font-size:13px;padding:4px 6px}
+
+/* Biblioteca */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.group{display:flex;flex-direction:column;gap:8px}
+.group-h{display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--c,var(--line));padding-bottom:4px}
+.book{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:0 8px 8px 0;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px 12px}
+.book .tt{font-size:16px}
+.book .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.book .full{grid-column:1/-1}
+.book .side{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.book.concluido .tt{text-decoration:line-through;text-decoration-color:var(--muted)}
+.prog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.prog .meter{flex:1;height:6px}
+.prog .meter>span{background:var(--c)}
+.topic-card{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.topic-card:hover{border-color:var(--muted)}
+
+/* Listas e editores (caderno) */
+.split{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+.list{display:flex;flex-direction:column;gap:8px}
+.items{display:flex;flex-direction:column;gap:6px;max-height:68vh;overflow:auto}
+.item{text-align:left;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--accent));border-radius:0 6px 6px 0;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;width:100%;font:inherit;color:inherit}
+.item[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.item .tt{font-size:14px}
+.item .sub{font-size:12px}
+.editor{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.editor .title{font-family:var(--display);font-size:20px;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:4px 0;width:100%;background:transparent}
+.editor textarea.long{min-height:46vh;font-family:var(--display);font-size:16px;line-height:1.65;padding:12px}
+.editor textarea.short{font-size:14px}
+.preview{font-family:var(--display);font-size:16px;line-height:1.65;max-width:68ch;min-height:46vh}
+.preview blockquote{margin:8px 0;padding:4px 12px;border-left:3px solid var(--accent);color:var(--muted)}
+.preview h3{font-size:19px;margin:12px 0 4px} .preview h4{font-size:16px;margin:10px 0 4px}
+.preview p{margin:0 0 10px}
+.savestate{font-size:12px;color:var(--muted)}
+.leitura{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.checklist{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:6px}
+.checklist label{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 10px;cursor:pointer;font-size:13px;font-weight:500}
+@media (max-width:760px){
+  .split{grid-template-columns:1fr}
+  .split.open .list{display:none}
+  .split:not(.open) .editor-wrap{display:none}
+  .items{max-height:none}
+}
+
+/* Plano */
+details.sec{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.sec>summary{cursor:pointer;padding:12px 14px;font-family:var(--display);font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";color:var(--muted);font-family:var(--body)}
+details.sec[open]>summary::after{content:"–"}
+details.sec>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.sub-item{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.sub-item.atual{border-left:4px solid var(--accent);padding-left:10px}
+table.tpl{border-collapse:collapse;width:100%;font-size:14px}
+table.tpl td,table.tpl th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tplwrap{overflow-x:auto}
+ul.help{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13px}
+
+/* Histórico */
+.hist{display:flex;flex-direction:column;gap:8px}
+.hist-row{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center}
+.hist-lab{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hist-lab.wide{grid-column:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-lab.atual{color:var(--ink);font-weight:600}
+.hist-track{position:relative;height:14px;background:var(--sunk);border-radius:4px}
+.hist-plan{position:absolute;left:0;top:0;bottom:0;border:1.5px dashed var(--muted);border-radius:4px}
+.hist-bar{position:absolute;left:0;top:3px;bottom:3px;background:var(--accent);border-radius:0 4px 4px 0}
+.hist-val{font-size:13px;white-space:nowrap}
+.key{display:inline-block;width:14px;height:8px;vertical-align:1px;border-radius:2px}
+.key-bar{background:var(--accent)} .key-plan{border:1.5px dashed var(--muted)}
+.hist-row:has(.wide){grid-template-columns:150px 1fr auto}
+/* Hoje e cronômetro */
+.clock{font-size:22px;font-family:var(--display)}
+
+/* Diálogos e avisos */
+.overlay{position:fixed;inset:0;background:rgba(10,12,18,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.dialog{background:var(--surface);border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--line)}
+.dialog fieldset{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.menu-list{display:flex;flex-direction:column;gap:6px}
+.menu-list .btn{justify-content:flex-start;padding:10px 12px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+
+/* Leitor */
+body.reading{overflow:hidden}
+.reader{position:fixed;inset:0;z-index:40;background:var(--sunk);display:flex;flex-direction:column}
+.rd-bar{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rd-title{font-family:var(--display);font-weight:600;flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-body{flex:1;display:flex;min-height:0;position:relative}
+.rd-scroll{flex:1;overflow:auto;padding:16px 12px 80px}
+#rd-pages{margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.pg{position:relative;width:100%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25),0 8px 20px rgba(0,0,0,.08)}
+.pg canvas,.pg svg{position:absolute;inset:0;width:100%;height:100%}
+.pgnum{position:absolute;bottom:-18px;right:0;font-size:11px;color:var(--muted)}
+.reader[data-tool="ler"] .pg svg{pointer-events:none}
+.reader[data-tool="ler"] .pg svg .pin{pointer-events:auto;cursor:pointer}
+.reader:not([data-tool="ler"]) .pg svg{touch-action:none;cursor:crosshair}
+.tool[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.swl{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 10px 3px 6px;font-size:12px;font-weight:500;cursor:pointer}
+.swl[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.rd-side{width:300px;border-left:1px solid var(--line);background:var(--surface);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.legend-sum{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+@media (max-width:760px){.rd-side{position:absolute;right:0;top:0;bottom:0;width:88%;box-shadow:-6px 0 20px rgba(0,0,0,.2);z-index:2}}
+</style>
+<style>
+#sb-login{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.sb-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px}
+.sb-box h2{margin:0;font-family:var(--display,inherit)}
+.sb-box label{display:flex;flex-direction:column;gap:4px}
+.sb-box input{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;font-size:16px}
+.sb-box .btn{justify-content:center;padding:10px}
+.sb-erro{color:#c0392b;margin:0}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c2028">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <h1>Caderno de Estudos</h1>
+      <div class="side"><span class="pill hot" id="tm-mini" hidden></span><span id="brand-sub"></span><a class="btn sm ghost" href="#busca">Buscar</a></div>
+    </div>
+    <nav class="tabs" aria-label="Seções">
+      <a href="#hoje" data-view="hoje">Hoje</a>
+      <a href="#semana" data-view="semana">Semana</a>
+      <a href="#biblioteca" data-view="biblioteca">Biblioteca</a>
+      <a href="#caderno" data-view="caderno">Caderno</a>
+      <a href="#plano" data-view="plano">Plano</a>
+    </nav>
+  </div>
+</header>
+<main id="main"><p class="muted">Carregando seu caderno…</p></main>
+<div id="reader-root"></div>
+<div id="modal-root"></div>
+<input type="file" id="pdf-input" accept="application/pdf,.pdf" hidden>
+<input type="file" id="bk-file" accept=".json,application/json" hidden>
+<script>
+/* =====================================================================
+   0. Conexão com o Supabase (versão independente do Claude)
+   Preencha as duas linhas abaixo com os dados do seu projeto Supabase:
+   Project Settings › API › Project URL e chave "anon public".
+   ===================================================================== */
+const SUPABASE_URL = "COLE_AQUI_A_PROJECT_URL";
+const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_ANON";
+
+(function(){
+  const BUCKET = "pdfs";
+  let guardado = {};try{guardado = JSON.parse(localStorage.getItem("caderno-supabase") || "{}")}catch(e){}
+  const valido = (u, k) => /^https:\/\/[^\s]+$/.test(u || "") && String(k || "").length > 20;
+  const URL_SB = valido(SUPABASE_URL, SUPABASE_ANON_KEY) ? SUPABASE_URL : guardado.url;
+  const CHAVE_SB = valido(SUPABASE_URL, SUPABASE_ANON_KEY) ? SUPABASE_ANON_KEY : guardado.chave;
+  const configurado = valido(URL_SB, CHAVE_SB);
+  let sb = null;
+  if(configurado && window.supabase){try{sb = window.supabase.createClient(URL_SB, CHAVE_SB, {auth:{persistSession:true,autoRefreshToken:true}})}catch(e){sb = null}}
+  let usuario = null, resolverLogin, prontoLogin = new Promise(r => resolverLogin = r);
+
+  /* ---------- tela de login ---------- */
+  function telaLogin(msg, emailAnterior){
+    let el = document.getElementById("sb-login");
+    if(!el){el = document.createElement("div");el.id = "sb-login";document.body.appendChild(el)}
+    if(!sb){
+      if(!window.supabase){el.innerHTML = '<div class="sb-box"><h2>Caderno de Estudos</h2><p class="small">Não foi possível carregar a conexão com o banco de dados. Verifique a internet e recarregue a página.</p></div>';return}
+      el.innerHTML = '<form class="sb-box" id="sb-cfg"><h2>Conectar ao banco de dados</h2>'
+        + '<p class="small muted">Só na primeira vez em cada aparelho. No Supabase: Project Settings › API.</p>'
+        + '<label class="small">Project URL<input id="sb-url" type="url" placeholder="https://xxxx.supabase.co" required></label>'
+        + '<label class="small">Chave anon public<input id="sb-chave" type="text" autocomplete="off" required></label>'
+        + (msg ? '<p class="small sb-erro">' + msg + '</p>' : '')
+        + '<button class="btn primary" type="submit">Conectar</button></form>';
+      document.getElementById("sb-cfg").addEventListener("submit", ev => {
+        ev.preventDefault();
+        const url = document.getElementById("sb-url").value.trim().replace(/\/+$/, ""), chave = document.getElementById("sb-chave").value.trim();
+        if(!valido(url, chave)){telaLogin("Confira a URL (começa com https://) e a chave.");return}
+        localStorage.setItem("caderno-supabase", JSON.stringify({url, chave}));location.reload();
+      });
+      return;
+    }
+    el.innerHTML = '<form class="sb-box" id="sb-form"><h2>Caderno de Estudos</h2>'
+      + '<label class="small">E-mail<input id="sb-email" type="email" autocomplete="username" required value="' + String(emailAnterior || "").replace(/[&"<>]/g, c => ({"&":"&amp;",'"':"&quot;","<":"&lt;",">":"&gt;"})[c]) + '"></label>'
+      + '<label class="small">Senha<input id="sb-senha" type="password" autocomplete="current-password" required></label>'
+      + (msg ? '<p class="small sb-erro">' + msg + '</p>' : '')
+      + '<button class="btn primary" type="submit">Entrar</button>'
+      + '<p class="small muted">Você só precisa entrar uma vez em cada aparelho.</p></form>';
+    document.getElementById("sb-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const email = document.getElementById("sb-email").value.trim(), password = document.getElementById("sb-senha").value;
+      const btn = ev.target.querySelector("button");btn.disabled = true;btn.textContent = "Entrando…";
+      const {data, error} = await sb.auth.signInWithPassword({email, password});
+      if(error){telaLogin("E-mail ou senha incorretos.", email);const s = document.getElementById("sb-senha");if(s)s.focus();return}
+      entrou(data.user);
+    });
+    const e = document.getElementById("sb-email");if(e && !emailAnterior)e.focus();
+  }
+  function entrou(u){
+    usuario = u;
+    const el = document.getElementById("sb-login");if(el)el.remove();
+    resolverLogin(u);
+  }
+  window.sairDoCaderno = async function(){
+    if(sb) await sb.auth.signOut();
+    location.reload();
+  };
+
+  /* ---------- banco: imita a API db do claude.ai ---------- */
+  const cache = {};          // col -> Map(id -> data)
+  const carregando = {};     // col -> Promise
+  const ouvintes = new Set();// {col, id?, campo?, valor?, cb, err}
+  const erro = (e, code) => {const x = new Error((e && e.message) || String(e));x.code = code || "unavailable";return x};
+  const novoIdLocal = () => {const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";let s = "";const r = crypto.getRandomValues(new Uint8Array(20));for(const b of r)s += c[b % 62];return s};
+  const partes = p => {const i = String(p).indexOf("/");return [p.slice(0, i), p.slice(i + 1)]};
+  const copia = d => d == null ? d : JSON.parse(JSON.stringify(d));
+
+  async function buscarColecao(col){
+    const mapa = new Map();let de = 0;const passo = 1000;
+    for(;;){
+      const {data, error} = await sb.from("docs").select("id,data").eq("col", col).range(de, de + passo - 1);
+      if(error) throw erro(error);
+      data.forEach(r => mapa.set(r.id, r.data));
+      if(data.length < passo) break;de += passo;
+    }
+    cache[col] = mapa;return mapa;
+  }
+  function garantir(col){
+    if(cache[col]) return Promise.resolve(cache[col]);
+    if(!carregando[col]) carregando[col] = buscarColecao(col).finally(() => {delete carregando[col]});
+    return carregando[col];
+  }
+  const docSnap = (id, d) => ({id, exists: d !== undefined, data: () => copia(d), metadata: {fromCache: false}});
+  function colSnap(col, campo, valor){
+    const docs = [];
+    for(const [id, d] of (cache[col] || new Map())) if(!campo || (d && d[campo] === valor)) docs.push(docSnap(id, d));
+    return {docs, size: docs.length, empty: !docs.length, metadata: {fromCache: false}};
+  }
+  function avisar(col, id){
+    for(const o of ouvintes){
+      if(o.col !== col || !cache[col]) continue;
+      if(o.id !== undefined){if(o.id === id) o.cb(docSnap(id, cache[col].get(id)))}
+      else o.cb(colSnap(col, o.campo, o.valor));
+    }
+  }
+  function aplicar(col, id, d){
+    if(!cache[col]) return;
+    if(d === undefined) cache[col].delete(id); else cache[col].set(id, d);
+    avisar(col, id);
+  }
+  function ouvir(o){
+    ouvintes.add(o);
+    garantir(o.col).then(() => {
+      if(!ouvintes.has(o)) return;
+      if(o.id !== undefined) o.cb(docSnap(o.id, cache[o.col].get(o.id)));
+      else o.cb(colSnap(o.col, o.campo, o.valor));
+    }).catch(e => {if(o.err) o.err(e)});
+    return () => ouvintes.delete(o);
+  }
+  async function recarregarTudo(){
+    for(const col of Object.keys(cache)){
+      try{await buscarColecao(col);for(const o of ouvintes) if(o.col === col){
+        if(o.id !== undefined) o.cb(docSnap(o.id, cache[col].get(o.id))); else o.cb(colSnap(col, o.campo, o.valor));
+      }}catch(e){}
+    }
+  }
+
+  function consulta(col, campo, valor){
+    return {
+      get: async () => {await buscarColecao(col);return colSnap(col, campo, valor)},
+      onSnapshot: (cb, err) => ouvir({col, campo, valor, cb, err})
+    };
+  }
+  const db = {
+    doc(path){
+      const [col, id] = partes(path);
+      return {
+        id,
+        async set(data){
+          const limpo = copia(data);
+          const {error} = await sb.from("docs").upsert({owner: usuario.id, col, id, data: limpo, updated_at: new Date().toISOString()}, {onConflict: "owner,col,id"});
+          if(error) throw erro(error, /quota|limit/i.test(error.message) ? "quota_exceeded" : "unavailable");
+          aplicar(col, id, limpo);
+        },
+        async delete(){
+          const {error} = await sb.from("docs").delete().eq("col", col).eq("id", id);
+          if(error) throw erro(error);
+          aplicar(col, id, undefined);
+        },
+        async get(){await garantir(col);return docSnap(id, cache[col].get(id))},
+        onSnapshot: (cb, err) => ouvir({col, id, cb, err})
+      };
+    },
+    collection(col){
+      return {
+        doc: id => db.doc(col + "/" + (id || novoIdLocal())),
+        get: () => consulta(col).get(),
+        where: (campo, op, valor) => consulta(col, campo, valor),
+        onSnapshot: (cb, err) => ouvir({col, cb, err})
+      };
+    }
+  };
+
+  /* ---------- tempo real: mudanças feitas em outro aparelho ---------- */
+  function ligarTempoReal(){
+    let primeira = true;
+    sb.channel("docs-" + usuario.id)
+      .on("postgres_changes", {event: "*", schema: "public", table: "docs"}, p => {
+        if(p.eventType === "DELETE"){const o = p.old || {};if(o.col && o.id) aplicar(o.col, o.id, undefined)}
+        else {const n = p.new || {};if(n.owner === usuario.id) aplicar(n.col, n.id, n.data)}
+      })
+      .subscribe(status => {
+        if(status === "SUBSCRIBED"){if(!primeira) recarregarTudo();primeira = false}
+      });
+    document.addEventListener("visibilitychange", () => {if(document.visibilityState === "visible") recarregarTudo()});
+  }
+
+  /* ---------- PDFs ---------- */
+  const assets = {
+    async upload(file){
+      const id = novoIdLocal();
+      const {error} = await sb.storage.from(BUCKET).upload(usuario.id + "/" + id + ".pdf", file, {contentType: "application/pdf", upsert: false});
+      if(error) throw erro(error, /size|large/i.test(error.message) ? "too_large" : /quota/i.test(error.message) ? "quota_or_state" : "unavailable");
+      return {id};
+    },
+    async delete(id){
+      const {error} = await sb.storage.from(BUCKET).remove([usuario.id + "/" + id + ".pdf"]);
+      if(error) throw erro(error);
+    },
+    async baixar(id){
+      const {data, error} = await sb.storage.from(BUCKET).download(usuario.id + "/" + id + ".pdf");
+      if(error) throw erro(error);
+      return await data.arrayBuffer();
+    }
+  };
+
+  /* ---------- downloads ---------- */
+  const downloads = {
+    async save({filename, data}){
+      const tipo = /\.json$/i.test(filename) ? "application/json" : /\.csv$/i.test(filename) ? "text/csv" : "application/octet-stream";
+      const url = URL.createObjectURL(new Blob([data], {type: tipo + ";charset=utf-8"}));
+      const a = document.createElement("a");a.href = url;a.download = filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+  };
+
+  /* ---------- ponto de entrada usado pelo app ---------- */
+  window.claude = {
+    async use(nome){
+      if(!sb){telaLogin();await new Promise(() => {})}
+      await prontoLogin;
+      if(nome === "db"){ligarTempoRealUmaVez();return db}
+      if(nome === "assets") return assets;
+      if(nome === "downloads") return downloads;
+      throw erro("recurso desconhecido");
+    }
+  };
+  let tempoRealLigado = false;
+  function ligarTempoRealUmaVez(){if(!tempoRealLigado){tempoRealLigado = true;try{ligarTempoReal()}catch(e){}}}
+
+  /* ---------- sessão ---------- */
+  async function verificarSessao(){
+    if(!sb){telaLogin();return}
+    const {data} = await sb.auth.getSession();
+    if(data && data.session) entrou(data.session.user); else telaLogin();
+    sb.auth.onAuthStateChange((ev, s) => {if(ev === "SIGNED_OUT") location.reload()});
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", verificarSessao); else verificarSessao();
+})();
+
+</script>
+<script>
+"use strict";
+/* =====================================================================
+   1. Constantes e padrões
+   ===================================================================== */
+const DIAS=[{i:1,nome:"Segunda",c:"Seg"},{i:2,nome:"Terça",c:"Ter"},{i:3,nome:"Quarta",c:"Qua"},{i:4,nome:"Quinta",c:"Qui"},{i:5,nome:"Sexta",c:"Sex"},{i:6,nome:"Sábado",c:"Sáb"},{i:0,nome:"Domingo",c:"Dom"}];
+const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const MESES_LONGOS=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const STATUS={lendo:"Lendo",fila:"A ler",pausado:"Pausado",concluido:"Concluído"};
+const STATUS_T={lendo:"Estudando",fila:"A estudar",pausado:"Pausado",concluido:"Concluído"};
+const ORD_ST={lendo:0,fila:1,pausado:2,concluido:3};
+const TIPOS_LIVRO={principal:"Principal",complemento:"Complemento",opcional:"Opcional"};
+const TIPOS_NOTA={fichamento:"Fichamento",anotacao:"Anotação",citacao:"Citação",sintese:"Síntese",conjuntura:"Análise de conjuntura",ensaio:"Texto livre"};
+const ESCRITOS=["sintese","conjuntura","ensaio"];
+const CORES={marx:"Vermelho",teoria:"Azul",al:"Verde",lateral:"Ocre",c6:"Petróleo",c7:"Vinho",c8:"Oliva",sintese:"Lilás"};
+const ESPECIAIS={sintese:{nome:"Síntese escrita",curto:"Síntese escrita",cor:"var(--t-sintese)"},rotativo:{nome:"Rotativo (sexta)",curto:"Rotativo",cor:"var(--t-rotativo)"}};
+const DEFAULT_TRILHAS=[
+  {id:"marx",nome:"Economia Política de Marx",curto:"Marx",cor:"marx"},
+  {id:"teoria",nome:"Teoria Marxista",curto:"Teoria Marxista",cor:"teoria"},
+  {id:"al",nome:"América Latina",curto:"América Latina",cor:"al"},
+  {id:"lateral",nome:"Leituras laterais",curto:"Leituras laterais",cor:"lateral"}
+];
+const DEFAULT_SEMANA={"1":[{id:"seg1",trilha:"marx",min:60}],"2":[{id:"ter1",trilha:"al",min:60}],"3":[{id:"qua1",trilha:"lateral",min:60}],"4":[{id:"qui1",trilha:"teoria",min:60}],"5":[{id:"sex1",trilha:"rotativo",min:60}],"6":[{id:"sab1",trilha:"marx",min:60},{id:"sab2",trilha:"teoria",min:60}],"0":[{id:"dom1",trilha:"marx",min:60},{id:"dom2",trilha:"al",min:60}]};
+const DEFAULT_ROTACAO=["marx","teoria","al","sintese"];
+const DEFAULT_MODELO_SINTESE="## O que mudou na minha compreensão\n\n## Conceitos que ficaram mais claros\n\n## Ligações entre as trilhas\n\n## Dúvidas e pontos para retomar\n";
+const DEFAULT_MODELO_CONJUNTURA="## Situação concreta\n\n## Classes e frações em disputa\n\n## Interesses, alianças e correlação de forças\n\n## Papel do Estado e das instituições\n\n## Tendências e cenários\n\n## Tarefas e posição\n\n## Fontes\n";
+const CORES_AN={amarelo:"#f2c400",verde:"#2fb36b",azul:"#3b8fe0",rosa:"#e8559a"};
+const DEFAULT_LEGENDA={amarelo:"Tese",verde:"Conceito",azul:"Exemplo",rosa:"Dúvida"};
+const CHECK_SVG='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const VIEWS=["hoje","semana","biblioteca","caderno","plano","busca","historico"];
+const HASH_ANTIGO={livros:["biblioteca","textos"],topicos:["biblioteca","topicos"],fichamentos:["caderno","fichamentos"],sinteses:["caderno","sinteses"],conceitos:["caderno","conceitos"]};
+
+/* =====================================================================
+   2. Estado
+   ===================================================================== */
+const S={
+  db:null,assets:null,downloads:null,offline:false,readOnly:false,ready:false,slow:false,
+  cfg:null,livros:[],topicos:[],notas:[],conceitos:[],sessoes:[],artigos:[],af:{fonte:"todas",status:"novos"},semanasCache:null,semanaDoc:null,unsubSemana:null,
+  loaded:{cfg:false,livros:false,notas:false},
+  view:"hoje",bibTab:"textos",cadTab:"fichamentos",topicoAberto:null,
+  weekStart:null,editWeek:null,
+  fl:{etapa:"atual",trilha:"todas",status:"todas"},
+  nf:{q:"",tipo:"todos",livro:"todos",topico:"todos"},
+  draft:null,preview:false,saveState:"",cdraft:null,csave:"",cq:"",cnq:"",bq:"",
+  pdfTarget:null,pendingRestore:null,noteCtx:null,dirty:false
+};
+
+/* =====================================================================
+   3. Utilidades
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function pad(n){return String(n).padStart(2,"0")}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function parseISO(s){const p=String(s).split("-").map(Number);return new Date(p[0],p[1]-1,p[2])}
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function addDays(d,n){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x}
+function fmtDM(d){return d.getDate()+" "+MESES[d.getMonth()]}
+function fmtHM(min){min=Number(min)||0;const h=Math.floor(min/60),m=min%60;return m?(h?h+"h"+pad(m):m+"min"):h+"h"}
+function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function strip(o){const c={...o};delete c.id;return c}
+function dis(){return S.offline||S.readOnly?" disabled":""}
+function plural(n,um,varios){return n+" "+(n===1?um:varios)}
+function toast(msg){const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3400)}
+function inline(s){return s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
+function md(src){
+  const lines=esc(src||"").split("\n");let out="",para=[],list=false;
+  const flush=()=>{if(para.length){out+="<p>"+inline(para.join("<br>"))+"</p>";para=[]}};
+  const endList=()=>{if(list){out+="</ul>";list=false}};
+  for(const raw of lines){
+    const l=raw.trimEnd();
+    if(/^##\s+/.test(l)){flush();endList();out+="<h4>"+inline(l.replace(/^##\s+/,""))+"</h4>";continue}
+    if(/^#\s+/.test(l)){flush();endList();out+="<h3>"+inline(l.replace(/^#\s+/,""))+"</h3>";continue}
+    if(/^&gt;\s?/.test(l)){flush();endList();out+="<blockquote>"+inline(l.replace(/^&gt;\s?/,""))+"</blockquote>";continue}
+    if(/^[-*]\s+/.test(l)){flush();if(!list){out+="<ul>";list=true}out+="<li>"+inline(l.replace(/^[-*]\s+/,""))+"</li>";continue}
+    if(!l.trim()){flush();endList();continue}
+    endList();para.push(l);
+  }
+  flush();endList();return out||'<p class="muted">Nada escrito ainda.</p>';
+}
+async function copy(text){try{await navigator.clipboard.writeText(text);toast("Copiado.")}catch(e){toast("Não foi possível copiar neste navegador.")}}
+function confirmar(el,rotulo,acao){
+  if(el.dataset.confirm!=="1"){const orig=el.textContent;el.dataset.confirm="1";el.textContent=rotulo||"Confirmar";setTimeout(()=>{if(el.isConnected){el.dataset.confirm="";el.textContent=orig}},4500);return}
+  acao();
+}
+
+/* =====================================================================
+   4. Gravação no banco (uma escrita por documento por vez)
+   ===================================================================== */
+const filas={};
+function enfileirar(path,fn){const p=(filas[path]||Promise.resolve()).then(fn,fn);filas[path]=p.catch(()=>{});return p}
+async function comRetentativa(fn){try{return await fn()}catch(e){if(e&&e.code==="unavailable"){await new Promise(r=>setTimeout(r,600+Math.random()*600));return fn()}throw e}}
+function erroDeEscrita(e){
+  if(e&&e.code==="invalid_argument"){S.readOnly=true;toast("Não foi possível salvar: este caderno só aceita edições do dono.")}
+  else if(e&&e.code==="quota_exceeded")toast("O armazenamento do caderno está cheio. Exclua itens antigos para continuar.");
+  else toast("Não foi possível salvar agora. Tente de novo em instantes.");
+}
+function save(path,data){
+  if(!S.db){toast("Sem conexão com o armazenamento.");return Promise.reject({code:"unavailable"})}
+  return enfileirar(path,()=>comRetentativa(()=>S.db.doc(path).set(data))).catch(e=>{erroDeEscrita(e);throw e});
+}
+function remove(path){
+  if(!S.db)return Promise.reject({code:"unavailable"});
+  return enfileirar(path,()=>comRetentativa(()=>S.db.doc(path).delete())).catch(e=>{erroDeEscrita(e);throw e});
+}
+const novoId=col=>S.db.collection(col).doc().id;
+
+/* =====================================================================
+   5. Regras do plano (configuração, trilhas, ciclos, semanas)
+   ===================================================================== */
+const cfg=()=>S.cfg||{};
+const etapaAtual=()=>Number(cfg().etapaAtual)||1;
+function etapaLabel(n){return Number(n)===0?"Consulta":"Ciclo "+n}
+function ciclosNums(){const e=(cfg().etapas||[]).map(x=>Number(x.n)).filter(n=>n>0).sort((a,b)=>a-b);return e.length?e:[1,2,3,4]}
+function cicloAtualInfo(){return (cfg().etapas||[]).find(x=>Number(x.n)===etapaAtual())}
+function trilhas(){const t=cfg().trilhas;return Array.isArray(t)&&t.length?t:DEFAULT_TRILHAS}
+function bookTrilhas(){return trilhas().map(x=>x.id)}
+function slotTrilhas(){return [...bookTrilhas(),"rotativo","sintese"]}
+function T(id){
+  const t=trilhas().find(x=>x.id===id);
+  if(t)return {nome:t.nome,curto:t.curto||t.nome,cor:"var(--t-"+(CORES[t.cor]?t.cor:"rotativo")+")"};
+  if(ESPECIAIS[id])return ESPECIAIS[id];
+  return {nome:"Trilha removida",curto:"Sem trilha",cor:"var(--t-rotativo)"};
+}
+function rotacao(){const r=cfg().rotacao;return Array.isArray(r)&&r.length?r:DEFAULT_ROTACAO}
+function weekIndex(ws){if(!cfg().inicioEtapa)return null;return Math.round((ws-mondayOf(parseISO(cfg().inicioEtapa)))/(7*864e5))+1}
+function rotIndex(N){return (N&&N>0)?(N-1)%rotacao().length:0}
+function resolveTrilha(t,N){return t==="rotativo"?rotacao()[rotIndex(N)]:t}
+function legenda(){return {...DEFAULT_LEGENDA,...(cfg().legendaCores||{})}}
+function slotsPadrao(){return cfg().semana||DEFAULT_SEMANA}
+function slotsDaSemana(){return (S.semanaDoc&&S.semanaDoc.slots)||slotsPadrao()}
+const semanaPath=()=>"semanas/"+iso(S.weekStart);
+const wk=()=>S.semanaDoc||{};
+function salvarSemana(mut){const d=clone(wk());mut(d);return save(semanaPath(),d)}
+function irParaSemana(ws){
+  if(S.weekStart&&iso(S.weekStart)===iso(ws))return;
+  S.weekStart=ws;S.editWeek=null;
+  if(S.unsubSemana){S.unsubSemana();S.unsubSemana=null}
+  S.semanaDoc=null;
+  if(S.db)S.unsubSemana=S.db.doc(semanaPath()).onSnapshot(s=>{S.semanaDoc=s.exists?s.data():null;agendarRender()},()=>{});
+}
+
+/* ---------- livros ---------- */
+function livro(id){return S.livros.find(b=>b.id===id)}
+function byOrdem(a,b){return ((a.etapa||0)-(b.etapa||0))||((a.ordem||0)-(b.ordem||0))||String(a.titulo).localeCompare(String(b.titulo),"pt")}
+function livrosOrdenados(){return S.livros.slice().sort((a,b)=>bookTrilhas().indexOf(a.trilha)-bookTrilhas().indexOf(b.trilha)||byOrdem(a,b))}
+function emLeitura(t){
+  const lendo=S.livros.filter(b=>b.trilha===t&&b.status==="lendo"&&!b.extraData&&!b.topicoId).sort(byOrdem);
+  if(lendo.length)return {lendo};
+  const prox=S.livros.filter(b=>b.trilha===t&&b.status==="fila"&&!b.extraData&&!b.topicoId&&Number(b.etapa)===etapaAtual()).sort(byOrdem)[0];
+  return {lendo:[],prox};
+}
+function proximoLivro(b){
+  if(b.topicoId)return S.livros.filter(x=>x.id!==b.id&&x.topicoId===b.topicoId&&x.status==="fila"&&!x.extraData).sort(byOrdem)[0]||null;
+  const pool=S.livros.filter(x=>x.id!==b.id&&x.trilha===b.trilha&&x.status==="fila"&&!x.extraData&&!x.topicoId&&x.tipo!=="opcional"&&Number(x.etapa)>0);
+  return pool.filter(x=>Number(x.etapa)===Number(b.etapa)).sort(byOrdem)[0]||pool.filter(x=>Number(x.etapa)>Number(b.etapa)).sort(byOrdem)[0]||null;
+}
+async function mudarStatusLivro(b,status){
+  const data={...strip(b),status};
+  if(status==="concluido"&&Number(b.paginasTotal))data.paginasLidas=Number(b.paginasTotal);
+  await save("livros/"+b.id,data);
+  if(status!=="concluido"||b.status==="concluido"||b.extraData)return;
+  const n=proximoLivro(b);
+  if(n){await save("livros/"+n.id,{...strip(n),status:"lendo"});toast("Concluído. Próxima leitura: "+n.titulo+(Number(n.etapa)!==Number(b.etapa)?" (já do "+etapaLabel(n.etapa)+")":"")+".")}
+  else toast(b.topicoId?"Concluído. Não há outro texto na fila deste tópico.":"Concluído. Não há mais textos na fila desta trilha.");
+}
+function moverLivro(id,dir){
+  const b=livro(id);if(!b)return;
+  const mesmo=x=>x.trilha===b.trilha&&(x.topicoId||"")===(b.topicoId||"");
+  const g=S.livros.filter(x=>mesmo(x)&&Number(x.etapa)===Number(b.etapa)).sort(byOrdem);
+  const i=g.findIndex(x=>x.id===id),o=g[i+dir];
+  if(!o){
+    const cs=ciclosNums(),k=cs.indexOf(Number(b.etapa)),t=k<0?undefined:cs[k+dir];
+    if(t==null){toast(dir<0?"Já é o primeiro texto.":"Já é o último texto.");return}
+    const tg=S.livros.filter(x=>mesmo(x)&&Number(x.etapa)===t).map(x=>Number(x.ordem)||0);
+    const ordem=dir<0?(tg.length?Math.max(...tg)+10:10):(tg.length?Math.min(...tg)-10:10);
+    save("livros/"+b.id,{...strip(b),etapa:t,ordem}).then(()=>toast("Movido para o "+etapaLabel(t)+".")).catch(()=>{});return;
+  }
+  let oa=Number(b.ordem)||0,ob=Number(o.ordem)||0;if(oa===ob)ob=oa+dir;
+  save("livros/"+b.id,{...strip(b),ordem:ob}).then(()=>save("livros/"+o.id,{...strip(o),ordem:oa})).catch(()=>{});
+}
+function mudarCicloLivro(b,n){
+  const ordem=Math.max(0,...S.livros.filter(x=>x.trilha===b.trilha&&Number(x.etapa)===n).map(x=>Number(x.ordem)||0))+10;
+  save("livros/"+b.id,{...strip(b),etapa:n,ordem}).then(()=>toast("Movido para "+(n?"o ":"")+etapaLabel(n)+".")).catch(()=>{});
+}
+async function excluirTexto(id){
+  const b=livro(id);
+  await remove("livros/"+id);
+  const partes=[];let falhou=false;
+  if(b&&b.pdfId&&!S.livros.some(x=>x.id!==id&&x.pdfId===b.pdfId)&&S.assets){
+    try{await S.assets.delete(b.pdfId);partes.push("o PDF")}catch(e){falhou=true}
+  }
+  try{const q=await S.db.collection("anot").where("livroId","==",id).get();for(const d of q.docs)await remove("anot/"+d.id);if(q.size)partes.push("as marcações")}catch(e){}
+  toast("Texto excluído"+(partes.length?", com "+partes.join(" e "):"")+(falhou?" (o PDF não pôde ser apagado)":"")+". Fichamentos e sínteses continuam salvos.");
+}
+
+/* ---------- tópicos ---------- */
+function topico(id){return S.topicos.find(x=>x.id===id)}
+function byOrdemT(a,b){return ((a.ordem||0)-(b.ordem||0))||String(a.nome).localeCompare(String(b.nome),"pt")}
+const topTrilha=tp=>tp.trilha||"livres";
+function topicosDe(t){return S.topicos.filter(x=>topTrilha(x)===t)}
+function topicosAtivos(t){return topicosDe(t).filter(x=>x.status==="lendo").sort(byOrdemT)}
+function textosDoTopico(tp){return S.livros.filter(b=>b.topicoId===tp.id).sort((a,b)=>((ORD_ST[a.status]??4)-(ORD_ST[b.status]??4))||byOrdem(a,b))}
+function notasDoTopico(tp){const ids=new Set(textosDoTopico(tp).map(b=>b.id));return S.notas.filter(n=>n.topicoId===tp.id||(n.livroId&&ids.has(n.livroId))).sort((a,b)=>String(b.atualizado||"").localeCompare(String(a.atualizado||"")))}
+async function mudarStatusTopico(tp,status){
+  const antes=tp.status;
+  await save("topicos/"+tp.id,{...strip(tp),status});
+  if(status==="concluido"&&antes!=="concluido"){
+    const n=topicosDe(topTrilha(tp)).filter(x=>x.id!==tp.id&&x.status==="fila").sort(byOrdemT)[0];
+    if(n){await save("topicos/"+n.id,{...strip(n),status:"lendo"});toast("Tópico concluído. Próximo: "+n.nome+".")}
+    else toast("Tópico concluído. Não há outro tópico na fila desta trilha.");
+  }
+}
+function moverTopico(id,dir){
+  const tp=topico(id);if(!tp)return;
+  const g=S.topicos.filter(x=>(x.eixo||"")===(tp.eixo||"")).sort(byOrdemT);
+  const i=g.findIndex(x=>x.id===id),o=g[i+dir];if(!o)return;
+  let oa=Number(tp.ordem)||0,ob=Number(o.ordem)||0;if(oa===ob)ob=oa+dir;
+  save("topicos/"+tp.id,{...strip(tp),ordem:ob}).then(()=>save("topicos/"+o.id,{...strip(o),ordem:oa})).catch(()=>{});
+}
+
+/* ---------- notas ---------- */
+const ehEscrito=tipo=>ESCRITOS.includes(tipo);
+const tiposDe=modo=>Object.keys(TIPOS_NOTA).filter(t=>ehEscrito(t)===(modo==="sinteses"));
+function textoSintese(){
+  const desde=Date.now()-28*864e5;
+  const recentes=S.notas.filter(n=>!ehEscrito(n.tipo)&&n.atualizado&&new Date(n.atualizado).getTime()>=desde).sort((a,b)=>String(a.criado||a.atualizado).localeCompare(String(b.criado||b.atualizado)));
+  return (cfg().modeloSintese||DEFAULT_MODELO_SINTESE).trim()+"\n\n## Fichamentos das últimas 4 semanas\n"
+    +(recentes.length?recentes.map(n=>{const b=livro(n.livroId);return "- "+(n.titulo||"Sem título")+(b?" ("+b.titulo+")":"")}).join("\n"):"- Nenhum fichamento nas últimas 4 semanas.")+"\n";
+}
+function notaTexto(n){const b=livro(n.livroId),ar=n.artigoId&&S.artigos.find(x=>x.id===n.artigoId);return "# "+(n.titulo||"Sem título")+"\n"+(TIPOS_NOTA[n.tipo]||"")+(b?" — "+b.titulo+(b.autor?" ("+b.autor+")":""):"")+(ar?" — "+ar.titulo+(ar.link?" ("+ar.link+")":""):"")+(n.paginas?" — p. "+n.paginas:"")+"\n\n"+(n.texto||"")+"\n"}
+
+/* ---------- revisão espaçada ---------- */
+function hashStr(t){let h=7;for(const ch of t)h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)}
+function revisaoItens(){
+  const limite=Date.now()-14*864e5,chave=iso(S.weekStart||new Date()),velho=x=>x.atualizado&&new Date(x.atualizado).getTime()<limite;
+  const pool=[...S.notas.filter(n=>!ehEscrito(n.tipo)&&velho(n)).map(x=>({k:"n",x})),...S.conceitos.filter(velho).map(x=>({k:"c",x}))];
+  return pool.sort((a,b)=>hashStr(chave+a.x.id)-hashStr(chave+b.x.id)).slice(0,3);
+}
+
+/* ---------- ciclos ---------- */
+function lerCiclosDoFormulario(){
+  return (cfg().etapas||[]).map(x=>{const t=$("et-t-"+x.n),o=$("et-o-"+x.n);return {...x,titulo:t?t.value:x.titulo,objetivo:o?o.value:x.objetivo}});
+}
+async function remapearCiclos(etapas,map,msg){
+  const next=clone(cfg());next.etapas=etapas;next.etapaAtual=map(etapaAtual())||1;
+  try{await save("plano/config",next)}catch(e){return}
+  for(const b of S.livros.filter(b=>Number(b.etapa)>0&&map(Number(b.etapa))!==Number(b.etapa))){try{await save("livros/"+b.id,{...strip(b),etapa:map(Number(b.etapa))})}catch(e){return}}
+  toast(msg);
+}
+function salvarConfig(next,msg){return save("plano/config",next).then(()=>{if(msg)toast(msg)}).catch(()=>{})}
+
+/* =====================================================================
+   6. Blocos de estudo (usados em Hoje e Semana)
+   ===================================================================== */
+function btnAbrir(b,rotulo){return b.pdfId?'<button class="btn sm" data-act="ler" data-id="'+b.id+'">'+(rotulo||"Abrir texto")+'</button>':''}
+function linhaLivro(b,comLido){
+  return '<div class="tt">'+esc(b.titulo)+'</div>'+(b.foco?'<div class="sub">'+esc(b.foco)+'</div>':'')
+    +'<div class="row">'+btnAbrir(b)+(comLido?'<button class="btn sm ghost" data-act="livro-lido" data-id="'+b.id+'"'+dis()+'>Marcar como lido</button>':'')+'</div>';
+}
+function revisaoHtml(){
+  const l=revisaoItens();
+  if(!l.length)return '<div class="sub">Revisão: ainda não há fichamentos ou conceitos com mais de duas semanas.</div>';
+  return '<div class="sub"><strong>Revise antes de escrever:</strong></div>'+l.map(it=>it.k==="c"
+    ?'<button class="item" data-act="conceito-ir" data-id="'+it.x.id+'"><span class="tt">'+esc(it.x.termo)+'</span><span class="sub">Conceito</span></button>'
+    :'<button class="item" style="--c:'+T(it.x.trilha).cor+'" data-act="nota-ir" data-id="'+it.x.id+'"><span class="tt">'+esc(it.x.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[it.x.tipo]||"")+(livro(it.x.livroId)?" · "+esc(livro(it.x.livroId).titulo):"")+'</span></button>').join("");
+}
+function conteudoTrilha(t){
+  if(t==="sintese")return '<div class="tt">Escrever 1 a 2 páginas sobre o que leu no mês</div>'+revisaoHtml();
+  if(topicosDe(t).length){
+    const at=topicosAtivos(t);
+    if(!at.length){const p=topicosDe(t).filter(x=>x.status==="fila").sort(byOrdemT)[0];return '<div class="sub">Nenhum tópico em estudo.'+(p?' Próximo: '+esc(p.nome)+'.':'')+'</div>'}
+    return at.map(tp=>{
+      const ls=textosDoTopico(tp).filter(b=>b.status==="lendo");
+      return '<div class="tt"><button class="linkish" data-act="topico-abrir" data-id="'+tp.id+'">'+esc(tp.nome)+'</button> <span class="pill">tópico</span></div>'
+        +(ls.length?ls.map(b=>'<div class="sub">'+esc(b.titulo)+(b.autor?' — '+esc(b.autor):'')+' '+btnAbrir(b)+'</div>').join(""):'<div class="sub">Nenhum texto escolhido ainda para este tópico.</div>');
+    }).join("");
+  }
+  const a=emLeitura(t);
+  if(a.lendo.length)return a.lendo.map(b=>linhaLivro(b,true)).join("");
+  if(a.prox)return '<div class="sub">Nada marcado como “Lendo”. Próximo do ciclo: '+esc(a.prox.titulo)+'</div>';
+  return '<div class="sub">Nenhum texto em leitura nesta trilha.</div>';
+}
+function checkBtn(key,ok){return '<button class="check" data-act="bloco-feito" data-key="'+key+'" aria-pressed="'+ok+'" aria-label="Marcar como feito"'+dis()+'>'+(ok?CHECK_SVG:"")+'</button>'}
+function blocoSlot(d,s,N){
+  const w=wk(),key=d.i+":"+s.id,ok=!!(w.feitos||{})[key],sk=!!(w.pulados||{})[key];
+  const t=resolveTrilha(s.trilha,N),tb=(w.trocas||{})[key]?livro(w.trocas[key]):null,tc=tb?tb.trilha:t;
+  let lab=esc(T(tc).curto);
+  if(tb&&tb.trilha!==t)lab+=' <span class="n">(no lugar de '+esc(T(t).curto)+')</span>';
+  else if(s.trilha==="rotativo")lab+=' <span class="n">(sexta rotativa, '+(rotIndex(N)+1)+' de '+rotacao().length+')</span>';
+  lab+=' · '+fmtHM(s.min)+(sk?' · <span class="miss">não estudado</span>':'');
+  const corpo=tb?linhaLivro(tb,true).replace('<div class="row">','<div class="row"><span class="pill soft">Troca só neste dia</span>'):conteudoTrilha(t);
+  return '<div class="strip'+(ok?" done":"")+(sk?" skipped":"")+'" style="--c:'+T(tc).cor+'"><div class="body"><div class="lab">'+lab+'</div>'+corpo+'</div>'
+    +'<div class="acts">'+checkBtn(key,ok)+'<button class="btn more ghost" data-act="bloco-menu" data-key="'+key+'" data-trilha="'+t+'" aria-label="Mais ações">⋯</button></div></div>';
+}
+function blocoExtra(b){
+  const w=wk(),key="x:"+b.id,ok=!!(w.feitos||{})[key],sk=!!(w.pulados||{})[key];
+  return '<div class="strip'+(ok?" done":"")+(sk?" skipped":"")+'" style="--c:'+T(b.trilha).cor+'"><div class="body"><div class="lab">Extraordinária'+(b.extraPeriodo?' · '+esc(b.extraPeriodo):'')+' · '+fmtHM(b.extraMin||60)+(sk?' · <span class="miss">não estudado</span>':'')+'</div>'
+    +'<div class="tt">'+esc(b.titulo)+'</div>'+((b.autor||b.foco)?'<div class="sub">'+esc([b.autor,b.foco].filter(Boolean).join(" — "))+'</div>':'')+(b.pdfId?'<div class="row">'+btnAbrir(b)+'</div>':'')+'</div>'
+    +'<div class="acts">'+checkBtn(key,ok)+'<button class="btn more ghost" data-act="bloco-menu" data-key="'+key+'" data-livro="'+b.id+'" aria-label="Mais ações">⋯</button></div></div>';
+}
+function rodapeDia(d,keys,rotulo){
+  if(!keys.length)return "";
+  const p=wk().pulados||{},todos=keys.every(k=>p[k]),algum=keys.some(k=>p[k]);
+  return '<div class="day-foot"><button class="btn sm'+(todos?"":" ghost")+'" data-act="dia-pular" data-keys="'+keys.join(",")+'"'+dis()+'>'+(todos?"Desfazer: estudei":rotulo)+'</button>'
+    +(algum?'<input type="text" class="motivo" data-dia="'+d.i+'" placeholder="Motivo (opcional)" aria-label="Motivo de não ter estudado" value="'+esc((wk().motivos||{})[d.i]||"")+'">':'')+'</div>';
+}
+function blocosDoDia(d,date,N){
+  const extras=S.livros.filter(b=>b.extraData===iso(date)).sort(byOrdem),slots=slotsDaSemana()[d.i]||[];
+  return {extras,slots,keys:[...extras.map(b=>"x:"+b.id),...slots.map(s=>d.i+":"+s.id)],min:slots.reduce((a,s)=>a+(Number(s.min)||0),0)+extras.reduce((a,b)=>a+(Number(b.extraMin)||60),0)};
+}
+function blocosDaSemana(){
+  const N=weekIndex(S.weekStart),w=wk(),out=[];
+  DIAS.forEach((d,k)=>(slotsDaSemana()[d.i]||[]).forEach(s=>{
+    const key=d.i+":"+s.id,t=resolveTrilha(s.trilha,N),a=t==="sintese"?{lendo:[]}:emLeitura(t),padrao=a.lendo[0]||a.prox||null;
+    const atual=(w.trocas||{})[key]&&livro(w.trocas[key])?livro(w.trocas[key]):padrao;
+    out.push({key,dia:d,date:addDays(S.weekStart,k),t,padrao,atual});
+  }));
+  return out;
+}
+
+/* =====================================================================
+   7. Telas
+   ===================================================================== */
+/* ---------- Hoje ---------- */
+const TM={fase:"",fim:0,resto:0,pausado:false,foco:25,iv:null};
+function fmtClock(ms){const t=Math.max(0,Math.round(ms/1000));return pad(Math.floor(t/60))+":"+pad(t%60)}
+const tmResto=()=>TM.pausado?TM.resto:TM.fim-Date.now();
+function timerHtml(){
+  if(!TM.fase){const op=opcoesDoCronometro();S.tmOpcoes=op;return '<label class="small muted" for="tm-alvo">Estudar:</label><select id="tm-alvo" style="max-width:220px">'+op.map((o,i)=>'<option value="'+i+'">'+esc(o.rotulo)+'</option>').join("")+'</select><button class="btn sm" data-act="tm-iniciar" data-min="25">25 min</button><button class="btn sm" data-act="tm-iniciar" data-min="50">50 min</button>'}
+  return '<strong class="clock hours" id="tm-clock">'+fmtClock(tmResto())+'</strong><span class="pill'+(TM.fase==="foco"?" hot":"")+'">'+(TM.fase==="foco"?"Foco":"Pausa")+'</span>'
+    +(TM.alvo&&TM.fase==="foco"?'<span class="small muted">'+esc(TM.alvo.rotulo)+'</span>':'')+'<button class="btn sm" data-act="tm-pausar">'+(TM.pausado?"Continuar":"Pausar")+'</button><button class="btn sm ghost" data-act="tm-encerrar">Encerrar</button>';
+}
+function telaHoje(){
+  const hoje=new Date();irParaSemana(mondayOf(hoje));
+  const N=weekIndex(S.weekStart),d=DIAS.find(x=>x.i===hoje.getDay()),bl=blocosDoDia(d,hoje,N),hr=(cfg().horarios||{})[d.i];
+  let h='<section class="card"><div class="spread"><div><div class="small muted">'+d.nome+', '+hoje.getDate()+' de '+MESES_LONGOS[hoje.getMonth()]+(hr?' · '+esc(hr):'')+'</div><h2>Hoje</h2></div>'
+   +'<div class="row" id="timer-box">'+timerHtml()+'</div></div><div class="small muted">Estudado nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a></div></section>';
+  if(!bl.keys.length){
+    let prox=null;for(let k=1;k<=7&&!prox;k++){const dt=addDays(hoje,k),l=slotsPadrao()[dt.getDay()]||[];if(l.length)prox={dt,l}}
+    return h+avulsasDeHoje()+'<div class="empty">Hoje não há estudo planejado.'+(prox?'<br><span class="small">Próximo: '+DIAS.find(x=>x.i===prox.dt.getDay()).nome+', '+prox.l.map(s=>esc(T(resolveTrilha(s.trilha,weekIndex(mondayOf(prox.dt)))).curto)).join(" + ")+'.</span>':'')+'</div>';
+  }
+  return h+'<section class="day today" aria-label="Blocos de hoje">'+bl.extras.map(blocoExtra).join("")+bl.slots.map(s=>blocoSlot(d,s,N)).join("")+rodapeDia(d,bl.keys,"Não estudei hoje")+'</section>'+avulsasDeHoje();
+}
+
+/* ---------- Semana ---------- */
+function telaSemana(){
+  if(!S.weekStart)irParaSemana(mondayOf(new Date()));
+  const ws=S.weekStart,N=weekIndex(ws),editando=!!S.editWeek,w=wk(),hoje=iso(new Date());
+  let plano=0,feito=0,falta=0;
+  DIAS.forEach((d,k)=>{const bl=blocosDoDia(d,addDays(ws,k),N);
+    bl.slots.forEach(s=>{const key=d.i+":"+s.id,m=Number(s.min)||0;plano+=m;if((w.feitos||{})[key])feito+=m;if((w.pulados||{})[key])falta+=m});
+    bl.extras.forEach(b=>{const key="x:"+b.id,m=Number(b.extraMin)||60;plano+=m;if((w.feitos||{})[key])feito+=m;if((w.pulados||{})[key])falta+=m});
+  });
+  const info=cicloAtualInfo(),pct=plano?Math.round(feito/plano*100):0;
+  const semLabel=N==null?"defina o início do ciclo em Plano":N<1?"o ciclo começa em "+fmtDM(parseISO(cfg().inicioEtapa)):"semana "+N+" do ciclo";
+  const agora=bookTrilhas().map(t=>{
+    let txt;
+    if(topicosDe(t).length){const at=topicosAtivos(t);txt=at.length?at.map(x=>esc(x.nome)).join(" · "):'<span class="muted">Nenhum tópico em estudo</span>'}
+    else{const a=emLeitura(t);txt=a.lendo.length?a.lendo.map(b=>esc(b.titulo)).join(" · "):(a.prox?'<span class="muted">Próximo: '+esc(a.prox.titulo)+'</span>':'<span class="muted">—</span>')}
+    return '<div class="now" style="--c:'+T(t).cor+'"><div class="lab">'+esc(T(t).curto)+'</div><div class="tt" style="font-size:14px">'+txt+'</div></div>';
+  }).join("");
+  let h='<section class="card"><div class="spread"><div><div class="small muted">'+etapaLabel(etapaAtual())+' · '+esc(semLabel)+'</div><h2>'+esc(info?info.titulo:"Plano de estudos")+'</h2></div>'
+   +'<div style="min-width:190px"><div class="spread small"><span>Horas feitas</span><strong class="hours">'+fmtHM(feito)+' / '+fmtHM(plano)+'</strong></div><div class="meter" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+pct+'%"></span></div>'+(falta?'<div class="small miss" style="margin-top:4px">Não estudado: '+fmtHM(falta)+'</div>':'')+'<div class="small muted" style="margin-top:4px">Tempo registrado: '+fmtHM(minutosCronometrados(ws))+' · <a href="#historico">Histórico</a></div></div></div>'
+   +'<div class="now-grid">'+agora+'</div></section>';
+  h+='<div class="spread"><div class="weeknav"><button class="btn" data-act="sem-ant" aria-label="Semana anterior">‹</button><span class="range">'+fmtDM(ws)+' – '+fmtDM(addDays(ws,6))+'</span><button class="btn" data-act="sem-prox" aria-label="Próxima semana">›</button><button class="btn ghost" data-act="sem-hoje">Hoje</button></div>'
+   +(editando?'':'<div class="row">'+(w.slots?'<span class="pill">Semana ajustada</span>':'')+'<button class="btn" data-act="avulsa-nova"'+dis()+'>+ Leitura fora do horário</button><button class="btn" data-act="extra-novo"'+dis()+'>+ Leitura extraordinária</button><button class="btn" data-act="sem-editar"'+dis()+'>Reorganizar</button></div>')+'</div>';
+  if(editando)h+='<div class="editbar"><span class="small"><strong>Reorganizando.</strong> Mude a trilha, a duração ou o dia de cada bloco.</span><button class="btn primary" data-act="sem-salvar">Salvar só nesta semana</button><button class="btn" data-act="sem-padrao">Salvar como padrão</button>'+(w.slots?'<button class="btn" data-act="sem-reset">Voltar ao padrão</button>':'')+'<button class="btn ghost" data-act="sem-cancelar">Cancelar</button></div>';
+  h+='<div class="days">';
+  DIAS.forEach((d,k)=>{
+    const date=addDays(ws,k),bl=blocosDoDia(d,date,N),eHoje=iso(date)===hoje,hr=(cfg().horarios||{})[d.i];
+    h+='<section class="day'+(eHoje?" today":"")+'" aria-label="'+d.nome+'"><div class="day-h"><h3>'+d.nome+' <span class="small muted">'+fmtDM(date)+(hr?' · '+esc(hr):'')+'</span></h3>'+(eHoje?'<span class="pill hot">Hoje</span>':'<span class="pill">'+fmtHM(bl.min)+'</span>')+'</div>';
+    if(editando){
+      (S.editWeek[d.i]||[]).forEach((s,idx)=>{
+        h+='<div class="strip edit" style="--c:'+T(s.trilha).cor+'">'
+          +'<select aria-label="Trilha" data-act="slot-trilha" data-dia="'+d.i+'" data-idx="'+idx+'">'+slotTrilhas().map(t=>'<option value="'+t+'"'+(t===s.trilha?" selected":"")+'>'+esc(T(t).curto)+'</option>').join("")+'</select>'
+          +'<select aria-label="Duração" data-act="slot-min" data-dia="'+d.i+'" data-idx="'+idx+'">'+[30,45,60,90,120].map(m=>'<option value="'+m+'"'+(m===Number(s.min)?" selected":"")+'>'+fmtHM(m)+'</option>').join("")+'</select>'
+          +'<select aria-label="Mover para" data-act="slot-dia" data-dia="'+d.i+'" data-idx="'+idx+'">'+DIAS.map(x=>'<option value="'+x.i+'"'+(x.i===d.i?" selected":"")+'>'+x.c+'</option>').join("")+'</select>'
+          +'<button class="btn sm ghost" data-act="slot-remover" data-dia="'+d.i+'" data-idx="'+idx+'">Remover</button></div>';
+      });
+      h+='<button class="btn sm" data-act="slot-adicionar" data-dia="'+d.i+'">+ Adicionar bloco</button>';
+    }else{
+      if(!bl.keys.length)h+='<div class="sub">Sem estudo neste dia.</div>';
+      h+=bl.extras.map(blocoExtra).join("")+bl.slots.map(s=>blocoSlot(d,s,N)).join("")+rodapeDia(d,bl.keys,"Não estudei neste dia");
+    }
+    h+='</section>';
+  });
+  return h+'</div>';
+}
+
+/* ---------- Biblioteca ---------- */
+function telaBiblioteca(){
+  const seg='<div class="spread"><div class="seg" role="group" aria-label="Biblioteca"><button data-act="bib-aba" data-tab="textos" aria-pressed="'+(S.bibTab==="textos")+'">Textos</button><button data-act="bib-aba" data-tab="topicos" aria-pressed="'+(S.bibTab==="topicos")+'">Tópicos</button><button data-act="bib-aba" data-tab="imprensa" aria-pressed="'+(S.bibTab==="imprensa")+'">Imprensa'+(S.artigos.some(a=>a.status!=="lido")?' <span class="pill hot">'+S.artigos.filter(a=>a.status!=="lido").length+'</span>':'')+'</button></div>'
+   +(S.bibTab==="textos"?'<button class="btn primary" data-act="livro-novo"'+dis()+'>+ Adicionar texto</button>':S.bibTab==="imprensa"?'<button class="btn" data-act="artigo-novo"'+dis()+'>+ Matéria</button>':(S.topicoAberto?'':'<button class="btn primary" data-act="topico-novo"'+dis()+'>+ Novo tópico</button>'))+'</div>';
+  if(S.bibTab==="imprensa")return seg+telaImprensa();
+  if(S.bibTab==="topicos"){
+    const tp=S.topicoAberto&&topico(S.topicoAberto);
+    if(S.topicoAberto&&!tp)S.topicoAberto=null;
+    return seg+(tp?telaPasta(tp):telaTopicos());
+  }
+  return seg+telaTextos();
+}
+function selectStatus(b,act,mapa){return '<select class="mini st-'+esc(b.status)+'" style="--c:'+T(b.trilha||topTrilha(b)).cor+'" aria-label="Status" data-act="'+act+'" data-id="'+b.id+'"'+dis()+'>'+Object.keys(mapa).map(k=>'<option value="'+k+'"'+(k===b.status?" selected":"")+'>'+mapa[k]+'</option>').join("")+'</select>'}
+function cartaoLivro(b){
+  const tot=Number(b.paginasTotal)||0,lid=Math.min(Number(b.paginasLidas)||0,tot||Infinity),tp=b.topicoId&&topico(b.topicoId);
+  const ciclos=[0,...ciclosNums()];if(!ciclos.includes(Number(b.etapa)))ciclos.push(Number(b.etapa));
+  return '<article class="book '+esc(b.status)+'" style="--c:'+T(b.trilha).cor+'"><div><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+esc(b.autor||"")+'</div>'
+    +'<div class="meta" style="margin-top:4px"><select class="mini" aria-label="Ciclo" data-act="livro-ciclo" data-id="'+b.id+'"'+dis()+'>'+ciclos.map(n=>'<option value="'+n+'"'+(n===Number(b.etapa)?" selected":"")+'>'+etapaLabel(n)+'</option>').join("")+'</select>'
+    +(b.mes?'<span class="pill">mês '+esc(b.mes)+'</span>':'')+(b.tipo&&b.tipo!=="principal"?'<span class="pill">'+esc(TIPOS_LIVRO[b.tipo]||b.tipo)+'</span>':'')
+    +(tp?'<button class="pill linkish" data-act="topico-abrir" data-id="'+tp.id+'">Tópico: '+esc(tp.nome)+'</button>':'')
+    +(b.extraData?'<span class="pill soft">Extraordinária · '+fmtDM(parseISO(b.extraData))+'</span>':'')+(b.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
+    +'<div class="side">'+selectStatus(b,"livro-status",STATUS)+'<div class="row">'+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="livro-menu" data-id="'+b.id+'" aria-label="Mais ações">⋯</button></div></div>'
+    +(b.foco?'<div class="sub full">'+esc(b.foco)+'</div>':'')
+    +(tot?'<div class="prog full"><div class="meter"><span style="width:'+Math.round(lid/tot*100)+'%"></span></div>'+lid+' / '+tot+' p.</div>':'')+'</article>';
+}
+function telaTextos(){
+  const f=S.fl,et=f.etapa==="atual"?etapaAtual():f.etapa;
+  const opt=(id,val,lista)=>'<select id="'+id+'" aria-label="Filtro">'+lista.map(([v,l])=>'<option value="'+v+'"'+(String(v)===String(val)?" selected":"")+'>'+esc(l)+'</option>').join("")+'</select>';
+  let h='<div class="filters">'+opt("fl-etapa",f.etapa,[["atual","Ciclo atual ("+etapaAtual()+")"],...ciclosNums().map(n=>[n,"Ciclo "+n]),[0,"Consulta"],["todas","Todos os ciclos"]])
+   +opt("fl-trilha",f.trilha,[["todas","Todas as trilhas"],...bookTrilhas().map(t=>[t,T(t).curto])])
+   +opt("fl-status",f.status,[["todas","Todos os status"],...Object.keys(STATUS).map(k=>[k,STATUS[k]])])+'</div>';
+  if(!S.livros.length)return h+'<div class="empty">Nenhum texto ainda. Use “+ Adicionar texto”.</div>';
+  const lista=S.livros.filter(b=>(et==="todas"||Number(b.etapa)===Number(et))&&(f.trilha==="todas"||b.trilha===f.trilha)&&(f.status==="todas"||b.status===f.status));
+  let algum=false;
+  bookTrilhas().forEach(t=>{
+    const g=lista.filter(b=>b.trilha===t).sort(byOrdem);if(!g.length)return;algum=true;
+    h+='<section class="group" style="--c:'+T(t).cor+'"><div class="group-h"><h2>'+esc(T(t).nome)+'</h2><span class="pill">'+g.length+'</span></div>'+g.map(cartaoLivro).join("")+'</section>';
+  });
+  return h+(algum?'':'<div class="empty">Nenhum texto com esses filtros.</div>');
+}
+function telaTopicos(){
+  let h='<p class="small muted">Cada tópico é uma pasta: guarda os textos que você ler sobre o assunto, agora ou no futuro, com fichamentos e sínteses. Os marcados como “Estudando” aparecem no dia da trilha.</p>';
+  if(!S.topicos.length)return h+'<div class="empty">Nenhum tópico ainda. Use “+ Novo tópico”.</div>';
+  const eixos=[...new Set(S.topicos.map(x=>x.eixo||""))].sort((a,b)=>a===""?1:b===""?-1:a.localeCompare(b,"pt"));
+  eixos.forEach(e=>{
+    const l=S.topicos.filter(x=>(x.eixo||"")===e).sort((a,b)=>((ORD_ST[a.status]??4)-(ORD_ST[b.status]??4))||byOrdemT(a,b));
+    h+='<section class="group"><div class="group-h"><h2>'+(e?esc(e):"Sem eixo")+'</h2><span class="pill">'+l.length+'</span></div>';
+    l.forEach(tp=>{
+      const nt=textosDoTopico(tp).length,nn=notasDoTopico(tp).length;
+      h+='<button class="book topic-card '+esc(tp.status)+'" style="--c:'+T(topTrilha(tp)).cor+'" data-act="topico-abrir" data-id="'+tp.id+'"><div><div class="tt">'+esc(tp.nome)+'</div>'+(tp.descricao?'<div class="sub">'+esc(tp.descricao)+'</div>':'')
+        +'<div class="meta" style="margin-top:4px"><span class="pill">'+plural(nt,"texto","textos")+'</span><span class="pill">'+plural(nn,"anotação","anotações")+'</span></div></div>'
+        +'<div class="side"><span class="pill'+(tp.status==="lendo"?" hot":"")+'">'+STATUS_T[tp.status]+'</span><span class="sub">Abrir ›</span></div></button>';
+    });
+    h+='</section>';
+  });
+  return h;
+}
+function telaPasta(tp){
+  const tr=topTrilha(tp),ls=textosDoTopico(tp),ns=notasDoTopico(tp),fich=ns.filter(n=>!ehEscrito(n.tipo)),sint=ns.filter(n=>ehEscrito(n.tipo));
+  const ids=new Set(ns.map(n=>n.id)),concs=S.conceitos.filter(c=>(c.notas||[]).some(id=>ids.has(id))||(c.leituras||[]).some(l=>ls.some(b=>b.id===l.livroId)));
+  const item=n=>'<button class="item" style="--c:'+T(n.trilha||tr).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>';
+  let h='<div><button class="btn sm ghost" data-act="topico-fechar">‹ Todos os tópicos</button></div>'
+   +'<section class="card" style="--c:'+T(tr).cor+';border-left:4px solid var(--c)"><div class="spread"><div><div class="small muted">'+esc((tp.eixo?tp.eixo+" · ":"")+T(tr).curto)+'</div><h2>'+esc(tp.nome)+'</h2></div>'
+   +'<div class="row">'+selectStatus({...tp,trilha:tr},"topico-status",STATUS_T)+'<button class="btn more ghost" data-act="topico-menu" data-id="'+tp.id+'" aria-label="Mais ações">⋯</button></div></div>'
+   +(tp.descricao?'<p>'+esc(tp.descricao)+'</p>':'')
+   +'<p class="small muted">'+(tp.status==="lendo"?"Está na agenda do dia de "+esc(T(tr).curto)+".":"Fora da agenda. Mude para “Estudando” para aparecer no calendário.")+'</p></section>';
+  h+='<section class="card"><div class="spread"><h2>Textos <span class="pill">'+ls.length+'</span></h2><div class="row"><button class="btn sm" data-act="topico-texto" data-id="'+tp.id+'"'+dis()+'>+ Texto</button>'+(S.assets?'<button class="btn sm" data-act="topico-pdf" data-id="'+tp.id+'"'+dis()+'>Importar PDF</button>':'')+'</div></div>'
+   +(ls.length?ls.map(b=>'<div class="strip" style="--c:'+T(b.trilha).cor+';align-items:center"><div class="body"><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+esc(b.autor||"")+(b.paginasTotal?(b.autor?" · ":"")+(Number(b.paginasLidas)||0)+"/"+b.paginasTotal+" p.":"")+'</div></div>'
+      +'<div class="row">'+selectStatus(b,"livro-status",STATUS)+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="livro-menu" data-id="'+b.id+'" aria-label="Mais ações">⋯</button></div></div>').join(""):'<p class="small muted">Nenhum texto ainda. O que você ler sobre este assunto, agora ou no futuro, fica guardado aqui.</p>')+'</section>';
+  h+='<section class="card"><div class="spread"><h2>Fichamentos <span class="pill">'+fich.length+'</span></h2><button class="btn sm" data-act="topico-anotar" data-id="'+tp.id+'"'+dis()+'>+ Anotar</button></div>'+(fich.length?'<div class="items" style="max-height:none">'+fich.map(item).join("")+'</div>':'<p class="small muted">Nenhum fichamento ainda.</p>')+'</section>';
+  h+='<section class="card"><div class="spread"><h2>Sínteses <span class="pill">'+sint.length+'</span></h2><button class="btn sm" data-act="topico-sintese" data-id="'+tp.id+'"'+dis()+'>+ Escrever</button></div>'+(sint.length?'<div class="items" style="max-height:none">'+sint.map(item).join("")+'</div>':'<p class="small muted">Nenhuma síntese sobre este tópico ainda.</p>')+'</section>';
+  if(concs.length)h+='<section class="card"><h2>Conceitos ligados</h2><div class="row">'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div></section>';
+  return h;
+}
+
+/* ---------- Caderno (fichamentos, sínteses, conceitos) ---------- */
+function telaCaderno(){
+  const seg='<div class="seg" role="group" aria-label="Caderno">'+[["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"]].map(([k,l])=>'<button data-act="cad-aba" data-tab="'+k+'" aria-pressed="'+(S.cadTab===k)+'">'+l+'</button>').join("")+'</div>';
+  return seg+(S.cadTab==="conceitos"?telaConceitos():telaNotas());
+}
+function notasFiltradas(){
+  const f=S.nf,q=f.q.trim().toLowerCase(),modo=S.cadTab,tipos=tiposDe(modo);
+  return S.notas.filter(n=>ehEscrito(n.tipo)===(modo==="sinteses")&&(!f.artigo||f.artigo==="todos"||n.artigoId===f.artigo)&&(f.topico==="todos"||n.topicoId===f.topico)&&(f.livro==="todos"||n.livroId===f.livro)&&(f.tipo==="todos"||!tipos.includes(f.tipo)||n.tipo===f.tipo)
+    &&(!q||(String(n.titulo)+" "+String(n.texto)).toLowerCase().includes(q))).sort((a,b)=>String(b.atualizado||"").localeCompare(String(a.atualizado||"")));
+}
+function telaNotas(){
+  const f=S.nf,sint=S.cadTab==="sinteses";
+  const lista='<div class="list"><div class="spread"><h2>'+(sint?"Sínteses":"Fichamentos")+'</h2><button class="btn primary" data-act="nota-nova"'+dis()+'>+ '+(sint?"Escrever":"Nova")+'</button></div>'
+   +(sint?'<p class="small muted">Seus textos: sínteses de livros, tópicos e ciclos, análises de conjuntura e textos livres.</p>':'')
+   +'<input type="search" id="nf-q" placeholder="Buscar" aria-label="Buscar" value="'+esc(f.q)+'">'
+   +'<div class="grid"><select id="nf-tipo" aria-label="Tipo"><option value="todos">Todos os tipos</option>'+tiposDe(S.cadTab).map(t=>'<option value="'+t+'"'+(f.tipo===t?" selected":"")+'>'+TIPOS_NOTA[t]+'</option>').join("")+'</select>'
+   +'<select id="nf-livro" aria-label="Livro"><option value="todos">Todos os livros</option>'+livrosOrdenados().map(b=>'<option value="'+b.id+'"'+(f.livro===b.id?" selected":"")+'>'+esc(b.titulo)+'</option>').join("")+'</select></div>'
+   +(f.artigo&&f.artigo!=="todos"&&artigo(f.artigo)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(f.artigo).titulo)+'</strong><button class="btn sm ghost" data-act="nf-limpar-artigo">Limpar</button></div>':'')
+   +(f.topico!=="todos"&&topico(f.topico)?'<div class="row small"><span class="muted">Tópico:</span><strong>'+esc(topico(f.topico).nome)+'</strong><button class="btn sm ghost" data-act="nf-limpar-topico">Limpar</button></div>':'')
+   +'<div class="items" id="nota-itens"></div><button class="btn sm" data-act="notas-copiar">Copiar a lista filtrada</button></div>';
+  return '<div class="split'+(S.draft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.draft?editorNota():'<div class="empty">'+(sint?"Escolha uma síntese ou escreva uma nova.":"Escolha um fichamento ou crie um novo.")+'</div>')+'</div></div>';
+}
+function pintarListaNotas(){
+  const el=$("nota-itens");if(!el)return;const l=notasFiltradas();
+  el.innerHTML=l.length?l.map(n=>{const b=livro(n.livroId),tp=n.topicoId&&topico(n.topicoId);return '<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-abrir" data-id="'+n.id+'" aria-current="'+(!!S.draft&&S.draft.id===n.id)+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(b?" · "+esc(b.titulo):"")+(tp?" · "+esc(tp.nome):"")+(n.artigoId&&artigo(n.artigoId)?" · "+esc(artigo(n.artigoId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>'}).join("")
+    :'<div class="small muted" style="padding:8px">Nada por aqui ainda.</div>';
+}
+function editorNota(){
+  const d=S.draft,modo=ehEscrito(d.tipo)?"sinteses":"fichamentos";
+  const concs=d.id?S.conceitos.filter(c=>(c.notas||[]).includes(d.id)):[];
+  return '<div class="editor" id="nota-editor"><div class="spread"><button class="btn sm ghost" data-act="nota-fechar">‹ Voltar à lista</button><span class="savestate" id="savestate" aria-live="polite">'+esc(S.saveState)+'</span></div>'
+   +'<input class="title" type="text" id="ne-titulo" placeholder="Título" aria-label="Título" value="'+esc(d.titulo||"")+'">'
+   +'<div class="grid"><label class="f">Tipo<select id="ne-tipo">'+tiposDe(modo).map(t=>'<option value="'+t+'"'+(d.tipo===t?" selected":"")+'>'+TIPOS_NOTA[t]+'</option>').join("")+'</select></label>'
+   +'<label class="f">Livro<select id="ne-livro"><option value="">Nenhum</option>'+livrosOrdenados().map(b=>'<option value="'+b.id+'"'+(d.livroId===b.id?" selected":"")+'>'+esc(b.titulo)+'</option>').join("")+'</select></label>'
+   +(S.topicos.length?'<label class="f">Tópico<select id="ne-topico"><option value="">Nenhum</option>'+S.topicos.slice().sort(byOrdemT).map(tp=>'<option value="'+tp.id+'"'+(d.topicoId===tp.id?" selected":"")+'>'+esc(tp.nome)+'</option>').join("")+'</select></label>':'')
+   +'<label class="f">Páginas<input type="text" id="ne-paginas" placeholder="ex.: 45–62" value="'+esc(d.paginas||"")+'"></label></div>'
+   +(d.artigoId&&artigo(d.artigoId)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(d.artigoId).titulo)+'</strong></div>':'')
+   +(concs.length?'<div class="row small"><span class="muted">Conceitos:</span>'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
+   +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":"Ver formatado")+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
+   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
+   +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
+}
+function telaConceitos(){
+  const lista='<div class="list"><div class="spread"><h2>Conceitos</h2><button class="btn primary" data-act="conceito-novo"'+dis()+'>+ Novo</button></div>'
+   +'<input type="search" id="cq" placeholder="Buscar conceito ou autor" aria-label="Buscar conceito ou autor" value="'+esc(S.cq)+'"><div class="items" id="conc-itens"></div></div>';
+  return '<div class="split'+(S.cdraft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.cdraft?editorConceito():'<div class="empty">Escolha um conceito ou crie um novo. Registre a definição, como cada autor trata o conceito e os fichamentos em que ele aparece.</div>')+'</div></div>';
+}
+function pintarListaConceitos(){
+  const el=$("conc-itens");if(!el)return;const q=S.cq.trim().toLowerCase();
+  const l=S.conceitos.filter(c=>!q||(String(c.termo)+" "+String(c.definicao)+" "+(c.leituras||[]).map(x=>x.autor+" "+x.texto).join(" ")).toLowerCase().includes(q)).sort((a,b)=>String(a.termo).localeCompare(String(b.termo),"pt"));
+  el.innerHTML=l.length?l.map(c=>{const aut=[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))];return '<button class="item" data-act="conceito-abrir" data-id="'+c.id+'" aria-current="'+(!!S.cdraft&&S.cdraft.id===c.id)+'"><span class="tt">'+esc(c.termo||"Sem nome")+'</span><span class="sub">'+(aut.length?esc(aut.join(", ")):"Nenhum autor ainda")+' · '+plural((c.notas||[]).length,"fichamento","fichamentos")+'</span></button>'}).join("")
+    :'<div class="small muted" style="padding:8px">Nenhum conceito ainda.</div>';
+}
+function editorConceito(){
+  const c=S.cdraft,livs=livrosOrdenados();
+  let h='<div class="editor" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><span class="savestate" id="csave" aria-live="polite">'+esc(S.csave)+'</span></div>'
+   +'<input class="title" type="text" id="ce-termo" placeholder="Nome do conceito" aria-label="Nome do conceito" value="'+esc(c.termo||"")+'">'
+   +'<label class="f">Definição geral<textarea id="ce-def" rows="4" class="short">'+esc(c.definicao||"")+'</textarea></label>'
+   +'<div class="stack"><div class="spread"><strong class="small">Como cada autor trata o conceito</strong><button class="btn sm" data-act="conceito-autor"'+dis()+'>+ Autor</button></div>';
+  if(!c.leituras.length)h+='<p class="small muted">Ex.: reificação em Marx (fetichismo), em Lukács e em Althusser.</p>';
+  c.leituras.forEach((l,i)=>{
+    h+='<div class="leitura"><div class="grid"><label class="f">Autor<input type="text" data-cl="autor" data-i="'+i+'" value="'+esc(l.autor||"")+'"></label><label class="f">Texto de referência<select data-cl="livroId" data-i="'+i+'"><option value="">—</option>'+livs.map(b=>'<option value="'+b.id+'"'+(l.livroId===b.id?" selected":"")+'>'+esc(b.titulo)+'</option>').join("")+'</select></label></div>'
+     +'<textarea rows="3" class="short" data-cl="texto" data-i="'+i+'" aria-label="Como o conceito aparece neste autor" placeholder="Como o conceito aparece neste autor">'+esc(l.texto||"")+'</textarea><div><button class="btn sm ghost" data-act="conceito-autor-remover" data-i="'+i+'">Remover autor</button></div></div>';
+  });
+  return h+'</div><div><strong class="small">Fichamentos ligados</strong><input type="search" id="cnq" placeholder="Filtrar fichamentos" aria-label="Filtrar fichamentos" value="'+esc(S.cnq)+'" style="width:100%;margin:6px 0"><div id="conc-notas" class="checklist"></div></div>'
+   +'<div class="spread"><button class="btn sm danger" data-act="conceito-excluir"'+(c.id?"":" disabled")+'>Excluir</button><button class="btn primary" data-act="conceito-salvar"'+dis()+'>Salvar</button></div></div>';
+}
+function pintarNotasDoConceito(){
+  const el=$("conc-notas");if(!el||!S.cdraft)return;
+  const sel=new Set(S.cdraft.notas||[]),q=S.cnq.trim().toLowerCase();
+  const l=S.notas.filter(n=>sel.has(n.id)||!q||(String(n.titulo)+" "+String(n.texto)).toLowerCase().includes(q)).sort((a,b)=>(Number(sel.has(b.id))-Number(sel.has(a.id)))||String(b.atualizado||"").localeCompare(String(a.atualizado||"")));
+  el.innerHTML=l.length?l.map(n=>'<label><input type="checkbox" data-cn="'+n.id+'"'+(sel.has(n.id)?" checked":"")+'><span><strong>'+esc(n.titulo||"Sem título")+'</strong>'+(livro(n.livroId)?' <span class="muted">· '+esc(livro(n.livroId).titulo)+'</span>':'')+'</span></label>').join(""):'<div class="small muted">Nenhum fichamento ainda.</div>';
+}
+
+/* ---------- Plano ---------- */
+function telaPlano(){
+  const c=cfg(),etapas=(c.etapas||[]).slice().sort((a,b)=>a.n-b.n),rot=rotacao(),rotOpts=[...bookTrilhas(),"sintese"],lg=legenda();
+  const sec=(id,titulo,corpo,aberto)=>'<details class="sec" data-sec="'+id+'"'+(aberto||S.secAberta===id?" open":"")+'><summary>'+titulo+'</summary><div class="in">'+corpo+'</div></details>';
+  let h=sec("ciclo","Ciclo em andamento",
+    '<p class="small muted">O ciclo termina quando você fechar o eixo principal das trilhas. Ao mudar de ciclo, ajuste a data de início: ela conta as semanas e define a rotação da sexta.</p>'
+    +'<div class="grid"><label class="f">Ciclo atual<select id="pl-etapa">'+ciclosNums().map(n=>'<option value="'+n+'"'+(n===etapaAtual()?" selected":"")+'>Ciclo '+n+'</option>').join("")+'</select></label><label class="f">Início do ciclo<input type="date" id="pl-inicio" value="'+esc(c.inicioEtapa||"")+'"></label></div>'
+    +'<div class="small muted">Rotação da sexta-feira (repete a cada '+plural(rot.length,"semana","semanas")+')</div><div class="grid">'+rot.map((t,i)=>'<label class="f">Semana '+(i+1)+'<select id="pl-rot-'+i+'">'+rotOpts.concat(rotOpts.includes(t)?[]:[t]).map(x=>'<option value="'+x+'"'+(x===t?" selected":"")+'>'+esc(T(x).curto)+'</option>').join("")+'</select></label>').join("")+'</div>'
+    +'<div class="row"><button class="btn sm" data-act="rot-mais"'+dis()+'>+ Semana na rotação</button><button class="btn sm ghost" data-act="rot-menos"'+(rot.length<2?" disabled":dis())+'>− Última semana</button></div>'
+    +'<div><button class="btn primary" data-act="plano-salvar"'+dis()+'>Salvar</button></div>',true);
+  let total=0;const slots=slotsPadrao();
+  h+=sec("semana","Semana padrão e horários",
+    '<div class="tplwrap"><table class="tpl"><thead><tr><th>Dia</th><th>Blocos</th><th>Tempo</th></tr></thead><tbody>'
+    +DIAS.map(d=>{const l=slots[d.i]||[],m=l.reduce((a,s)=>a+(Number(s.min)||0),0);total+=m;return '<tr><td>'+d.nome+'</td><td>'+(l.map(s=>esc(T(s.trilha).curto)+" ("+fmtHM(s.min)+")").join(" + ")||'<span class="muted">—</span>')+'</td><td class="hours">'+fmtHM(m)+'</td></tr>'}).join("")
+    +'<tr><th colspan="2">Total</th><th class="hours">'+fmtHM(total)+'</th></tr></tbody></table></div>'
+    +'<p class="small muted">Para mudar os blocos: Semana › Reorganizar › Salvar como padrão.</p>'
+    +'<div class="small muted">Horários de estudo (aparecem no calendário e na agenda exportada)</div><div class="grid">'+DIAS.map(d=>'<label class="f">'+d.nome+'<input type="time" id="hr-'+d.i+'" value="'+esc((c.horarios||{})[d.i]||"")+'"></label>').join("")+'</div>'
+    +'<div><button class="btn" data-act="horarios-salvar"'+dis()+'>Salvar horários</button></div>');
+  h+=sec("ciclos","Ciclos",
+    etapas.map(e=>'<div class="sub-item'+(e.n===etapaAtual()?" atual":"")+'"><div class="spread"><div class="row"><strong>Ciclo '+e.n+'</strong>'+(e.n===etapaAtual()?'<span class="pill hot">Atual</span>':'')+'<span class="pill">'+plural(S.livros.filter(b=>Number(b.etapa)===e.n).length,"texto","textos")+'</span></div>'
+      +'<div class="row"><button class="btn sm ghost" data-act="ciclo-mover" data-n="'+e.n+'" data-dir="-1" aria-label="Subir ciclo">↑</button><button class="btn sm ghost" data-act="ciclo-mover" data-n="'+e.n+'" data-dir="1" aria-label="Descer ciclo">↓</button><button class="btn sm danger" data-act="ciclo-excluir" data-n="'+e.n+'"'+(etapas.length<2?" disabled":dis())+'>Excluir</button></div></div>'
+      +'<label class="f">Título<input type="text" id="et-t-'+e.n+'" value="'+esc(e.titulo||"")+'"></label><label class="f">Objetivo<textarea rows="2" id="et-o-'+e.n+'">'+esc(e.objetivo||"")+'</textarea></label></div>').join("")
+    +'<div class="row"><button class="btn" data-act="ciclos-salvar"'+(etapas.length?dis():" disabled")+'>Salvar ciclos</button><button class="btn ghost" data-act="ciclo-novo"'+dis()+'>+ Novo ciclo</button></div>');
+  h+=sec("trilhas","Trilhas",
+    '<p class="small muted">As trilhas organizam livros, calendário e fichamentos. Só dá para excluir uma trilha sem textos.</p>'
+    +trilhas().map((t,i)=>{const n=S.livros.filter(b=>b.trilha===t.id).length;return '<div class="sub-item" style="border-left:4px solid var(--t-'+(CORES[t.cor]?t.cor:"rotativo")+');padding-left:10px"><div class="spread"><span class="pill">'+plural(n,"texto","textos")+'</span><div class="row"><button class="btn sm ghost" data-act="trilha-mover" data-i="'+i+'" data-dir="-1" aria-label="Subir trilha">↑</button><button class="btn sm ghost" data-act="trilha-mover" data-i="'+i+'" data-dir="1" aria-label="Descer trilha">↓</button><button class="btn sm danger" data-act="trilha-excluir" data-i="'+i+'"'+(n||trilhas().length<2?" disabled":dis())+'>Excluir</button></div></div>'
+      +'<div class="grid"><label class="f">Nome<input type="text" id="tr-n-'+i+'" value="'+esc(t.nome)+'"></label><label class="f">Nome curto<input type="text" id="tr-c-'+i+'" value="'+esc(t.curto||t.nome)+'"></label><label class="f">Cor<select id="tr-cor-'+i+'">'+Object.keys(CORES).map(k=>'<option value="'+k+'"'+(k===t.cor?" selected":"")+'>'+CORES[k]+'</option>').join("")+'</select></label></div></div>'}).join("")
+    +'<div class="row"><button class="btn" data-act="trilhas-salvar"'+dis()+'>Salvar trilhas</button><button class="btn ghost" data-act="trilha-nova"'+dis()+'>+ Nova trilha</button></div>');
+  h+=sec("modelos","Modelos e legenda",
+    '<label class="f">Síntese mensal (abre ao tocar em “Anotar” num bloco de síntese)<textarea id="ms" rows="6">'+esc(c.modeloSintese||DEFAULT_MODELO_SINTESE)+'</textarea></label>'
+    +'<label class="f">Análise de conjuntura<textarea id="mc" rows="8">'+esc(c.modeloConjuntura||DEFAULT_MODELO_CONJUNTURA)+'</textarea></label>'
+    +'<div class="small muted">Legenda das cores do leitor de PDF</div><div class="grid">'+Object.keys(CORES_AN).map(k=>'<label class="f"><span><span class="dot" style="background:'+CORES_AN[k]+'"></span> '+k+'</span><input type="text" id="lg-'+k+'" value="'+esc(lg[k])+'"></label>').join("")+'</div>'
+    +'<div><button class="btn" data-act="modelos-salvar"'+dis()+'>Salvar modelos e legenda</button></div>');
+  h+=sec("backup","Backup e agenda",
+    '<p class="small muted">O backup é um arquivo com tudo do caderno: plano, trilhas, ciclos, textos, tópicos, semanas, fichamentos, sínteses, conceitos e as marcações dos PDFs. Os PDFs não entram: guarde os originais.</p>'
+    +'<div class="row">'+(S.downloads?'<button class="btn primary" data-act="backup-baixar"'+(S.offline?" disabled":"")+'>Baixar backup (.json)</button>':'<span class="small muted">Baixar arquivos não está disponível nesta visualização.</span>')+'<button class="btn" data-act="backup-restaurar"'+dis()+'>Restaurar backup…</button></div>'
+    +'<div class="sub-item"><strong class="small">Agenda para o celular</strong><p class="small muted">Gera um .csv com os blocos das próximas semanas nos horários definidos, com os textos em leitura hoje. Importe no Google Agenda pelo computador: Configurações › Importar e exportar.</p>'
+    +'<div class="row"><select id="ag-sem" aria-label="Período"><option value="4">Próximas 4 semanas</option><option value="8">Próximas 8 semanas</option><option value="12" selected>Próximas 12 semanas</option></select>'+(S.downloads?'<button class="btn" data-act="agenda-baixar">Baixar agenda (.csv)</button>':'')+'</div></div>'
+    +(window.sairDoCaderno?'<div class="sub-item"><strong class="small">Conta</strong><p class="small muted">Sair desconecta o caderno neste aparelho. Seus dados continuam salvos.</p><div><button class="btn ghost" data-act="sair">Sair deste aparelho</button></div></div>':''));
+  h+=sec("ajuda","Como fazer",'<ul class="help">'
+    +'<li><strong>Hoje:</strong> os blocos do dia, com cronômetro de 25 ou 50 minutos.</li>'
+    +'<li><strong>Semana:</strong> marque o que fez. O botão ⋯ de cada bloco tem: não consegui, anotar, trocar o texto do dia e inverter com outro dia. “Reorganizar” muda os blocos.</li>'
+    +'<li><strong>Leu em outro momento</strong> (almoço, Kindle, livro físico): Hoje › “+ Registrar leitura”. Conta como estudo e pode marcar o bloco da semana como feito.</li>'
+    +'<li><strong>Leitura com data marcada fora da rotina:</strong> Semana › “+ Leitura extraordinária”.</li>'
+    +'<li><strong>Biblioteca › Textos:</strong> adicione, mude status e ciclo direto no cartão; o ⋯ tem ler, anexar PDF, editar, ordem, anotações e excluir. Ao concluir um texto, o próximo da trilha entra sozinho.</li>'
+    +'<li><strong>Biblioteca › Tópicos:</strong> cada tópico é uma pasta com textos, PDFs, fichamentos e sínteses.</li>'
+    +'<li><strong>Leitor de PDF:</strong> Marcar, Nota e Caneta, com cores de significado fixo; “+ Conceito” registra no glossário; “Notas” vira fichamento.</li>'
+    +'<li><strong>Biblioteca › Imprensa:</strong> matérias de O Futuro e Em Defesa do Comunismo, atualizadas todo dia. Não contam como tempo de estudo. Para ler e anotar aqui, salve a matéria em PDF e use ⋯ › Anexar PDF.</li>'
+    +'<li><strong>Caderno:</strong> fichamentos (notas de leitura), sínteses (seus textos) e conceitos.</li>'
+    +'<li><strong>Novo ciclo:</strong> Plano › Ciclos › “+ Novo ciclo”; depois mude o ciclo atual no topo desta aba.</li>'
+    +'<li><strong>Cópia de segurança:</strong> Plano › Backup.</li></ul>');
+  return h;
+}
+
+/* ---------- Busca ---------- */
+function telaBusca(){return '<h2>Buscar no caderno</h2><input type="search" id="bq" placeholder="Livro, autor, tópico, conceito ou palavra de um fichamento" aria-label="Buscar no caderno" value="'+esc(S.bq)+'" style="width:100%;font-size:16px;padding:10px"><div id="bres" class="group"></div>'}
+function pintarBusca(){
+  const el=$("bres");if(!el)return;const q=S.bq.trim().toLowerCase();
+  if(q.length<2){el.innerHTML='<p class="small muted">Digite pelo menos duas letras.</p>';return}
+  const tem=(...v)=>v.some(x=>String(x||"").toLowerCase().includes(q));
+  const sec=(t,a)=>a?'<div class="group-h"><h2>'+t+'</h2></div>'+a:"";
+  const h=sec("Textos",S.livros.filter(b=>tem(b.titulo,b.autor,b.foco)).sort(byOrdem).slice(0,30).map(b=>'<div class="strip" style="--c:'+T(b.trilha).cor+';align-items:center"><div class="body"><div class="tt">'+esc(b.titulo)+'</div><div class="sub">'+esc(b.autor||"")+' · '+etapaLabel(b.etapa)+' · '+(STATUS[b.status]||"")+'</div></div><div class="row">'+(b.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+b.id+'">Ler</button>':'')+'<button class="btn sm" data-act="livro-editar" data-id="'+b.id+'">Editar</button></div></div>').join(""))
+   +sec("Tópicos",S.topicos.filter(t=>tem(t.nome,t.descricao,t.eixo)).slice(0,30).map(t=>'<button class="item" style="--c:'+T(topTrilha(t)).cor+'" data-act="topico-abrir" data-id="'+t.id+'"><span class="tt">'+esc(t.nome)+'</span><span class="sub">'+STATUS_T[t.status]+(t.eixo?" · "+esc(t.eixo):"")+'</span></button>').join(""))
+   +sec("Imprensa",S.artigos.filter(a=>tem(a.titulo,a.secao)).slice(0,30).map(a=>'<div class="strip" style="--c:var(--muted);align-items:center"><div class="body"><div class="tt">'+esc(a.titulo)+'</div><div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+'</div></div><div class="row">'+(a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':'')+'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div>').join(""))
+   +sec("Fichamentos e sínteses",S.notas.filter(n=>tem(n.titulo,n.texto)).slice(0,40).map(n=>'<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+'</span></button>').join(""))
+   +sec("Conceitos",S.conceitos.filter(c=>tem(c.termo,c.definicao,...(c.leituras||[]).map(l=>l.autor+" "+l.texto))).slice(0,30).map(c=>'<button class="item" data-act="conceito-ir" data-id="'+c.id+'"><span class="tt">'+esc(c.termo)+'</span><span class="sub">Conceito</span></button>').join(""));
+  el.innerHTML=h||'<p class="small muted">Nada encontrado para “'+esc(S.bq)+'”.</p>';
+}
+
+/* =====================================================================
+   8. Diálogos
+   ===================================================================== */
+function abrirModal(html){$("modal-root").innerHTML='<div class="overlay" data-act="modal-fundo">'+html+'</div>'}
+function fecharModal(){$("modal-root").innerHTML=""}
+const modalAberto=()=>!!$("modal-root").innerHTML;
+function menu(titulo,itens){
+  abrirModal('<div class="dialog" role="dialog" aria-label="'+esc(titulo)+'"><h2>'+esc(titulo)+'</h2><div class="menu-list">'
+    +itens.filter(Boolean).map(([act,rot,attrs,cls])=>'<button class="btn'+(cls?" "+cls:"")+'" data-act="'+act+'" '+(attrs||"")+'>'+rot+'</button>').join("")
+    +'</div><div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Fechar</button></div></div>');
+}
+const attr=o=>Object.entries(o).map(([k,v])=>'data-'+k+'="'+esc(v)+'"').join(" ");
+
+/* ---------- ações de um bloco do calendário ---------- */
+function menuBloco(el){
+  const key=el.dataset.key,w=wk(),sk=!!(w.pulados||{})[key];
+  if(el.dataset.livro){
+    const b=livro(el.dataset.livro);if(!b)return;
+    menu(b.titulo,[["bloco-pular",sk?"Desfazer “não consegui”":"Não consegui estudar",attr({key})],b.pdfId&&["ler","Abrir texto",attr({id:b.id})],["anotar-livro","Anotar",attr({id:b.id})],["livro-editar","Editar a leitura",attr({id:b.id})]]);
+    return;
+  }
+  const t=el.dataset.trilha,trocado=!!(w.trocas||{})[key],tb=trocado&&livro(w.trocas[key]);
+  menu("Bloco de "+T(t).curto,[
+    ["bloco-pular",sk?"Desfazer “não consegui”":"Não consegui estudar",attr({key})],
+    ["bloco-anotar","Anotar",attr({trilha:tb?tb.trilha:t,livro:tb?tb.id:""})],
+    trocado?["bloco-destrocar","Desfazer troca",attr({key})]:["bloco-trocar","Trocar o texto só neste dia",attr({key,trilha:t})],
+    (t!=="sintese"||trocado)&&["bloco-inverter","Inverter com outro dia",attr({key})]
+  ]);
+}
+function dialogoTroca(key,t,todas){
+  const base=S.livros.filter(b=>b.status!=="concluido"&&!b.extraData),ord=(a,b)=>((ORD_ST[a.status]??3)-(ORD_ST[b.status]??3))||byOrdem(a,b);
+  const grupos=(todas?[t,...bookTrilhas().filter(x=>x!==t)]:[t]).map(id=>[id,base.filter(b=>b.trilha===id).sort(ord)]).filter(g=>g[1].length);
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="dt-h"><h2 id="dt-h">Trocar o texto deste dia</h2><p class="small muted">Vale só para este bloco. O plano e os status não mudam.</p>'
+    +(grupos.length?grupos.map(([id,l])=>'<div class="group" style="--c:'+T(id).cor+'"><div class="group-h"><strong class="small">'+esc(T(id).nome)+'</strong></div>'+l.map(b=>'<button class="item" style="--c:'+T(id).cor+'" data-act="troca-escolher" data-key="'+key+'" data-id="'+b.id+'"><span class="tt">'+esc(b.titulo)+'</span><span class="sub">'+esc(b.autor||"")+' · '+etapaLabel(b.etapa)+' · '+STATUS[b.status]+'</span></button>').join("")+'</div>').join(""):'<p class="small">Nenhum texto disponível nesta trilha.</p>')
+    +'<div class="spread">'+(todas?'<span></span>':'<button class="btn sm ghost" data-act="troca-todas" data-key="'+key+'" data-trilha="'+t+'">Ver textos de outras trilhas</button>')+'<button class="btn ghost" data-act="modal-fechar">Cancelar</button></div></div>');
+}
+function dialogoInverter(key){
+  const bl=blocosDaSemana(),a=bl.find(x=>x.key===key);
+  if(!a||!a.atual){toast("Este bloco não tem texto para inverter.");return}
+  const outros=bl.filter(x=>x.key!==key&&x.atual);
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="di-h"><h2 id="di-h">Inverter com outro dia</h2><p class="small"><strong>'+a.dia.nome+':</strong> '+esc(a.atual.titulo)+'</p><p class="small muted">Escolha o bloco que troca de lugar com este. Vale só para esta semana.</p>'
+    +(outros.length?outros.map(x=>'<button class="item" style="--c:'+T(x.atual.trilha).cor+'" data-act="inverter-escolher" data-a="'+key+'" data-b="'+x.key+'"><span class="tt">'+x.dia.nome+' '+fmtDM(x.date)+' · '+esc(T(x.atual.trilha).curto)+'</span><span class="sub">'+esc(x.atual.titulo)+'</span></button>').join(""):'<p class="small">Não há outro bloco com texto nesta semana.</p>')
+    +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button></div></div>');
+}
+function inverterBlocos(ka,kb){
+  const bl=blocosDaSemana(),a=bl.find(x=>x.key===ka),b=bl.find(x=>x.key===kb);
+  if(!a||!b||!a.atual||!b.atual)return;
+  salvarSemana(d=>{d.trocas=d.trocas||{};const por=(blk,bk)=>{if(blk.padrao&&blk.padrao.id===bk.id)delete d.trocas[blk.key];else d.trocas[blk.key]=bk.id};por(a,b.atual);por(b,a.atual)})
+    .then(()=>toast(a.dia.nome+" e "+b.dia.nome+" trocaram de texto.")).catch(()=>{});
+}
+
+/* ---------- ações de um texto ---------- */
+function menuLivro(id){
+  const b=livro(id);if(!b)return;
+  const nn=S.notas.filter(n=>n.livroId===b.id).length;
+  menu(b.titulo,[
+    b.pdfId?["ler","Ler o PDF",attr({id})]:(S.assets&&["pdf-anexar","Anexar PDF",attr({id})]),
+    b.status!=="concluido"&&["livro-lido","Marcar como lido",attr({id})],
+    ["avulsa-livro","Registrar leitura fora do horário",attr({id})],
+    ["anotar-livro","Anotar",attr({id})],
+    nn&&["livro-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
+    ["livro-editar","Editar",attr({id})],
+    ["livro-subir","Subir na ordem",attr({id})],
+    ["livro-descer","Descer na ordem",attr({id})],
+    ["livro-excluir","Excluir",attr({id}),"danger"]
+  ]);
+}
+function dialogoLivro(b,preset){
+  const novo=!b||!b.id;
+  b=novo?{trilha:S.fl.trilha!=="todas"?S.fl.trilha:bookTrilhas()[0],etapa:etapaAtual(),status:"fila",tipo:"principal",...(preset||{})}:b;
+  const opt=(lista,v)=>lista.map(([k,l])=>'<option value="'+esc(k)+'"'+(String(k)===String(v)?" selected":"")+'>'+esc(l)+'</option>').join("");
+  const ciclos=[[0,"Consulta"],...ciclosNums().map(n=>[n,"Ciclo "+n])];if(b.etapa&&!ciclosNums().includes(Number(b.etapa)))ciclos.push([b.etapa,"Ciclo "+b.etapa]);
+  abrirModal('<form class="dialog" id="livro-form" aria-labelledby="lv-h"><h2 id="lv-h">'+(novo?"Adicionar texto":"Editar texto")+'</h2>'
+   +'<label class="f">Título<input type="text" id="lv-titulo" required value="'+esc(b.titulo||"")+'"></label>'
+   +'<label class="f">Autor<input type="text" id="lv-autor" value="'+esc(b.autor||"")+'"></label>'
+   +'<div class="grid"><label class="f">Trilha<select id="lv-trilha">'+opt(bookTrilhas().map(t=>[t,T(t).nome]),b.trilha)+'</select></label>'
+   +'<label class="f">Ciclo<select id="lv-etapa">'+opt(ciclos,b.etapa)+'</select></label>'
+   +'<label class="f">Mês no ciclo<select id="lv-mes">'+opt([["","—"],[1,"1"],[2,"2"],[3,"3"]],b.mes||"")+'</select></label></div>'
+   +'<div class="grid"><label class="f">Status<select id="lv-status">'+opt(Object.entries(STATUS),b.status)+'</select></label>'
+   +'<label class="f">Tipo<select id="lv-tipo">'+opt(Object.entries(TIPOS_LIVRO),b.tipo||"principal")+'</select></label>'
+   +(S.topicos.length?'<label class="f">Tópico<select id="lv-topico">'+opt([["","Nenhum"],...S.topicos.slice().sort(byOrdemT).map(t=>[t.id,t.nome])],b.topicoId||"")+'</select></label>':'')+'</div>'
+   +'<label class="f">Capítulos e foco da leitura<textarea id="lv-foco" rows="3">'+esc(b.foco||"")+'</textarea></label>'
+   +'<div class="grid"><label class="f">Páginas lidas<input type="number" min="0" id="lv-lidas" value="'+esc(b.paginasLidas||"")+'"></label><label class="f">Total de páginas<input type="number" min="0" id="lv-total" value="'+esc(b.paginasTotal||"")+'"></label></div>'
+   +'<fieldset><legend class="small muted">Leitura extraordinária (opcional)</legend><span class="small muted">Com uma data, o texto aparece só naquele dia do calendário, fora da rotina.</span>'
+   +'<div class="grid"><label class="f">Data<input type="date" id="lv-xdata" value="'+esc(b.extraData||"")+'"></label><label class="f">Duração<select id="lv-xmin">'+opt([30,45,60,90,120,150,180].map(m=>[m,fmtHM(m)]),b.extraMin||60)+'</select></label><label class="f">Período<input type="text" id="lv-xper" placeholder="ex.: manhã" value="'+esc(b.extraPeriodo||"")+'"></label></div></fieldset>'
+   +'<div class="spread">'+(novo?'<span></span>':'<button type="button" class="btn danger" data-act="livro-excluir" data-id="'+b.id+'">Excluir</button>')+'<div class="row"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div></div></form>');
+  $("livro-form").addEventListener("submit",ev=>{
+    ev.preventDefault();
+    const v=id=>$(id)?$(id).value:"";
+    const titulo=v("lv-titulo").trim();if(!titulo){toast("Dê um título ao texto.");return}
+    const trilha=v("lv-trilha"),xd=v("lv-xdata");
+    const data={...(novo?{}:strip(b)),titulo,autor:v("lv-autor").trim(),trilha,etapa:Number(v("lv-etapa")),mes:v("lv-mes")?Number(v("lv-mes")):null,status:v("lv-status"),tipo:v("lv-tipo"),
+      topicoId:$("lv-topico")?v("lv-topico"):(b.topicoId||""),foco:v("lv-foco").trim(),paginasLidas:v("lv-lidas")?Number(v("lv-lidas")):null,paginasTotal:v("lv-total")?Number(v("lv-total")):null,
+      extraData:xd||null,extraMin:xd?Number(v("lv-xmin")):null,extraPeriodo:xd?v("lv-xper").trim():"",
+      ordem:novo?Math.max(0,...S.livros.filter(x=>x.trilha===trilha).map(x=>Number(x.ordem)||0))+10:(b.ordem||0)};
+    const id=novo?novoId("livros"):b.id;
+    const concluindo=!novo&&b.status!=="concluido"&&data.status==="concluido";
+    (concluindo?mudarStatusLivro({...data,id,status:b.status},"concluido"):save("livros/"+id,data).then(()=>toast(novo?"Texto adicionado.":"Texto atualizado.")))
+      .then(()=>fecharModal()).catch(()=>{});
+  });
+  $("lv-titulo").focus();
+}
+
+/* ---------- tópicos ---------- */
+function dialogoTopico(tp){
+  const novo=!tp;tp=tp||{nome:"",descricao:"",eixo:"",trilha:bookTrilhas().includes("livres")?"livres":bookTrilhas()[0],status:"fila"};
+  const eixos=[...new Set(S.topicos.map(x=>x.eixo).filter(Boolean))];
+  abrirModal('<form class="dialog" id="topico-form" aria-labelledby="tp-h"><h2 id="tp-h">'+(novo?"Novo tópico":"Editar tópico")+'</h2>'
+   +'<label class="f">Tópico<input type="text" id="tp-nome" required value="'+esc(tp.nome)+'"></label>'
+   +'<label class="f">O que quero entender (opcional)<textarea id="tp-desc" rows="3">'+esc(tp.descricao||"")+'</textarea></label>'
+   +'<div class="grid"><label class="f">Eixo (agrupa tópicos)<input type="text" id="tp-eixo" list="tp-eixos" value="'+esc(tp.eixo||"")+'"><datalist id="tp-eixos">'+eixos.map(e=>'<option value="'+esc(e)+'"></option>').join("")+'</datalist></label>'
+   +'<label class="f">Trilha<select id="tp-trilha">'+bookTrilhas().map(t=>'<option value="'+t+'"'+(t===topTrilha(tp)?" selected":"")+'>'+esc(T(t).curto)+'</option>').join("")+'</select></label>'
+   +'<label class="f">Status<select id="tp-status">'+Object.keys(STATUS_T).map(k=>'<option value="'+k+'"'+(k===tp.status?" selected":"")+'>'+STATUS_T[k]+'</option>').join("")+'</select></label></div>'
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div></form>');
+  $("topico-form").addEventListener("submit",ev=>{
+    ev.preventDefault();
+    const nome=$("tp-nome").value.trim();if(!nome){toast("Dê um nome ao tópico.");return}
+    const data={...(novo?{}:strip(tp)),nome,descricao:$("tp-desc").value.trim(),eixo:$("tp-eixo").value.trim(),trilha:$("tp-trilha").value,status:$("tp-status").value,ordem:novo?Math.max(0,...S.topicos.map(x=>Number(x.ordem)||0))+10:(tp.ordem||0)};
+    const id=novo?novoId("topicos"):tp.id;
+    save("topicos/"+id,data).then(()=>{fecharModal();toast(novo?"Tópico criado.":"Tópico atualizado.");if(novo){S.topicoAberto=id;render()}}).catch(()=>{});
+  });
+  $("tp-nome").focus();
+}
+function menuTopico(id){
+  const tp=topico(id);if(!tp)return;
+  menu(tp.nome,[["topico-editar","Editar",attr({id})],["topico-subir","Subir na lista",attr({id})],["topico-descer","Descer na lista",attr({id})],["topico-excluir","Excluir tópico",attr({id}),"danger"]]);
+}
+async function excluirTopico(tp){
+  try{await remove("topicos/"+tp.id);for(const b of S.livros.filter(x=>x.topicoId===tp.id))await save("livros/"+b.id,{...strip(b),topicoId:""});S.topicoAberto=null;render();toast("Tópico excluído. Os textos e anotações dele continuam salvos.")}catch(e){}
+}
+
+/* ---------- restaurar backup ---------- */
+const ID_OK=/^[A-Za-z0-9_\-.~:@+]{1,200}$/;
+function lerBackup(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    let d;try{d=JSON.parse(r.result)}catch(e){toast("Esse arquivo não é um backup válido.");return}
+    if(!d||d.app!=="caderno-de-estudos"){toast("Esse arquivo não é um backup do caderno.");return}
+    S.pendingRestore=d;const n=k=>(d[k]||[]).length;
+    abrirModal('<div class="dialog" role="dialog" aria-labelledby="rs-h"><h2 id="rs-h">Restaurar backup</h2><p class="small">Arquivo de '+esc(d.exportadoEm?new Date(d.exportadoEm).toLocaleString("pt-BR"):"data desconhecida")+': '+n("livros")+' textos, '+n("topicos")+' tópicos, '+n("notas")+' fichamentos e sínteses, '+n("conceitos")+' conceitos e '+n("semanas")+' semanas, além do plano.</p>'
+      +'<p class="small muted">Itens com o mesmo identificador serão substituídos pelos do arquivo. O que não estiver no arquivo continua no caderno.</p>'
+      +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="backup-confirmar">Restaurar</button></div></div>');
+  };
+  r.onerror=()=>toast("Não consegui ler o arquivo.");r.readAsText(file);
+}
+async function restaurar(d){
+  const ops=[];if(d.config&&typeof d.config==="object")ops.push(["plano/config",d.config]);
+  ["livros","topicos","notas","conceitos","semanas","anot","sessoes","artigos"].forEach(col=>(d[col]||[]).forEach(x=>{if(x&&ID_OK.test(String(x.id)))ops.push([col+"/"+x.id,strip(x)])}));
+  let n=0;
+  for(const [p,data] of ops){
+    try{await comRetentativa(()=>S.db.doc(p).set(data));n++;if(n%15===0)toast("Restaurando… "+n+" de "+ops.length)}
+    catch(e){erroDeEscrita(e);toast("Restauração interrompida em "+n+" de "+ops.length+" itens.");return}
+  }
+  toast("Backup restaurado: "+n+" itens.");
+}
+async function baixar(nome,conteudo){
+  if(!S.downloads){toast("Este navegador não permite baixar arquivos daqui.");return false}
+  try{await S.downloads.save({filename:nome,data:conteudo});return true}catch(e){if(!e||e.code!=="declined")toast("Não foi possível baixar o arquivo.");return false}
+}
+async function baixarBackup(){
+  const ler=async col=>{try{const q=await S.db.collection(col).get();return q.docs.map(d=>({id:d.id,...d.data()}))}catch(e){return []}};
+  const data={app:"caderno-de-estudos",versao:2,exportadoEm:new Date().toISOString(),config:S.cfg||{},livros:S.livros,topicos:S.topicos,notas:S.notas,conceitos:S.conceitos,semanas:await ler("semanas"),anot:await ler("anot"),sessoes:S.sessoes,artigos:S.artigos};
+  if(await baixar("caderno-backup-"+iso(new Date())+".json",JSON.stringify(data,null,2)))toast("Backup baixado.");
+}
+async function baixarAgenda(){
+  const hr=cfg().horarios||{};
+  if(!Object.values(hr).some(Boolean)){toast("Defina e salve pelo menos um horário de estudo antes.");return}
+  const semanas=Number(($("ag-sem")||{}).value)||12,ws0=mondayOf(new Date()),f12=m=>{const h=Math.floor(m/60)%24,mm=m%60;return ((h%12)||12)+":"+pad(mm)+" "+(h>=12?"PM":"AM")};
+  const fUS=d=>pad(d.getMonth()+1)+"/"+pad(d.getDate())+"/"+d.getFullYear(),cel=v=>{v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const rows=[["Subject","Start Date","Start Time","End Date","End Time","All Day Event","Description","Private"]];
+  for(let w=0;w<semanas;w++){
+    const ws=addDays(ws0,7*w),N=weekIndex(ws);
+    DIAS.forEach((d,k)=>{
+      const date=addDays(ws,k),h0=hr[d.i];if(!h0)return;
+      const p=h0.split(":").map(Number);let cur=p[0]*60+(p[1]||0);
+      const itens=(slotsPadrao()[d.i]||[]).map(s=>({t:resolveTrilha(s.trilha,N),min:Number(s.min)||0}));
+      S.livros.filter(b=>b.extraData===iso(date)).forEach(b=>itens.push({extra:b,min:Number(b.extraMin)||60}));
+      itens.forEach(it=>{
+        let assunto,desc="";
+        if(it.extra){assunto="Estudo: "+it.extra.titulo;desc=[it.extra.autor,it.extra.foco].filter(Boolean).join(" — ")}
+        else if(it.t==="sintese"){assunto="Estudo: síntese escrita";desc="Escrever 1 a 2 páginas sobre o que leu no mês."}
+        else if(topicosDe(it.t).length){const at=topicosAtivos(it.t);assunto="Estudo: "+T(it.t).curto+(at.length?" — "+at.map(x=>x.nome).join(" + "):"")}
+        else{const a=emLeitura(it.t);assunto="Estudo: "+T(it.t).curto+(a.lendo[0]?" — "+a.lendo[0].titulo:"");desc=a.lendo.map(b=>b.titulo+(b.foco?" ("+b.foco+")":"")).join("; ")}
+        rows.push([assunto,fUS(date),f12(cur),fUS(date),f12(cur+it.min),"False",desc,"True"]);cur+=it.min;
+      });
+    });
+  }
+  if(rows.length<2){toast("Nenhum bloco nos dias com horário definido.");return}
+  if(await baixar("agenda-estudos.csv",rows.map(r=>r.map(cel).join(",")).join("\r\n")))toast("Agenda baixada: "+plural(rows.length-1,"bloco","blocos")+".");
+}
+
+/* =====================================================================
+   9. Editores de fichamento e de conceito
+   ===================================================================== */
+let notaTimer=null,concTimer=null;
+function estadoNota(t){S.saveState=t;const el=$("savestate");if(el)el.textContent=t}
+function estadoConc(t){S.csave=t;const el=$("csave");if(el)el.textContent=t}
+function lerNota(){
+  const d=S.draft;if(!d)return;const g=id=>$(id)?$(id).value:null;
+  if(g("ne-titulo")!=null)d.titulo=g("ne-titulo");
+  if(g("ne-tipo")!=null)d.tipo=g("ne-tipo");
+  if(g("ne-paginas")!=null)d.paginas=g("ne-paginas");
+  if(g("ne-texto")!=null)d.texto=g("ne-texto");
+  if(g("ne-topico")!=null)d.topicoId=g("ne-topico");
+  if(g("ne-livro")!=null)d.livroId=g("ne-livro");
+  const b=livro(d.livroId),tp=topico(d.topicoId);
+  d.trilha=b?b.trilha:tp?topTrilha(tp):(ehEscrito(d.tipo)?"sintese":d.trilha||"");
+}
+function salvarNota(){
+  clearTimeout(notaTimer);const d=S.draft;if(!d||!S.db||S.readOnly)return Promise.resolve();
+  if(!d.id&&!String(d.titulo||"").trim()&&!String(d.texto||"").trim())return Promise.resolve();
+  const agora=new Date().toISOString();if(!d.id){d.id=novoId("notas");d.criado=agora}d.atualizado=agora;
+  const data={titulo:d.titulo||"",tipo:d.tipo,livroId:d.livroId||"",topicoId:d.topicoId||"",artigoId:d.artigoId||"",trilha:d.trilha||"",paginas:d.paginas||"",texto:d.texto||"",criado:d.criado||agora,atualizado:agora};
+  estadoNota("Salvando…");
+  return save("notas/"+d.id,data).then(()=>{const t=new Date();estadoNota("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaNotas()}).catch(()=>estadoNota("Erro ao salvar"));
+}
+function agendarNota(){clearTimeout(notaTimer);estadoNota("Alterações não salvas");notaTimer=setTimeout(salvarNota,1800)}
+async function guardarRascunhos(){if(S.draft){lerNota();await salvarNota()}if(S.cdraft){lerConceito();await salvarConceito()}}
+function novaNota(opts){
+  const o=opts||{},b=o.livroId?livro(o.livroId):null,tp=o.topicoId?topico(o.topicoId):null;
+  const tipo=o.tipo||(o.trilha==="sintese"?"sintese":"fichamento");
+  const d={id:null,titulo:"",tipo,artigoId:o.artigoId||"",livroId:o.livroId||"",topicoId:o.topicoId||(b&&b.topicoId)||"",trilha:b?b.trilha:tp?topTrilha(tp):(o.trilha||""),paginas:"",texto:""};
+  if(o.trilha==="sintese"&&!("texto" in o)){const n=new Date();d.titulo="Síntese — "+MESES_LONGOS[n.getMonth()]+" de "+n.getFullYear();d.texto=textoSintese()}
+  if(o.titulo!=null)d.titulo=o.titulo;if(o.texto!=null)d.texto=o.texto;
+  if(d.tipo==="conjuntura"&&!d.texto)d.texto=cfg().modeloConjuntura||DEFAULT_MODELO_CONJUNTURA;
+  S.draft=d;S.preview=false;S.saveState="Novo";
+  irPara("caderno",ehEscrito(tipo)?"sinteses":"fichamentos");
+  setTimeout(()=>{const el=$("ne-titulo");if(el)el.focus()},60);
+}
+function abrirNota(id){
+  const n=S.notas.find(x=>x.id===id);if(!n)return;
+  S.draft=clone(n);S.preview=false;S.saveState="Salvo";
+  irPara("caderno",ehEscrito(n.tipo)?"sinteses":"fichamentos");
+}
+function lerConceito(){
+  const c=S.cdraft;if(!c)return;
+  if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-def"))c.definicao=$("ce-def").value;
+  document.querySelectorAll("[data-cl]").forEach(el=>{const l=c.leituras[Number(el.dataset.i)];if(l)l[el.dataset.cl]=el.value});
+}
+function salvarConceito(){
+  clearTimeout(concTimer);const c=S.cdraft;if(!c||!S.db||S.readOnly)return Promise.resolve();
+  if(!c.id&&!String(c.termo||"").trim())return Promise.resolve();
+  if(!c.id)c.id=novoId("conceitos");
+  const data={termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
+  estadoConc("Salvando…");
+  return save("conceitos/"+c.id,data).then(()=>{const t=new Date();estadoConc("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaConceitos()}).catch(()=>estadoConc("Erro ao salvar"));
+}
+function agendarConceito(){clearTimeout(concTimer);estadoConc("Alterações não salvas");concTimer=setTimeout(salvarConceito,1800)}
+function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno","conceitos")}
+
+/* =====================================================================
+   10. PDFs e leitor
+   ===================================================================== */
+const PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+let pdfjsPronto=null;
+function carregarScript(src){return new Promise((ok,falha)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>falha(new Error("load"));document.head.appendChild(s)})}
+function carregarPdfjs(){
+  if(!pdfjsPronto)pdfjsPronto=carregarScript(PDFJS_BASE+"pdf.worker.min.js").then(()=>carregarScript(PDFJS_BASE+"pdf.min.js")).then(()=>{const L=window.pdfjsLib||window["pdfjs-dist/build/pdf"];L.GlobalWorkerOptions.workerSrc=PDFJS_BASE+"pdf.worker.min.js";return L}).catch(e=>{pdfjsPronto=null;throw e});
+  return pdfjsPronto;
+}
+function pedirPdf(alvo){
+  if(!S.assets){toast("Importar arquivos não está disponível agora. Recarregue a página.");return}
+  S.pdfTarget=alvo;const inp=$("pdf-input");inp.value="";inp.click();
+}
+async function importarPdf(file){
+  const alvo=S.pdfTarget;S.pdfTarget=null;if(!file||!alvo)return;
+  if(!/pdf$/i.test(file.type)&&!/\.pdf$/i.test(file.name)){toast("Escolha um arquivo PDF.");return}
+  if(file.size>20*1024*1024){toast("O PDF passa de 20 MB, o limite por arquivo. Use um arquivo menor ou dividido em partes.");return}
+  toast("Enviando o PDF…");
+  let r;
+  try{r=await S.assets.upload(file,{type:"application/pdf"})}
+  catch(e){const c=e&&e.code;toast(c==="too_large"?"O PDF passa do limite de 20 MB.":c==="unsupported_type"?"Esse arquivo não parece ser um PDF válido.":c==="quota_or_state"?"O espaço de arquivos do caderno acabou. Exclua textos com PDF que não usa mais.":"Não foi possível enviar o PDF. Tente de novo.");return}
+  try{
+    if(alvo.artigo){const a=artigo(alvo.artigo);if(!a)return;await save("artigos/"+a.id,{...strip(a),pdfId:r.id,pdfNome:file.name});toast("PDF anexado à matéria.");abrirLeitor(a.id,r.id)}
+    else if(alvo.livro){const b=livro(alvo.livro);if(!b)return;await save("livros/"+b.id,{...strip(b),pdfId:r.id,pdfNome:file.name});toast("PDF anexado.");abrirLeitor(b.id,r.id)}
+    else if(alvo.topico){
+      const tp=topico(alvo.topico);if(!tp)return;
+      const lendo=S.livros.some(x=>x.topicoId===tp.id&&x.status==="lendo");
+      await save("livros/"+novoId("livros"),{titulo:file.name.replace(/\.pdf$/i,""),autor:"",trilha:topTrilha(tp),etapa:etapaAtual(),mes:null,status:lendo?"fila":"lendo",tipo:"principal",foco:"",topicoId:tp.id,pdfId:r.id,pdfNome:file.name,ordem:Math.max(0,...S.livros.map(x=>Number(x.ordem)||0))+10,paginasLidas:null,paginasTotal:null});
+      toast("PDF importado para o tópico. Para mudar o título, use ⋯ › Editar.");
+    }
+  }catch(e){}
+}
+const R={};
+const leitorAberto=()=>!!R.livroId;
+function barraLeitor(b){
+  const lg=legenda();
+  return '<div class="reader" data-tool="ler" role="dialog" aria-label="Leitor de PDF"><div class="rd-bar">'
+   +'<button class="btn sm" data-act="rd-fechar">‹ Fechar</button><span class="rd-title">'+esc(b?b.titulo:"Texto")+'</span><span class="pill" id="rd-pag">p. 1</span>'
+   +'<div class="row" aria-label="Zoom"><button class="btn sm" data-act="rd-zoom" data-dir="-1" aria-label="Diminuir">−</button><span class="small hours" id="rd-zoom">100%</span><button class="btn sm" data-act="rd-zoom" data-dir="1" aria-label="Aumentar">+</button></div>'
+   +'<div class="row" role="toolbar" aria-label="Ferramentas">'+[["ler","Ler"],["marca","Marcar"],["nota","Nota"],["caneta","Caneta"],["apagar","Apagar"]].map(([k,l])=>'<button class="btn sm tool" data-act="rd-ferramenta" data-tool="'+k+'" aria-pressed="'+(k==="ler")+'">'+l+'</button>').join("")+'</div>'
+   +'<div class="row" role="group" aria-label="Cor e significado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="rd-cor" data-cor="'+k+'" aria-pressed="'+(k==="amarelo")+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span>'+esc(lg[k])+'</button>').join("")+'</div>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-lateral" id="rd-notas-btn">Notas</button></div>'
+   +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><div id="rd-pages"><div class="empty">Abrindo o PDF…</div></div></div><aside class="rd-side" id="rd-side" hidden></aside></div></div>';
+}
+const ZOOMS=[1,1.25,1.5,2,2.5];
+function aplicarZoom(){
+  const pages=$("rd-pages");if(!pages)return;
+  pages.style.width=(R.zoom===1?"min(880px,100%)":(R.zoom*100)+"%");pages.style.maxWidth=R.zoom===1?"880px":"none";
+  $("rd-zoom").textContent=Math.round(R.zoom*100)+"%";
+  (R.pages||[]).forEach(pg=>{desenharPaginaVazia(pg);if(R.obs){R.obs.unobserve(pg.el);R.obs.observe(pg.el)}});
+}
+async function abrirLeitor(livroId,pdfIdForcado){
+  const it=itemDeLeitura(livroId),b=it&&it.x,pdfId=pdfIdForcado||(b&&b.pdfId);
+  if(!pdfId){toast("Este texto não tem PDF.");return}
+  fecharLeitor();
+  Object.assign(R,{livroId,pdfId,tool:"ler",cor:"amarelo",pages:[],anot:{},cur:1,maxVisto:1,pdf:null,drag:null,zoom:1});
+  $("reader-root").innerHTML=barraLeitor(b);document.body.classList.add("reading");
+  const falhar=msg=>{if(R.livroId===livroId)$("rd-pages").innerHTML='<div class="empty">'+msg+'</div>'};
+  let L;try{L=await carregarPdfjs()}catch(e){falhar("Não foi possível carregar o leitor de PDF. Verifique a conexão e tente de novo.");return}
+  try{
+    let buf;
+    if(S.assets&&S.assets.baixar)buf=await S.assets.baixar(pdfId);
+    else{const resp=await fetch("/_blob/"+pdfId);if(!resp.ok)throw new Error("http "+resp.status);buf=await resp.arrayBuffer()}if(R.livroId!==livroId)return;
+    R.pdf=await L.getDocument({data:new Uint8Array(buf)}).promise;
+  }catch(e){falhar("Não foi possível abrir este PDF. O arquivo pode ter sido removido ou estar corrompido.");return}
+  if(R.livroId!==livroId)return;
+  const v1=(await R.pdf.getPage(1)).getViewport({scale:1}),cont=$("rd-pages");cont.innerHTML="";
+  for(let n=1;n<=R.pdf.numPages;n++){
+    const el=document.createElement("div");el.className="pg";el.dataset.n=n;el.style.aspectRatio=v1.width+" / "+v1.height;
+    el.innerHTML='<canvas></canvas><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+v1.width+' '+v1.height+'" preserveAspectRatio="none"></svg><span class="pgnum">'+n+'</span>';
+    cont.appendChild(el);R.pages.push({n,el,canvas:el.querySelector("canvas"),svg:el.querySelector("svg"),w:v1.width,h:v1.height,pronta:false,desenhando:false});
+  }
+  aplicarZoom();
+  const sc=$("rd-scroll");
+  R.obs=new IntersectionObserver(ents=>ents.forEach(en=>{const pg=R.pages[Number(en.target.dataset.n)-1];if(!pg)return;if(en.isIntersecting)desenharPagina(pg);else desenharPaginaVazia(pg)}),{root:sc,rootMargin:"1200px 0px"});
+  R.pages.forEach(pg=>R.obs.observe(pg.el));
+  sc.addEventListener("scroll",()=>{if(R.raf)return;R.raf=requestAnimationFrame(()=>{R.raf=0;acompanharPagina()})});
+  if(S.db)R.unsub=S.db.collection("anot").where("livroId","==",livroId).onSnapshot(snap=>{
+    if(R.livroId!==livroId||R.drag)return;R.anot={};snap.docs.forEach(d=>{const x=d.data();R.anot[x.pagina]=x.itens||[]});
+    R.pages.forEach(pg=>desenharMarcas(pg.n));pintarLateral();
+  },()=>{});
+  const ini=Math.min(Math.max(1,Number(b&&b.paginaAtual)||1),R.pdf.numPages);
+  if(ini>1)setTimeout(()=>{const pg=R.pages[ini-1];if(pg)pg.el.scrollIntoView({block:"start"})},60);
+  acompanharPagina();
+}
+async function desenharPagina(pg){
+  if(pg.pronta||pg.desenhando||!R.pdf)return;pg.desenhando=true;
+  try{
+    const page=await R.pdf.getPage(pg.n),base=page.getViewport({scale:1});
+    if(Math.abs(base.width-pg.w)>0.5||Math.abs(base.height-pg.h)>0.5){pg.w=base.width;pg.h=base.height;pg.el.style.aspectRatio=pg.w+" / "+pg.h;pg.svg.setAttribute("viewBox","0 0 "+pg.w+" "+pg.h);desenharMarcas(pg.n)}
+    const vp=page.getViewport({scale:(pg.el.clientWidth||800)/base.width*Math.min(window.devicePixelRatio||1,2)});
+    pg.canvas.width=Math.floor(vp.width);pg.canvas.height=Math.floor(vp.height);
+    pg.task=page.render({canvasContext:pg.canvas.getContext("2d"),viewport:vp});await pg.task.promise;pg.pronta=true;
+  }catch(e){}finally{pg.desenhando=false;pg.task=null}
+}
+function desenharPaginaVazia(pg){if(pg.task){try{pg.task.cancel()}catch(e){}}pg.canvas.width=0;pg.canvas.height=0;pg.pronta=false}
+function acompanharPagina(){
+  const sc=$("rd-scroll");if(!sc||!R.pages||!R.pages.length)return;
+  const meio=sc.scrollTop+sc.clientHeight*0.35;let cur=1;
+  for(const pg of R.pages){if(pg.el.offsetTop<=meio)cur=pg.n;else break}
+  R.cur=cur;R.maxVisto=Math.max(R.maxVisto,cur);
+  if($("rd-pag"))$("rd-pag").textContent="p. "+cur+" de "+R.pages.length;
+}
+function numeroNota(n,i){let k=0;for(let p=1;p<n;p++)k+=(R.anot[p]||[]).filter(a=>a.tipo==="nota").length;return k+(R.anot[n]||[]).slice(0,i+1).filter(a=>a.tipo==="nota").length}
+function desenharMarcas(n){
+  const pg=R.pages[n-1];if(!pg)return;
+  pg.svg.innerHTML=(R.anot[n]||[]).map((a,i)=>{
+    const c=CORES_AN[a.cor]||CORES_AN.amarelo;
+    if(a.tipo==="marca")return '<rect class="an" data-i="'+i+'" x="'+a.x+'" y="'+a.y+'" width="'+a.w+'" height="'+a.h+'" fill="'+c+'" fill-opacity="0.35"/>';
+    if(a.tipo==="traco")return '<polyline class="an" data-i="'+i+'" points="'+(a.pts||[]).map(p=>p[0]+","+p[1]).join(" ")+'" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    if(a.tipo==="nota")return '<g class="an pin" data-i="'+i+'" transform="translate('+a.x+' '+a.y+')"><circle r="11" fill="'+c+'" stroke="#1a1f2b" stroke-width="1"/><text text-anchor="middle" dy="4" font-size="12" font-family="sans-serif" fill="#1a1f2b">'+numeroNota(n,i)+'</text></g>';
+    return "";
+  }).join("");
+}
+const arred=v=>Math.round(v*10)/10;
+function pontoNaPagina(pg,e){const r=pg.svg.getBoundingClientRect();return [arred((e.clientX-r.left)/r.width*pg.w),arred((e.clientY-r.top)/r.height*pg.h)]}
+function salvarMarcas(n){const it=R.anot[n]||[],p="anot/"+R.livroId+"__"+n;return (it.length?save(p,{livroId:R.livroId,pagina:n,itens:it}):remove(p)).catch(()=>{})}
+function addMarca(n,a){(R.anot[n]=R.anot[n]||[]).push(a);desenharMarcas(n);pintarLateral();salvarMarcas(n)}
+function dialogoNotaPdf(n,i,x,y){
+  const a=i!=null?(R.anot[n]||[])[i]:null,cor=a?a.cor:R.cor;S.noteCtx={n,i,x,y};
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="np-h"><h2 id="np-h">'+(a?"Nota":"Nova nota")+' · p. '+n+'</h2><p class="small"><span class="dot" style="background:'+CORES_AN[cor]+'"></span> '+esc(legenda()[cor]||"")+'</p>'
+   +'<textarea id="np-texto" rows="5" placeholder="Sua anotação sobre este trecho">'+esc(a?a.texto:"")+'</textarea>'
+   +(cor==="verde"?'<label class="f">Registrar também no glossário como (opcional)<input type="text" id="np-conc" list="np-conc-l" placeholder="Nome do conceito"><datalist id="np-conc-l">'+S.conceitos.map(c=>'<option value="'+esc(c.termo)+'"></option>').join("")+'</datalist></label>':'')
+   +'<div class="spread">'+(a?'<button class="btn sm danger" data-act="np-excluir">Excluir nota</button>':'<span></span>')+'<div class="row"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="np-salvar">Salvar</button></div></div></div>');
+  setTimeout(()=>{const t=$("np-texto");if(t)t.focus()},30);
+}
+function pintarLateral(){
+  const side=$("rd-side"),btn=$("rd-notas-btn");if(!side)return;
+  const notas=[];Object.keys(R.anot).map(Number).sort((a,b)=>a-b).forEach(n=>(R.anot[n]||[]).forEach((a,i)=>{if(a.tipo==="nota")notas.push({n,i,a})}));
+  if(btn)btn.textContent="Notas ("+notas.length+")";
+  if(side.hidden)return;
+  const lg=legenda(),total=Object.values(R.anot).reduce((s,l)=>s+l.length,0);
+  side.innerHTML='<div class="spread"><strong>Notas do texto</strong><button class="btn sm ghost" data-act="rd-lateral">Fechar</button></div>'
+   +'<p class="small muted">'+plural(total,"marcação","marcações")+' no total.</p>'
+   +'<div class="legend-sum">'+Object.keys(CORES_AN).map(k=>'<span><span class="dot" style="background:'+CORES_AN[k]+'"></span> '+esc(lg[k])+': '+Object.values(R.anot).reduce((s,l)=>s+l.filter(a=>(a.cor||"amarelo")===k).length,0)+'</span>').join("")+'</div>'
+   +(notas.length?notas.map((x,k)=>'<button class="item" style="--c:'+(CORES_AN[x.a.cor]||CORES_AN.amarelo)+'" data-act="rd-ir" data-n="'+x.n+'"><span class="tt">'+(k+1)+'. p. '+x.n+' · '+esc(lg[x.a.cor]||"")+'</span><span class="sub">'+esc(x.a.texto||"(sem texto)")+'</span></button>').join(""):'<p class="small muted">Use a ferramenta Nota e toque no texto para anotar.</p>')
+   +'<button class="btn sm" data-act="rd-fichamento"'+(notas.length?"":" disabled")+'>Criar fichamento com as notas</button>';
+}
+function fecharLeitor(){
+  if(!R.livroId)return;
+  const it=itemDeLeitura(R.livroId),b=it&&it.x,col=it?it.col:"livros";
+  if(b&&R.pdf&&!S.readOnly){
+    const tot=R.pdf.numPages,data={...strip(b),paginaAtual:R.cur};
+    if(!Number(b.paginasTotal))data.paginasTotal=tot;
+    if(Number(data.paginasTotal)===tot)data.paginasLidas=Math.max(Number(b.paginasLidas)||0,R.maxVisto);
+    if(col==="artigos"&&b.status!=="lido")data.status="lido";
+    if(data.paginaAtual!==b.paginaAtual||data.paginasTotal!==b.paginasTotal||data.paginasLidas!==b.paginasLidas||data.status!==b.status)save(col+"/"+b.id,data).catch(()=>{});
+  }
+  if(R.unsub)R.unsub();if(R.obs)R.obs.disconnect();if(R.pdf){try{R.pdf.destroy()}catch(e){}}
+  Object.keys(R).forEach(k=>delete R[k]);
+  $("reader-root").innerHTML="";document.body.classList.remove("reading");
+}
+async function registrarConceito(nome,texto,pagina){
+  nome=String(nome||"").trim();if(!nome||!S.db)return;
+  const it=itemDeLeitura(R.livroId),b=it&&it.col==="livros"?it.x:null,linha=(String(texto||"").trim()+" (p. "+pagina+")").trim(),agora=new Date().toISOString();
+  const ex=S.conceitos.find(c=>String(c.termo).trim().toLowerCase()===nome.toLowerCase());
+  if(ex){
+    const data=clone(strip(ex));data.leituras=data.leituras||[];
+    const l=data.leituras.find(x=>x.livroId===R.livroId);
+    if(l)l.texto=(l.texto?l.texto+"\n":"")+linha;else data.leituras.push({autor:b?b.autor||"":"",livroId:R.livroId||"",texto:linha});
+    data.atualizado=agora;await save("conceitos/"+ex.id,data);toast("Conceito “"+ex.termo+"” atualizado com este texto.");
+  }else{
+    await save("conceitos/"+novoId("conceitos"),{termo:nome,definicao:"",leituras:[{autor:b?b.autor||"":"",livroId:R.livroId||"",texto:linha}],notas:[],atualizado:agora});
+    toast("Conceito “"+nome+"” criado no glossário.");
+  }
+}
+function dialogoConceitoPdf(){
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="cp-h"><h2 id="cp-h">Registrar conceito · p. '+R.cur+'</h2>'
+   +'<label class="f">Conceito<input type="text" id="cp-nome" list="cp-lista" placeholder="Nome do conceito (novo ou existente)"><datalist id="cp-lista">'+S.conceitos.map(c=>'<option value="'+esc(c.termo)+'"></option>').join("")+'</datalist></label>'
+   +'<label class="f">Como aparece neste texto<textarea id="cp-texto" rows="4" placeholder="Explique com suas palavras"></textarea></label>'
+   +'<p class="small muted">Se o conceito já existir, este trecho é acrescentado a ele; se não, um conceito novo é criado.</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="cp-salvar">Registrar</button></div></div>');
+  setTimeout(()=>{const x=$("cp-nome");if(x)x.focus()},30);
+}
+function ligarPonteiroDoLeitor(){
+  const root=$("reader-root");
+  root.addEventListener("pointerdown",e=>{
+    if(!R.livroId||R.tool==="ler")return;
+    const svg=e.target.closest(".pg svg");if(!svg)return;
+    const pg=R.pages[Number(svg.parentNode.dataset.n)-1];if(!pg)return;
+    if(R.tool==="apagar"){const an=e.target.closest(".an");if(an){(R.anot[pg.n]||[]).splice(Number(an.dataset.i),1);desenharMarcas(pg.n);pintarLateral();salvarMarcas(pg.n)}return}
+    e.preventDefault();const p=pontoNaPagina(pg,e);
+    if(R.tool==="nota"){dialogoNotaPdf(pg.n,null,p[0],p[1]);return}
+    svg.setPointerCapture(e.pointerId);
+    const ns="http://www.w3.org/2000/svg",c=CORES_AN[R.cor];
+    if(R.tool==="marca"){const el=document.createElementNS(ns,"rect");el.setAttribute("fill",c);el.setAttribute("fill-opacity","0.35");svg.appendChild(el);R.drag={pg,x0:p[0],y0:p[1],el}}
+    if(R.tool==="caneta"){const el=document.createElementNS(ns,"polyline");["fill:none","stroke:"+c,"stroke-width:2","stroke-linecap:round","stroke-linejoin:round"].forEach(kv=>{const [k,v]=kv.split(":");el.setAttribute(k,v)});svg.appendChild(el);R.drag={pg,pts:[p],el};el.setAttribute("points",p.join(","))}
+  });
+  root.addEventListener("pointermove",e=>{
+    const d=R.drag;if(!d)return;const p=pontoNaPagina(d.pg,e);
+    if(R.tool==="marca"){d.el.setAttribute("x",Math.min(d.x0,p[0]));d.el.setAttribute("y",Math.min(d.y0,p[1]));d.el.setAttribute("width",Math.abs(p[0]-d.x0));d.el.setAttribute("height",Math.abs(p[1]-d.y0))}
+    if(R.tool==="caneta"){const l=d.pts[d.pts.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>=1.5){d.pts.push(p);d.el.setAttribute("points",d.pts.map(q=>q.join(",")).join(" "))}}
+  });
+  const fim=e=>{
+    const d=R.drag;if(!d)return;R.drag=null;d.el.remove();
+    if(R.tool==="marca"){const p=pontoNaPagina(d.pg,e),w=Math.abs(p[0]-d.x0),h=Math.abs(p[1]-d.y0);if(w>3&&h>3)addMarca(d.pg.n,{tipo:"marca",x:arred(Math.min(d.x0,p[0])),y:arred(Math.min(d.y0,p[1])),w:arred(w),h:arred(h),cor:R.cor})}
+    if(R.tool==="caneta"&&d.pts.length>1)addMarca(d.pg.n,{tipo:"traco",pts:d.pts,cor:R.cor});
+  };
+  root.addEventListener("pointerup",fim);root.addEventListener("pointercancel",fim);
+  root.addEventListener("click",e=>{if(!R.livroId||R.tool!=="ler")return;const pin=e.target.closest(".pin");if(!pin)return;dialogoNotaPdf(Number(pin.closest(".pg").dataset.n),Number(pin.dataset.i))});
+}
+
+/* =====================================================================
+   11. Cronômetro
+   ===================================================================== */
+function pintarCronometro(){
+  const box=$("timer-box");if(box)box.innerHTML=timerHtml();
+  const mini=$("tm-mini");if(mini){mini.hidden=!TM.fase;mini.textContent=TM.fase?(TM.fase==="foco"?"Foco ":"Pausa ")+fmtClock(tmResto()):""}
+}
+function tique(){
+  if(!TM.fase||TM.pausado)return;
+  const r=tmResto(),c=$("tm-clock"),mini=$("tm-mini");
+  if(c)c.textContent=fmtClock(r);if(mini)mini.textContent=(TM.fase==="foco"?"Foco ":"Pausa ")+fmtClock(r);
+  if(r>0)return;
+  try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  if(TM.fase==="foco"){registrarSessao(TM.foco);const p=TM.foco>=50?10:5;TM.fase="pausa";TM.fim=Date.now()+p*60000;toast("Sessão concluída. Pausa de "+p+" minutos.")}
+  else{encerrarCronometro();toast("Pausa encerrada. Pronto para outra sessão?")}
+  pintarCronometro();
+}
+function iniciarCronometro(min){const sel=$("tm-alvo"),op=S.tmOpcoes||[];TM.alvo=op[sel?Number(sel.value):op.length-1]||{rotulo:"Estudo",trilha:""};Object.assign(TM,{fase:"foco",foco:min,fim:Date.now()+min*60000,pausado:false});clearInterval(TM.iv);TM.iv=setInterval(tique,1000);pintarCronometro()}
+function encerrarCronometro(manual){if(manual&&TM.fase==="foco"){const m=minutosDaSessao();if(m>=5){registrarSessao(m);toast("Sessão de "+fmtHM(m)+" registrada.")}}TM.fase="";TM.pausado=false;clearInterval(TM.iv);TM.iv=null;pintarCronometro()}
+
+/* =====================================================================
+   15. Sessões cronometradas e histórico
+   ===================================================================== */
+function opcoesDoCronometro(){
+  const hoje=new Date(),N=weekIndex(mondayOf(hoje)),d=DIAS.find(x=>x.i===hoje.getDay()),bl=blocosDoDia(d,hoje,N),w=wk(),op=[];
+  bl.extras.forEach(b=>op.push({rotulo:b.titulo,trilha:b.trilha,livroId:b.id,topicoId:b.topicoId||""}));
+  bl.slots.forEach(s=>{
+    const key=d.i+":"+s.id,t=resolveTrilha(s.trilha,N),tb=(w.trocas||{})[key]&&livro(w.trocas[key]);
+    if(tb)return op.push({rotulo:T(tb.trilha).curto+" — "+tb.titulo,trilha:tb.trilha,livroId:tb.id,topicoId:tb.topicoId||""});
+    if(t==="sintese")return op.push({rotulo:"Síntese escrita",trilha:"sintese",livroId:"",topicoId:""});
+    if(topicosDe(t).length){const at=topicosAtivos(t);return op.push({rotulo:T(t).curto+(at.length?" — "+at.map(x=>x.nome).join(" + "):""),trilha:t,livroId:"",topicoId:at.length===1?at[0].id:""})}
+    const a=emLeitura(t);op.push({rotulo:T(t).curto+(a.lendo[0]?" — "+a.lendo[0].titulo:""),trilha:t,livroId:a.lendo[0]?a.lendo[0].id:"",topicoId:""});
+  });
+  op.push({rotulo:"Outro estudo",trilha:"",livroId:"",topicoId:""});
+  return op;
+}
+function minutosDaSessao(){return Math.round((TM.foco*60000-Math.max(0,tmResto()))/60000)}
+function registrarSessao(min){
+  if(!S.db||S.readOnly||!TM.alvo||min<1)return;
+  const a=TM.alvo,agora=new Date();
+  save("sessoes/"+novoId("sessoes"),{data:iso(agora),inicio:new Date(agora.getTime()-min*60000).toISOString(),minutos:min,trilha:a.trilha||"",livroId:a.livroId||"",topicoId:a.topicoId||"",rotulo:a.rotulo||""}).catch(()=>{});
+}
+function minutosCronometrados(ws){const ini=iso(ws),fim=iso(addDays(ws,6));return S.sessoes.filter(x=>x.data>=ini&&x.data<=fim).reduce((s,x)=>s+(Number(x.minutos)||0),0)}
+function planejadoDaSemana(ws,doc){
+  const slots=(doc&&doc.slots)||slotsPadrao(),feitos=(doc&&doc.feitos)||{};let plano=0,feito=0;
+  DIAS.forEach((d,k)=>{
+    (slots[d.i]||[]).forEach(s=>{const m=Number(s.min)||0;plano+=m;if(feitos[d.i+":"+s.id])feito+=m});
+    S.livros.filter(b=>b.extraData===iso(addDays(ws,k))).forEach(b=>{const m=Number(b.extraMin)||60;plano+=m;if(feitos["x:"+b.id])feito+=m});
+  });
+  return {plano,feito};
+}
+async function carregarSemanas(){
+  if(!S.db)return;
+  try{const q=await S.db.collection("semanas").get();S.semanasCache={};q.docs.forEach(d=>{S.semanasCache[d.id]=d.data()});if(S.view==="historico")agendarRender()}catch(e){}
+}
+function telaHistorico(){
+  if(!S.semanasCache){S.semanasCache={};carregarSemanas()}
+  const atual=mondayOf(new Date()),semanas=[];
+  for(let k=7;k>=0;k--){const ws=addDays(atual,-7*k),doc=iso(ws)===iso(S.weekStart||atual)?S.semanaDoc:S.semanasCache[iso(ws)];semanas.push({ws,crono:minutosCronometrados(ws),...planejadoDaSemana(ws,doc)})}
+  const maxv=Math.max(60,...semanas.map(s=>Math.max(s.plano,s.crono)));
+  let h='<div class="spread"><div><h2>Histórico de estudo</h2><p class="small muted">Tempo registrado (cronômetro e leituras fora do horário), comparado com o planejado de cada semana.</p></div><button class="btn primary" data-act="sessao-nova"'+dis()+'>+ Registrar sessão</button></div>';
+  h+='<section class="card"><h3>Últimas 8 semanas</h3><div class="hist">'+semanas.map(s=>{
+    const pc=Math.round(s.crono/maxv*100),pp=Math.round(s.plano/maxv*100),eAtual=iso(s.ws)===iso(atual);
+    const dica=fmtDM(s.ws)+": "+fmtHM(s.crono)+" registradas de "+fmtHM(s.plano)+" planejadas; blocos marcados como feitos: "+fmtHM(s.feito);
+    return '<div class="hist-row" title="'+esc(dica)+'"><span class="hist-lab'+(eAtual?" atual":"")+'">'+fmtDM(s.ws)+'</span><div class="hist-track"><span class="hist-plan" style="width:'+pp+'%"></span><span class="hist-bar" style="width:'+pc+'%"></span></div><span class="hist-val hours">'+fmtHM(s.crono)+' <span class="muted">/ '+fmtHM(s.plano)+'</span></span></div>';
+  }).join("")+'</div><p class="small muted"><span class="key key-bar"></span> registrado &nbsp; <span class="key key-plan"></span> planejado (semana padrão ou o ajuste daquela semana, mais as leituras extraordinárias)</p></section>';
+  const desde=iso(addDays(atual,-21)),ult=S.sessoes.filter(x=>x.data>=desde),porTrilha={};
+  ult.forEach(x=>{const k=x.trilha||"";porTrilha[k]=(porTrilha[k]||0)+(Number(x.minutos)||0)});
+  const linhas=Object.entries(porTrilha).sort((a,b)=>b[1]-a[1]),maxt=Math.max(1,...linhas.map(l=>l[1]));
+  h+='<section class="card"><h3>Por trilha, últimas 4 semanas</h3>'+(linhas.length?'<div class="hist">'+linhas.map(([t,m])=>'<div class="hist-row"><span class="hist-lab wide"><span class="dot" style="background:'+(t?T(t).cor:"var(--muted)")+'"></span> '+esc(t?T(t).curto:"Outro estudo")+'</span><div class="hist-track"><span class="hist-bar" style="width:'+Math.round(m/maxt*100)+'%"></span></div><span class="hist-val hours">'+fmtHM(m)+'</span></div>').join("")+'</div>':'<p class="small muted">Nenhuma sessão nas últimas 4 semanas.</p>')+'</section>';
+  const recentes=S.sessoes.slice().sort((a,b)=>String(b.inicio||b.data).localeCompare(String(a.inicio||a.data))).slice(0,15);
+  h+='<section class="card"><h3>Sessões recentes</h3>'+(recentes.length?recentes.map(x=>'<div class="strip" style="--c:'+(x.trilha?T(x.trilha).cor:"var(--muted)")+';align-items:center"><div class="body"><div class="tt" style="font-size:14px">'+esc(x.rotulo||(x.trilha?T(x.trilha).curto:"Estudo"))+'</div><div class="sub">'+fmtDM(parseISO(x.data))+' · '+fmtHM(x.minutos)+(x.avulsa?' · fora do horário':'')+'</div></div><button class="btn sm ghost" data-act="sessao-excluir" data-id="'+x.id+'"'+dis()+'>Excluir</button></div>').join(""):'<p class="small muted">Use o cronômetro na aba Hoje: cada sessão concluída fica registrada aqui. Sessões encerradas antes do fim contam se tiverem pelo menos 5 minutos.</p>')+'</section>';
+  return h;
+}
+function dialogoSessao(){
+  abrirModal('<form class="dialog" id="sessao-form" aria-labelledby="ss-h"><h2 id="ss-h">Registrar sessão</h2><p class="small muted">Para o tempo que você estudou sem o cronômetro.</p>'
+   +'<div class="grid"><label class="f">Data<input type="date" id="ss-data" value="'+iso(new Date())+'"></label><label class="f">Minutos<input type="number" id="ss-min" min="1" value="60"></label>'
+   +'<label class="f">Trilha<select id="ss-trilha"><option value="">Outro estudo</option>'+[...bookTrilhas(),"sintese"].map(t=>'<option value="'+t+'">'+esc(T(t).curto)+'</option>').join("")+'</select></label></div>'
+   +'<label class="f">O que estudou (opcional)<input type="text" id="ss-rot"></label>'
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Registrar</button></div></form>');
+  $("sessao-form").addEventListener("submit",ev=>{
+    ev.preventDefault();const m=Number($("ss-min").value),d=$("ss-data").value;
+    if(!d||!(m>0)){toast("Informe a data e os minutos.");return}
+    save("sessoes/"+novoId("sessoes"),{data:d,inicio:parseISO(d).toISOString(),minutos:m,trilha:$("ss-trilha").value,livroId:"",topicoId:"",rotulo:$("ss-rot").value.trim()}).then(()=>{fecharModal();toast("Sessão registrada.")}).catch(()=>{});
+  });
+}
+
+/* ---------- leitura fora do horário (almoço, Kindle, livro físico) ---------- */
+function blocosCompativeis(b){
+  const w=wk();
+  return blocosDaSemana().filter(x=>!(w.feitos||{})[x.key]&&x.t!=="sintese"&&((x.atual&&x.atual.id===b.id)||x.t===b.trilha))
+    .sort((a,c)=>Number(!!(c.atual&&c.atual.id===b.id))-Number(!!(a.atual&&a.atual.id===b.id)));
+}
+function opcoesBloco(b){
+  const l=b?blocosCompativeis(b):[];
+  return '<option value="">Não marcar nenhum bloco</option>'+l.map((x,i)=>'<option value="'+x.key+'"'+(i===0&&x.atual&&x.atual.id===b.id?" selected":"")+'>'+x.dia.nome+' '+fmtDM(x.date)+' · '+esc(T(x.t).curto)+(x.atual?' ('+esc(x.atual.titulo)+')':'')+'</option>').join("");
+}
+function dialogoAvulsa(livroId){
+  irParaSemana(mondayOf(new Date()));
+  const ord={lendo:0,fila:1,pausado:2},lista=S.livros.filter(b=>b.status!=="concluido").sort((a,b)=>((ord[a.status]??3)-(ord[b.status]??3))||bookTrilhas().indexOf(a.trilha)-bookTrilhas().indexOf(b.trilha)||byOrdem(a,b));
+  const sel=livro(livroId)||lista[0];
+  abrirModal('<form class="dialog" id="avulsa-form" aria-labelledby="av-h"><h2 id="av-h">Leitura fora do horário</h2><p class="small muted">Para quando você lê um texto em outro momento, como no almoço, no Kindle ou no livro físico. Fica registrada como estudo e pode contar como o bloco da semana.</p>'
+   +'<label class="f">Texto<select id="av-livro">'+lista.map(b=>'<option value="'+b.id+'"'+(sel&&b.id===sel.id?" selected":"")+'>'+esc(b.titulo)+' · '+esc(T(b.trilha).curto)+(b.status==="lendo"?" (lendo)":"")+'</option>').join("")+'</select></label>'
+   +'<div class="grid"><label class="f">Data<input type="date" id="av-data" value="'+iso(new Date())+'"></label><label class="f">Minutos<input type="number" id="av-min" min="1" value="30"></label><label class="f">Li até a página (opcional)<input type="number" id="av-pag" min="1"></label></div>'
+   +'<label class="f">Contar como o bloco de<select id="av-bloco">'+opcoesBloco(sel)+'</select></label>'
+   +'<label class="row small"><input type="checkbox" id="av-fim"> Terminei este texto</label>'
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Registrar</button></div></form>');
+  $("av-livro").addEventListener("change",e=>{$("av-bloco").innerHTML=opcoesBloco(livro(e.target.value))});
+  $("avulsa-form").addEventListener("submit",async ev=>{
+    ev.preventDefault();
+    const b=livro($("av-livro").value),m=Number($("av-min").value),d=$("av-data").value,pag=Number($("av-pag").value),bloco=$("av-bloco").value,fim=$("av-fim").checked;
+    if(!b||!d||!(m>0)){toast("Escolha o texto e informe a data e os minutos.");return}
+    try{
+      await save("sessoes/"+novoId("sessoes"),{data:d,inicio:new Date().toISOString(),minutos:m,trilha:b.trilha,livroId:b.id,topicoId:b.topicoId||"",rotulo:b.titulo,avulsa:true});
+      const dentro=d>=iso(S.weekStart)&&d<=iso(addDays(S.weekStart,6));
+      if(bloco)await salvarSemana(x=>{x.feitos=x.feitos||{};x.feitos[bloco]=true;if(x.pulados)delete x.pulados[bloco]});
+      if(fim)await mudarStatusLivro(b,"concluido");
+      else if(pag>0){const atual=livro(b.id)||b;await save("livros/"+b.id,{...strip(atual),paginasLidas:Math.max(Number(atual.paginasLidas)||0,pag)})}
+      fecharModal();if(!fim)toast("Leitura registrada"+(bloco?" e bloco marcado como feito":"")+".");
+      if(bloco&&!dentro)toast("O bloco marcado é desta semana.");
+    }catch(e){}
+  });
+}
+function avulsasDeHoje(){
+  const hoje=iso(new Date()),l=S.sessoes.filter(x=>x.avulsa&&x.data===hoje);
+  return '<section class="card"><div class="spread"><h3>Fora do horário</h3><button class="btn sm" data-act="avulsa-nova"'+dis()+'>+ Registrar leitura</button></div>'
+   +(l.length?l.map(x=>'<div class="strip done" style="--c:'+T(x.trilha).cor+';opacity:1"><div class="body"><div class="lab">Leitura fora do horário · '+fmtHM(x.minutos)+'</div><div class="tt">'+esc(x.rotulo||"Leitura")+'</div></div><span class="check" aria-label="Feito" style="background:var(--ok);border-color:var(--ok)">'+CHECK_SVG+'</span></div>').join("")
+     :'<p class="small muted">Leu algo no almoço, no Kindle ou no livro físico? Registre aqui: conta como estudo e pode valer como o bloco da semana.</p>')+'</section>';
+}
+
+/* =====================================================================
+   16. Imprensa (matérias de portais, fora do tempo de estudo)
+   ===================================================================== */
+const FONTES={ofuturo:{nome:"O Futuro",site:"https://jornalofuturo.com.br/"},edc:{nome:"Em Defesa do Comunismo",site:"https://emdefesadocomunismo.com.br/"},outra:{nome:"Outra fonte",site:""}};
+function artigo(id){return S.artigos.find(a=>a.id===id)}
+function itemDeLeitura(id){const b=livro(id);if(b)return {col:"livros",x:b};const a=artigo(id);return a?{col:"artigos",x:a}:null}
+const linkSeguro=u=>/^https:\/\//.test(String(u||""))?String(u):"";
+function artigosFiltrados(){
+  const f=S.af;
+  return S.artigos.filter(a=>(f.fonte==="todas"||a.fonteId===f.fonte)&&(f.status==="todos"||(f.status==="novos"?a.status!=="lido":f.status==="salvos"?!!a.salvo:true)))
+    .sort((a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||"")));
+}
+function telaImprensa(){
+  const f=S.af,novos=S.artigos.filter(a=>a.status!=="lido").length;
+  let h='<p class="small muted">Matérias de O Futuro e de Em Defesa do Comunismo, atualizadas todo dia de manhã. Leituras daqui não contam como tempo de estudo. Para ler e anotar dentro do caderno, salve a matéria em PDF no navegador e use “Anexar PDF”.</p>'
+   +'<div class="filters"><select id="af-fonte" aria-label="Fonte"><option value="todas">Todas as fontes</option>'+Object.keys(FONTES).filter(k=>k!=="outra"||S.artigos.some(a=>a.fonteId==="outra")).map(k=>'<option value="'+k+'"'+(f.fonte===k?" selected":"")+'>'+FONTES[k].nome+'</option>').join("")+'</select>'
+   +'<select id="af-status" aria-label="Situação">'+[["novos","Não lidas ("+novos+")"],["salvos","Salvas"],["todos","Todas"]].map(([k,l])=>'<option value="'+k+'"'+(f.status===k?" selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+  const l=artigosFiltrados();
+  if(!S.artigos.length)return h+'<div class="empty">Nenhuma matéria ainda. A atualização automática traz as novas todo dia de manhã.</div>';
+  if(!l.length)return h+'<div class="empty">Nada com esses filtros.</div>';
+  return h+l.map(a=>{
+    const nn=S.notas.filter(n=>n.artigoId===a.id).length,lk=linkSeguro(a.link);
+    return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
+      +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'
+      +'<div class="meta" style="margin-top:4px">'+(a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
+      +'<div class="side"><div class="row">'+(a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
+      +'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div></article>';
+  }).join("");
+}
+function menuArtigo(id){
+  const a=artigo(id);if(!a)return;const nn=S.notas.filter(n=>n.artigoId===a.id).length;
+  menu(a.titulo,[
+    a.pdfId?["ler","Ler o PDF",attr({id})]:(S.assets&&["pdf-anexar-artigo","Anexar PDF da matéria",attr({id})]),
+    ["artigo-lido",a.status==="lido"?"Marcar como não lida":"Marcar como lida",attr({id})],
+    ["artigo-salvar",a.salvo?"Tirar dos salvos":"Salvar para depois",attr({id})],
+    ["artigo-anotar","Anotar ou fichar",attr({id})],
+    nn&&["artigo-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
+    ["artigo-excluir","Excluir da lista",attr({id}),"danger"]
+  ]);
+}
+function dialogoArtigo(){
+  abrirModal('<form class="dialog" id="artigo-form" aria-labelledby="ar-h"><h2 id="ar-h">Adicionar matéria</h2><p class="small muted">Para uma matéria de outro portal ou uma que a atualização automática não trouxe.</p>'
+   +'<label class="f">Título<input type="text" id="ar-titulo" required></label><label class="f">Link (https://…)<input type="text" id="ar-link" placeholder="https://"></label>'
+   +'<div class="grid"><label class="f">Fonte<select id="ar-fonte">'+Object.keys(FONTES).map(k=>'<option value="'+k+'">'+FONTES[k].nome+'</option>').join("")+'</select></label><label class="f">Data<input type="date" id="ar-data" value="'+iso(new Date())+'"></label></div>'
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Adicionar</button></div></form>');
+  $("artigo-form").addEventListener("submit",ev=>{
+    ev.preventDefault();const t=$("ar-titulo").value.trim(),l=$("ar-link").value.trim();
+    if(!t){toast("Dê um título.");return}if(l&&!linkSeguro(l)){toast("O link precisa começar com https://");return}
+    save("artigos/"+novoId("artigos"),{fonteId:$("ar-fonte").value,titulo:t,link:l,data:$("ar-data").value,secao:"",status:"novo",salvo:false,criado:new Date().toISOString()}).then(()=>{fecharModal();toast("Matéria adicionada.")}).catch(()=>{});
+  });
+}
+async function excluirArtigo(id){
+  const a=artigo(id);await remove("artigos/"+id);
+  if(a&&a.pdfId&&S.assets){try{await S.assets.delete(a.pdfId)}catch(e){}}
+  try{const q=await S.db.collection("anot").where("livroId","==",id).get();for(const d of q.docs)await remove("anot/"+d.id)}catch(e){}
+  toast("Matéria excluída da lista. As anotações dela continuam salvas.");
+}
+
+/* =====================================================================
+   12. Navegação e desenho da tela
+   ===================================================================== */
+const main=$("main");
+function irPara(view,aba){
+  if(view==="biblioteca"&&aba)S.bibTab=aba;
+  if(view==="caderno"&&aba)S.cadTab=aba;
+  if(location.hash!=="#"+view)location.hash="#"+view;else render();
+}
+function lerHash(){
+  const h=(location.hash||"").replace("#","");
+  if(HASH_ANTIGO[h]){const [v,a]=HASH_ANTIGO[h];if(v==="biblioteca")S.bibTab=a;else S.cadTab=a;S.view=v;return}
+  S.view=VIEWS.includes(h)?h:"hoje";
+}
+function campoFocado(){const a=document.activeElement;return a&&main.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)?a:null}
+function agendarRender(){
+  const f=campoFocado();
+  if(f){
+    if(f.closest("#nota-editor")){pintarListaNotas();return}
+    if(f.closest("#conc-editor")){pintarListaConceitos();return}
+    if(f.id==="bq"){pintarBusca();return}
+    S.dirty=true;return;
+  }
+  render();
+}
+main.addEventListener("focusout",()=>setTimeout(()=>{if(S.dirty&&!campoFocado()){S.dirty=false;render()}},0));
+function aviso(){
+  if(S.offline)return '<div class="banner">Não foi possível acessar o banco de dados do caderno. Verifique a conexão e recarregue a página.</div>';
+  if(S.slow)return '<div class="banner">O armazenamento está demorando para responder. O que aparece pode estar desatualizado.</div>';
+  if(S.readOnly)return '<div class="banner">Você está vendo este caderno sem permissão de edição.</div>';
+  return "";
+}
+function render(){
+  lerHash();
+  document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.view===S.view?"page":"false"));
+  const info=cicloAtualInfo();$("brand-sub").textContent=S.cfg?etapaLabel(etapaAtual())+(info?" · "+info.titulo:""):"";
+  if(!S.ready){main.innerHTML='<p class="muted">Carregando seu caderno…</p>'+aviso();return}
+  const telas={hoje:telaHoje,semana:telaSemana,biblioteca:telaBiblioteca,caderno:telaCaderno,plano:telaPlano,busca:telaBusca,historico:telaHistorico};
+  main.innerHTML=aviso()+telas[S.view]();
+  if(S.view==="caderno"){if(S.cadTab==="conceitos"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
+  if(S.view==="busca"){pintarBusca();const q=$("bq");if(q&&document.activeElement!==q&&!S.bq)q.focus()}
+  pintarCronometro();
+}
+
+/* =====================================================================
+   13. Ações (cliques)
+   ===================================================================== */
+const ACOES={
+  "modal-fundo":(el,e)=>{if(e.target===el)fecharModal()},
+  "modal-fechar":()=>fecharModal(),
+  /* semana */
+  "sem-ant":()=>{irParaSemana(addDays(S.weekStart,-7));render()},
+  "sem-prox":()=>{irParaSemana(addDays(S.weekStart,7));render()},
+  "sem-hoje":()=>{irParaSemana(mondayOf(new Date()));render()},
+  "sem-editar":()=>{S.editWeek=clone(slotsDaSemana());render()},
+  "sem-cancelar":()=>{S.editWeek=null;render()},
+  "sem-salvar":()=>salvarSemana(d=>{d.slots=S.editWeek}).then(()=>{S.editWeek=null;render();toast("Semana reorganizada.")}).catch(()=>{}),
+  "sem-padrao":async()=>{const n=clone(cfg());n.semana=S.editWeek;await salvarConfig(n,"Semana padrão atualizada.");if(wk().slots)await salvarSemana(d=>{delete d.slots}).catch(()=>{});S.editWeek=null;render()},
+  "sem-reset":()=>salvarSemana(d=>{delete d.slots}).then(()=>{S.editWeek=null;render();toast("Semana voltou ao padrão.")}).catch(()=>{}),
+  "slot-adicionar":el=>{(S.editWeek[el.dataset.dia]=S.editWeek[el.dataset.dia]||[]).push({id:uid("s"),trilha:bookTrilhas()[0],min:60});render()},
+  "slot-remover":el=>{S.editWeek[el.dataset.dia].splice(Number(el.dataset.idx),1);render()},
+  "extra-novo":()=>{const hoje=new Date(),dentro=iso(hoje)>=iso(S.weekStart)&&iso(hoje)<=iso(addDays(S.weekStart,6));dialogoLivro(null,{status:"lendo",tipo:"complemento",extraData:iso(dentro?hoje:S.weekStart),extraMin:60})},
+  "bloco-feito":el=>{const k=el.dataset.key;salvarSemana(d=>{d.feitos=d.feitos||{};if(d.feitos[k])delete d.feitos[k];else{d.feitos[k]=true;if(d.pulados)delete d.pulados[k]}}).catch(()=>{})},
+  "bloco-menu":el=>menuBloco(el),
+  "bloco-pular":el=>{fecharModal();const k=el.dataset.key;salvarSemana(d=>{d.pulados=d.pulados||{};d.feitos=d.feitos||{};if(d.pulados[k])delete d.pulados[k];else{d.pulados[k]=true;delete d.feitos[k]}}).catch(()=>{})},
+  "dia-pular":el=>{const ks=el.dataset.keys.split(",");salvarSemana(d=>{d.pulados=d.pulados||{};d.feitos=d.feitos||{};const desfazer=ks.every(k=>d.pulados[k]);ks.forEach(k=>{if(desfazer)delete d.pulados[k];else{d.pulados[k]=true;delete d.feitos[k]}})}).catch(()=>{})},
+  "bloco-anotar":el=>{fecharModal();const t=el.dataset.trilha;if(el.dataset.livro)return novaNota({livroId:el.dataset.livro});if(t==="sintese")return novaNota({trilha:"sintese"});const a=emLeitura(t);novaNota({livroId:a.lendo[0]?a.lendo[0].id:"",trilha:t})},
+  "bloco-trocar":el=>dialogoTroca(el.dataset.key,el.dataset.trilha),
+  "troca-todas":el=>dialogoTroca(el.dataset.key,el.dataset.trilha,true),
+  "troca-escolher":el=>{fecharModal();salvarSemana(d=>{d.trocas=d.trocas||{};d.trocas[el.dataset.key]=el.dataset.id}).then(()=>toast("Texto trocado só neste dia.")).catch(()=>{})},
+  "bloco-destrocar":el=>{fecharModal();salvarSemana(d=>{if(d.trocas)delete d.trocas[el.dataset.key]}).then(()=>toast("Troca desfeita.")).catch(()=>{})},
+  "bloco-inverter":el=>dialogoInverter(el.dataset.key),
+  "inverter-escolher":el=>{fecharModal();inverterBlocos(el.dataset.a,el.dataset.b)},
+  /* hoje */
+  "tm-iniciar":el=>iniciarCronometro(Number(el.dataset.min)||25),
+  "tm-pausar":()=>{if(TM.pausado){TM.fim=Date.now()+TM.resto;TM.pausado=false}else{TM.resto=TM.fim-Date.now();TM.pausado=true}pintarCronometro()},
+  "tm-encerrar":()=>encerrarCronometro(true),
+  "sessao-nova":()=>dialogoSessao(),
+  "artigo-novo":()=>dialogoArtigo(),
+  "artigo-menu":el=>menuArtigo(el.dataset.id),
+  "artigo-site":el=>{const a=artigo(el.dataset.id);if(a&&a.status!=="lido")save("artigos/"+a.id,{...strip(a),status:"lido"}).catch(()=>{})},
+  "artigo-lido":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),status:a.status==="lido"?"novo":"lido"}).catch(()=>{})},
+  "artigo-salvar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),salvo:!a.salvo}).then(()=>toast(a.salvo?"Tirada dos salvos.":"Salva para depois.")).catch(()=>{})},
+  "artigo-anotar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)novaNota({artigoId:a.id,titulo:a.titulo})},
+  "artigo-notas":el=>{fecharModal();S.nf={q:"",tipo:"todos",livro:"todos",topico:"todos",artigo:el.dataset.id};S.draft=null;irPara("caderno","fichamentos")},
+  "artigo-excluir":el=>confirmar(el,"Confirmar exclusão",()=>{fecharModal();excluirArtigo(el.dataset.id).catch(()=>{})}),
+  "pdf-anexar-artigo":el=>{fecharModal();pedirPdf({artigo:el.dataset.id})},
+  "nf-limpar-artigo":()=>{S.nf.artigo="todos";render()},
+  "avulsa-nova":()=>dialogoAvulsa(),
+  "avulsa-livro":el=>{fecharModal();dialogoAvulsa(el.dataset.id)},
+  "sessao-excluir":el=>confirmar(el,"Confirmar",()=>remove("sessoes/"+el.dataset.id).then(()=>toast("Sessão excluída.")).catch(()=>{})),
+  /* biblioteca */
+  "bib-aba":el=>{S.bibTab=el.dataset.tab;S.topicoAberto=null;render()},
+  "livro-novo":()=>dialogoLivro(null),
+  "livro-menu":el=>menuLivro(el.dataset.id),
+  "livro-editar":el=>{fecharModal();const b=livro(el.dataset.id);if(b)dialogoLivro(b)},
+  "livro-lido":el=>{fecharModal();const b=livro(el.dataset.id);if(b)mudarStatusLivro(b,"concluido").catch(()=>{})},
+  "livro-subir":el=>{fecharModal();moverLivro(el.dataset.id,-1)},
+  "livro-descer":el=>{fecharModal();moverLivro(el.dataset.id,1)},
+  "livro-notas":el=>{fecharModal();S.nf={q:"",tipo:"todos",livro:el.dataset.id,topico:"todos"};S.draft=null;irPara("caderno","fichamentos")},
+  "livro-excluir":el=>confirmar(el,"Confirmar exclusão",()=>{fecharModal();excluirTexto(el.dataset.id).catch(()=>{})}),
+  "anotar-livro":el=>{fecharModal();novaNota({livroId:el.dataset.id})},
+  "ler":el=>{fecharModal();abrirLeitor(el.dataset.id)},
+  "pdf-anexar":el=>{fecharModal();pedirPdf({livro:el.dataset.id})},
+  "topico-novo":()=>dialogoTopico(null),
+  "topico-abrir":el=>{S.topicoAberto=el.dataset.id;S.bibTab="topicos";irPara("biblioteca");window.scrollTo(0,0)},
+  "topico-fechar":()=>{S.topicoAberto=null;render()},
+  "topico-menu":el=>menuTopico(el.dataset.id),
+  "topico-editar":el=>{fecharModal();dialogoTopico(topico(el.dataset.id))},
+  "topico-subir":el=>{fecharModal();moverTopico(el.dataset.id,-1)},
+  "topico-descer":el=>{fecharModal();moverTopico(el.dataset.id,1)},
+  "topico-excluir":el=>confirmar(el,"Confirmar exclusão",()=>{fecharModal();const tp=topico(el.dataset.id);if(tp)excluirTopico(tp)}),
+  "topico-texto":el=>{const tp=topico(el.dataset.id);if(tp)dialogoLivro(null,{trilha:topTrilha(tp),topicoId:tp.id,status:"fila"})},
+  "topico-pdf":el=>pedirPdf({topico:el.dataset.id}),
+  "topico-anotar":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({topicoId:tp.id,titulo:tp.nome})},
+  "topico-sintese":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({tipo:"sintese",topicoId:tp.id,titulo:"Síntese — "+tp.nome,texto:""})},
+  /* caderno */
+  "cad-aba":async el=>{await guardarRascunhos();S.cadTab=el.dataset.tab;S.draft=null;S.cdraft=null;render()},
+  "nota-nova":()=>S.cadTab==="sinteses"?novaNota({tipo:"sintese",trilha:"sintese",titulo:"",texto:"",livroId:S.nf.livro!=="todos"?S.nf.livro:""}):novaNota({livroId:S.nf.livro!=="todos"?S.nf.livro:""}),
+  "nota-abrir":async el=>{if(S.draft){lerNota();await salvarNota()}abrirNota(el.dataset.id)},
+  "nota-ir":async el=>{fecharModal();await guardarRascunhos();abrirNota(el.dataset.id)},
+  "nota-fechar":async()=>{lerNota();await salvarNota();S.draft=null;render()},
+  "nota-salvar":()=>{lerNota();salvarNota()},
+  "nota-previa":()=>{lerNota();S.preview=!S.preview;render()},
+  "nota-copiar":()=>{lerNota();copy(notaTexto(S.draft))},
+  "notas-copiar":()=>{const l=notasFiltradas();if(!l.length)return toast("Nada para copiar.");copy(l.map(notaTexto).join("\n---\n\n"))},
+  "nota-excluir":el=>{if(!S.draft||!S.draft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(notaTimer);remove("notas/"+S.draft.id).then(()=>{S.draft=null;render();toast("Excluído.")}).catch(()=>{})})},
+  "nf-limpar-topico":()=>{S.nf.topico="todos";render()},
+  "conceito-novo":async()=>{await guardarRascunhos();abrirConceito({id:null,termo:"",definicao:"",leituras:[],notas:[]});S.csave="Novo";setTimeout(()=>{const x=$("ce-termo");if(x)x.focus()},60)},
+  "conceito-abrir":async el=>{if(S.cdraft){lerConceito();await salvarConceito()}abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
+  "conceito-ir":async el=>{fecharModal();await guardarRascunhos();abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
+  "conceito-fechar":async()=>{lerConceito();await salvarConceito();S.cdraft=null;render()},
+  "conceito-salvar":()=>{lerConceito();salvarConceito()},
+  "conceito-autor":()=>{lerConceito();S.cdraft.leituras.push({autor:"",livroId:"",texto:""});render();setTimeout(()=>{const l=document.querySelectorAll('[data-cl="autor"]');if(l.length)l[l.length-1].focus()},30)},
+  "conceito-autor-remover":el=>{lerConceito();S.cdraft.leituras.splice(Number(el.dataset.i),1);render();agendarConceito()},
+  "conceito-excluir":el=>{if(!S.cdraft||!S.cdraft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(concTimer);remove("conceitos/"+S.cdraft.id).then(()=>{S.cdraft=null;render();toast("Conceito excluído.")}).catch(()=>{})})},
+  /* plano */
+  "plano-salvar":()=>{const n=clone(cfg());n.etapaAtual=Number($("pl-etapa").value);n.inicioEtapa=$("pl-inicio").value||n.inicioEtapa||iso(mondayOf(new Date()));n.rotacao=rotacao().map((t,i)=>$("pl-rot-"+i)?$("pl-rot-"+i).value:t);salvarConfig(n,"Plano atualizado.")},
+  "rot-mais":()=>{const n=clone(cfg());n.rotacao=rotacao().map((t,i)=>$("pl-rot-"+i)?$("pl-rot-"+i).value:t);n.rotacao.push(bookTrilhas()[0]||"sintese");S.secAberta="ciclo";salvarConfig(n,"Semana adicionada à rotação.")},
+  "rot-menos":()=>{const n=clone(cfg());n.rotacao=rotacao().map((t,i)=>$("pl-rot-"+i)?$("pl-rot-"+i).value:t);if(n.rotacao.length>1)n.rotacao.pop();S.secAberta="ciclo";salvarConfig(n,"Última semana removida da rotação.")},
+  "horarios-salvar":()=>{const n=clone(cfg());n.horarios={};DIAS.forEach(d=>{const v=$("hr-"+d.i).value;if(v)n.horarios[d.i]=v});S.secAberta="semana";salvarConfig(n,"Horários salvos.")},
+  "ciclos-salvar":()=>{const n=clone(cfg());n.etapas=lerCiclosDoFormulario();S.secAberta="ciclos";salvarConfig(n,"Ciclos salvos.")},
+  "ciclo-novo":()=>{const n=clone(cfg());n.etapas=lerCiclosDoFormulario();n.etapas.push({n:Math.max(0,...n.etapas.map(x=>x.n))+1,titulo:"Novo ciclo",objetivo:""});S.secAberta="ciclos";salvarConfig(n,"Ciclo criado. Edite o título e o objetivo.")},
+  "ciclo-mover":el=>{const base=lerCiclosDoFormulario().sort((a,b)=>a.n-b.n),ns=base.map(x=>x.n),n=Number(el.dataset.n),m=ns[ns.indexOf(n)+Number(el.dataset.dir)];if(m==null)return toast("Esse ciclo já está na ponta.");const map=x=>x===n?m:(x===m?n:x);S.secAberta="ciclos";remapearCiclos(base.map(x=>({...x,n:map(x.n)})),map,"Ciclos trocados de lugar. Os textos foram junto.")},
+  "ciclo-excluir":el=>{const base=lerCiclosDoFormulario().sort((a,b)=>a.n-b.n),ns=base.map(x=>x.n),n=Number(el.dataset.n),k=ns.indexOf(n);if(base.length<2)return;const t=ns[k+1]!=null?ns[k+1]:ns[k-1],ren=x=>x>n?x-1:x,map=x=>ren(x===n?t:x);
+    confirmar(el,"Confirmar: textos vão para o Ciclo "+ren(t),()=>{S.secAberta="ciclos";remapearCiclos(base.filter(x=>x.n!==n).map(x=>({...x,n:ren(x.n)})),map,"Ciclo excluído. Os textos foram para o Ciclo "+ren(t)+".")})},
+  "trilhas-salvar":()=>salvarTrilhas(lerTrilhas(),"Trilhas salvas."),
+  "trilha-nova":()=>{const l=lerTrilhas(),usadas=l.map(x=>x.cor);l.push({id:uid("tr"),nome:"Nova trilha",curto:"Nova trilha",cor:Object.keys(CORES).find(k=>!usadas.includes(k))||"c6"});salvarTrilhas(l,"Trilha criada. Ajuste o nome e a cor.")},
+  "trilha-mover":el=>{const l=lerTrilhas(),i=Number(el.dataset.i),j=i+Number(el.dataset.dir);if(j<0||j>=l.length)return;[l[i],l[j]]=[l[j],l[i]];salvarTrilhas(l,"Ordem das trilhas atualizada.")},
+  "trilha-excluir":el=>{const l=lerTrilhas(),i=Number(el.dataset.i);if(S.livros.some(b=>b.trilha===l[i].id))return toast("Essa trilha ainda tem textos. Mova ou exclua os textos antes.");confirmar(el,"Confirmar exclusão",()=>{l.splice(i,1);salvarTrilhas(l,"Trilha excluída.")})},
+  "modelos-salvar":()=>{const n=clone(cfg());n.modeloSintese=$("ms").value;n.modeloConjuntura=$("mc").value;n.legendaCores={};Object.keys(CORES_AN).forEach(k=>{n.legendaCores[k]=$("lg-"+k).value.trim()||DEFAULT_LEGENDA[k]});S.secAberta="modelos";salvarConfig(n,"Modelos e legenda salvos.")},
+  "backup-baixar":async el=>{el.disabled=true;await baixarBackup();el.disabled=false},
+  "sair":()=>{if(window.sairDoCaderno)window.sairDoCaderno()},
+  "backup-restaurar":()=>{const i=$("bk-file");i.value="";i.click()},
+  "backup-confirmar":()=>{const d=S.pendingRestore;S.pendingRestore=null;fecharModal();if(d)restaurar(d)},
+  "agenda-baixar":()=>baixarAgenda(),
+  /* leitor */
+  "rd-fechar":()=>fecharLeitor(),
+  "rd-ferramenta":el=>{R.tool=el.dataset.tool;document.querySelector(".reader").dataset.tool=R.tool;document.querySelectorAll(".reader .tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tool===R.tool)))},
+  "rd-cor":el=>{R.cor=el.dataset.cor;document.querySelectorAll(".reader .swl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.cor===R.cor)))},
+  "rd-zoom":el=>{const i=ZOOMS.indexOf(R.zoom),j=Math.max(0,Math.min(ZOOMS.length-1,i+Number(el.dataset.dir)));if(j===i)return;const pag=R.cur;R.zoom=ZOOMS[j];aplicarZoom();setTimeout(()=>{const pg=R.pages[pag-1];if(pg)pg.el.scrollIntoView({block:"start"})},30)},
+  "rd-lateral":()=>{const sd=$("rd-side");if(sd){sd.hidden=!sd.hidden;pintarLateral()}},
+  "rd-ir":el=>{const pg=R.pages&&R.pages[Number(el.dataset.n)-1];if(pg)pg.el.scrollIntoView({block:"start",behavior:"smooth"});if(window.innerWidth<=760){$("rd-side").hidden=true}},
+  "rd-conceito":()=>dialogoConceitoPdf(),
+  "cp-salvar":()=>{const nome=$("cp-nome").value,tx=$("cp-texto").value;if(!nome.trim())return toast("Escreva o nome do conceito.");fecharModal();registrarConceito(nome,tx,R.cur).catch(()=>{})},
+  "np-salvar":()=>{
+    const c=S.noteCtx;if(!c||!R.livroId)return fecharModal();
+    const txt=$("np-texto").value.trim(),conc=$("np-conc")?$("np-conc").value.trim():"";
+    if(c.i!=null){const a=(R.anot[c.n]||[])[c.i];if(a){a.texto=txt;desenharMarcas(c.n);pintarLateral();salvarMarcas(c.n)}}
+    else addMarca(c.n,{tipo:"nota",x:c.x,y:c.y,texto:txt,cor:R.cor});
+    if(conc)registrarConceito(conc,txt,c.n).catch(()=>{});
+    S.noteCtx=null;fecharModal();
+  },
+  "np-excluir":()=>{const c=S.noteCtx;if(c&&c.i!=null&&R.livroId){(R.anot[c.n]||[]).splice(c.i,1);desenharMarcas(c.n);pintarLateral();salvarMarcas(c.n)}S.noteCtx=null;fecharModal()},
+  "rd-fichamento":()=>{
+    const it=itemDeLeitura(R.livroId),b=it&&it.x,lg=legenda(),linhas=[];
+    Object.keys(R.anot).map(Number).sort((a,c)=>a-c).forEach(n=>(R.anot[n]||[]).forEach(a=>{if(a.tipo==="nota")linhas.push("- p. "+n+" ("+(lg[a.cor]||"nota")+"): "+String(a.texto||"").replace(/\n+/g," "))}));
+    const id=R.livroId;fecharLeitor();
+    novaNota({...(it&&it.col==="artigos"?{artigoId:id}:{livroId:id}),titulo:"Notas — "+(b?b.titulo:"texto"),texto:"## Notas feitas na leitura\n"+linhas.join("\n")+"\n"});
+  }
+};
+function lerTrilhas(){return trilhas().map((t,i)=>{const g=id=>$(id)?$(id).value:null;return {id:t.id,nome:(g("tr-n-"+i)||t.nome).trim()||t.nome,curto:(g("tr-c-"+i)||t.curto||t.nome).trim(),cor:g("tr-cor-"+i)||t.cor}})}
+function salvarTrilhas(l,msg){const n=clone(cfg());n.trilhas=l;S.secAberta="trilhas";return salvarConfig(n,msg)}
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;
+  const fn=ACOES[el.dataset.act];if(fn)fn(el,e);
+});
+document.addEventListener("change",e=>{
+  const el=e.target,act=el.dataset&&el.dataset.act;
+  if(el.id==="bk-file"){const f=el.files&&el.files[0];if(f)lerBackup(f);return}
+  if(el.id==="pdf-input"){importarPdf(el.files&&el.files[0]);return}
+  if(act==="livro-status"){const b=livro(el.dataset.id);el.blur();if(b)mudarStatusLivro(b,el.value).catch(()=>{});return}
+  if(act==="livro-ciclo"){const b=livro(el.dataset.id);el.blur();if(b)mudarCicloLivro(b,Number(el.value));return}
+  if(act==="topico-status"){const tp=topico(el.dataset.id);el.blur();if(tp)mudarStatusTopico(tp,el.value).catch(()=>{});return}
+  if(act&&act.startsWith("slot-")&&S.editWeek){
+    const d=el.dataset.dia,i=Number(el.dataset.idx),s=S.editWeek[d][i];
+    if(act==="slot-trilha")s.trilha=el.value;else if(act==="slot-min")s.min=Number(el.value);
+    else if(act==="slot-dia"&&el.value!==d){S.editWeek[d].splice(i,1);(S.editWeek[el.value]=S.editWeek[el.value]||[]).push(s)}
+    render();return;
+  }
+  if(el.classList.contains("motivo")){const v=el.value.trim();salvarSemana(d=>{d.motivos=d.motivos||{};if(v)d.motivos[el.dataset.dia]=v;else delete d.motivos[el.dataset.dia]}).catch(()=>{});return}
+  if(el.id==="af-fonte"||el.id==="af-status"){S.af[el.id.slice(3)]=el.value;render();return}
+  if(["fl-etapa","fl-trilha","fl-status"].includes(el.id)){const k=el.id.slice(3);S.fl[k]=k==="etapa"&&!isNaN(el.value)?Number(el.value):el.value;render();return}
+  if(el.id==="nf-tipo"||el.id==="nf-livro"){S.nf[el.id.slice(3)]=el.value;pintarListaNotas();return}
+  if(el.id==="ne-tipo"&&el.value==="conjuntura"&&S.draft&&$("ne-texto")&&!$("ne-texto").value.trim())$("ne-texto").value=cfg().modeloConjuntura||DEFAULT_MODELO_CONJUNTURA;
+  if(/^ne-(tipo|livro|topico)$/.test(el.id)){lerNota();agendarNota();return}
+  if(el.dataset&&el.dataset.cn&&S.cdraft){lerConceito();const set=new Set(S.cdraft.notas||[]);el.checked?set.add(el.dataset.cn):set.delete(el.dataset.cn);S.cdraft.notas=[...set];agendarConceito();return}
+  if(el.dataset&&el.dataset.cl&&S.cdraft){lerConceito();agendarConceito();return}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.id==="nf-q"){S.nf.q=el.value;pintarListaNotas();return}
+  if(el.id==="cq"){S.cq=el.value;pintarListaConceitos();return}
+  if(el.id==="cnq"){S.cnq=el.value;pintarNotasDoConceito();return}
+  if(el.id==="bq"){S.bq=el.value;pintarBusca();return}
+  if(el.id&&el.id.startsWith("ne-")){lerNota();agendarNota();return}
+  if(S.cdraft&&(el.id==="ce-termo"||el.id==="ce-def"||(el.dataset&&el.dataset.cl))){lerConceito();agendarConceito()}
+});
+document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.sec")&&d.open)S.secAberta=d.dataset.sec},true);
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(modalAberto())fecharModal();else if(leitorAberto())fecharLeitor()});
+window.addEventListener("hashchange",async()=>{
+  const antes=S.view;
+  if(antes==="caderno"){const dest=(location.hash||"").replace("#","");if(dest!=="caderno"&&!HASH_ANTIGO[dest]){await guardarRascunhos()}}
+  if(S.view!=="historico"&&(location.hash||"")==="#historico")S.semanasCache=null;
+  render();
+});
+window.addEventListener("pagehide",()=>{guardarRascunhos();if(TM.fase==="foco"){const m=minutosDaSessao();if(m>=5)registrarSessao(m)}});
+
+/* =====================================================================
+   14. Início
+   ===================================================================== */
+async function iniciar(){
+  ligarPonteiroDoLeitor();
+  irParaSemana(mondayOf(new Date()));
+  render();
+  let db=null;
+  try{db=window.claude&&typeof window.claude.use==="function"?await window.claude.use("db"):null}catch(e){db=null}
+  if(!db){S.offline=true;S.ready=true;render();return}
+  S.db=db;
+  const lento=setTimeout(()=>{S.slow=true;S.ready=true;render()},10000);
+  const pronto=()=>{if(!S.ready&&S.loaded.cfg&&S.loaded.livros&&S.loaded.notas){S.ready=true;S.slow=false;clearTimeout(lento)}agendarRender()};
+  const falha=e=>{if(e&&e.code==="revoked")S.offline=true;S.ready=true;clearTimeout(lento);render()};
+  const ouvir=(col,chave)=>db.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({id:d.id,...d.data()}));if(chave&&(!snap.metadata.fromCache||snap.size))S.loaded[chave]=true;pronto()},chave?falha:()=>{});
+  db.doc("plano/config").onSnapshot(snap=>{S.cfg=snap.exists?snap.data():null;if(!snap.metadata.fromCache||S.cfg)S.loaded.cfg=true;pronto()},falha);
+  ouvir("livros","livros");ouvir("notas","notas");ouvir("topicos");ouvir("conceitos");ouvir("sessoes");ouvir("artigos");
+  S.weekStart=null;irParaSemana(mondayOf(new Date()));
+  window.claude.use("assets").then(a=>{S.assets=a;agendarRender()}).catch(()=>{});
+  window.claude.use("downloads").then(d=>{S.downloads=d;agendarRender()}).catch(()=>{});
+}
+iniciar();
+
+</script>
+</body>
+</html>
