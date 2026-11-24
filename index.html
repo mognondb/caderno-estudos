@@ -1434,7 +1434,7 @@ async function baixar(nome,conteudo){
 }
 async function baixarBackup(){
   const ler=async col=>{try{const q=await S.db.collection(col).get();return q.docs.map(d=>({id:d.id,...d.data()}))}catch(e){return []}};
-  const data={app:"caderno-de-estudos",versao:2,exportadoEm:new Date().toISOString(),config:S.cfg||{},livros:S.livros,topicos:S.topicos,notas:S.notas,conceitos:S.conceitos,semanas:await ler("semanas"),anot:await ler("anot"),marcas:await ler("marcas"),sessoes:S.sessoes,artigos:S.artigos};
+  const data={app:"caderno-de-estudos",versao:2,exportadoEm:new Date().toISOString(),config:S.cfg||{},livros:S.livros,topicos:S.topicos,notas:S.notas,conceitos:S.conceitos,semanas:await ler("semanas"),anot:await ler("anot"),marcas:await ler("marcas"),sessoes:S.sessoes,artigos:S.artigosTodos||S.artigos};
   if(await baixar("caderno-backup-"+iso(new Date())+".json",JSON.stringify(data,null,2)))toast("Backup baixado.");
 }
 async function baixarAgenda(){
@@ -1868,6 +1868,7 @@ function artigo(id){return S.artigos.find(a=>a.id===id)}
 function itemDeLeitura(id){const b=livro(id);if(b)return {col:"livros",x:b};const a=artigo(id);return a?{col:"artigos",x:a}:null}
 const linkSeguro=u=>/^https:\/\//.test(String(u||""))?String(u):"";
 function artigosFiltrados(){
+  if(S.af.status==="descartados")return (S.artigosTodos||[]).filter(a=>a.status==="descartado"&&(S.af.fonte==="todas"||a.fonteId===S.af.fonte)).sort((a,b)=>String(b.descartadoEm||"").localeCompare(String(a.descartadoEm||"")));
   const f=S.af;
   return S.artigos.filter(a=>(f.fonte==="todas"||a.fonteId===f.fonte)&&(f.status==="todos"||(f.status==="novos"?a.status!=="lido":f.status==="salvos"?!!a.salvo:true)))
     .sort((a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||"")));
@@ -1909,17 +1910,16 @@ function linhaImprensa(a){
 function imprensaDoDia(){
   talvezAtualizarImprensa();
   if(!S.artigos.length&&!window.cadernoImprensa)return "";
-  const hoje=iso(new Date()),ontem=iso(addDays(new Date(),-1)),porData=(a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||""));
-  const fut=S.artigos.filter(a=>a.fonteId==="ofuturo");
-  let dia=hoje,lf=fut.filter(a=>a.data===hoje);
-  if(!lf.length){dia=ontem;lf=fut.filter(a=>a.data===ontem)}
-  lf.sort(porData);
-  const edc=S.artigos.filter(a=>a.fonteId==="edc").sort(porData)[0];
+  const hoje=iso(new Date()),porData=(a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||""));
+  // De cada fonte: todas as matérias de hoje; se não houver, a última ainda não lida.
+  const daFonte=f=>{const l=S.artigos.filter(a=>a.fonteId===f).sort(porData),dh=l.filter(a=>a.data===hoje);
+    if(dh.length)return {rot:"hoje",l:dh};const nl=l.find(a=>a.status!=="lido");return {rot:"última não lida",l:nl?[nl]:[]}};
+  const fu=daFonte("ofuturo"),ed=daFonte("edc");
   let h='<section class="card"><div class="spread"><h2>Imprensa</h2><a class="btn sm ghost" href="#biblioteca" data-act="bib-aba" data-tab="imprensa">Ver tudo ›</a></div>';
-  h+='<div class="small muted">O Futuro · '+(lf.length?(dia===hoje?"hoje":"ontem"):"hoje e ontem")+'</div>'
-    +(lf.length?lf.map(linhaImprensa).join(""):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando as notícias…":"Nenhuma notícia de hoje nem de ontem.")+'</p>');
-  h+='<div class="small muted">Em Defesa do Comunismo · último texto</div>'
-    +(edc?linhaImprensa(edc):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando…":"Nenhum texto ainda.")+'</p>');
+  [["O Futuro",fu],["Em Defesa do Comunismo",ed]].forEach(([nome,x])=>{
+    h+='<div class="small muted">'+nome+(x.l.length?' · '+x.rot:'')+'</div>'
+      +(x.l.length?x.l.map(linhaImprensa).join(""):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando…":"Nada novo: nenhuma matéria de hoje e nada por ler.")+'</p>');
+  });
   return h+'</section>';
 }
 function telaImprensa(){
@@ -1930,12 +1930,14 @@ function telaImprensa(){
    +(window.cadernoImprensa?'<div class="row"><span class="small muted">'+(S.impRodando?"Buscando matérias…":quando?"Atualizado "+(iso(quando)===iso(new Date())?"hoje":fmtDM(quando))+" às "+pad(quando.getHours())+":"+pad(quando.getMinutes()):"")+'</span><button class="btn sm" data-act="imp-atualizar"'+(S.impRodando?" disabled":"")+'>Atualizar agora</button></div>':'')+'</div>'
    +(S.impErro?'<div class="banner small">Problema ao buscar: '+esc(S.impErro)+(/404|not found|não encontrad|failed to send|401|jwt/i.test(S.impErro)?' — o caderno não conseguiu falar com a função “imprensa”. Confira se ela está instalada no Supabase com o nome imprensa e com “Verify JWT” desligado.':'')+'</div>':'')
    +'<div class="filters"><select id="af-fonte" aria-label="Fonte"><option value="todas">Todas as fontes</option>'+Object.keys(FONTES).filter(k=>k!=="outra"||S.artigos.some(a=>a.fonteId==="outra")).map(k=>'<option value="'+k+'"'+(f.fonte===k?" selected":"")+'>'+FONTES[k].nome+'</option>').join("")+'</select>'
-   +'<select id="af-status" aria-label="Situação">'+[["novos","Não lidas ("+novos+")"],["salvos","Salvas"],["todos","Todas"]].map(([k,l])=>'<option value="'+k+'"'+(f.status===k?" selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+   +'<select id="af-status" aria-label="Situação">'+[["novos","Não lidas ("+novos+")"],["salvos","Salvas"],["todos","Todas"],["descartados","Descartadas"]].map(([k,l])=>'<option value="'+k+'"'+(f.status===k?" selected":"")+'>'+l+'</option>').join("")+'</select></div>';
   const l=artigosFiltrados();
   if(!S.artigos.length)return h+'<div class="empty">'+(S.impRodando?"Buscando as matérias…":"Nenhuma matéria ainda. Toque em “Atualizar agora”.")+'</div>';
   if(!l.length)return h+'<div class="empty">Nada com esses filtros.</div>';
   return h+l.map(a=>{
     const nn=S.notas.filter(n=>n.artigoId===a.id).length,lk=linkSeguro(a.link);
+    if(a.status==="descartado")return '<article class="book lido" style="--c:var(--muted)"><div><div class="tt" style="font-weight:400">'+esc(a.titulo)+'</div><div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.descartadoEm?' · descartada em '+fmtDM(new Date(a.descartadoEm)):'')+'</div></div>'
+      +'<div class="side"><div class="row">'+(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm" data-act="artigo-restaurar" data-id="'+a.id+'">Restaurar</button></div></div></article>';
     return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
       +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
       +'<div class="meta" style="margin-top:4px">'+(a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
@@ -1952,7 +1954,7 @@ function menuArtigo(id){
     ["artigo-salvar",a.salvo?"Tirar dos salvos":"Salvar para depois",attr({id})],
     ["artigo-anotar","Anotar ou fichar",attr({id})],
     nn&&["artigo-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
-    ["artigo-excluir","Excluir da lista",attr({id}),"danger"]
+    ["artigo-descartar","Descartar (não é relevante)",attr({id}),"danger"]
   ]);
 }
 function dialogoArtigo(){
@@ -1965,6 +1967,16 @@ function dialogoArtigo(){
     if(!t){toast("Dê um título.");return}if(l&&!linkSeguro(l)){toast("O link precisa começar com https://");return}
     save("artigos/"+novoId("artigos"),{fonteId:$("ar-fonte").value,titulo:t,link:l,data:$("ar-data").value,secao:"",status:"novo",salvo:false,criado:new Date().toISOString()}).then(()=>{fecharModal();toast("Matéria adicionada.")}).catch(()=>{});
   });
+}
+/* Descartar: some das listas, libera o texto e as marcações, mas guarda título e link
+   para que a atualização automática não traga a matéria de volta. */
+async function descartarArtigo(id){
+  const a=artigo(id);if(!a)return;
+  const nn=S.notas.filter(n=>n.artigoId===id).length;
+  await save("artigos/"+id,{fonteId:a.fonteId||"outra",titulo:a.titulo||"",link:a.link||"",data:a.data||"",secao:a.secao||"",status:"descartado",salvo:false,descartadoEm:new Date().toISOString(),criado:a.criado||""});
+  try{await remove("marcas/"+id)}catch(e){}
+  if(a.pdfId&&S.assets){try{await S.assets.delete(a.pdfId)}catch(e){}}
+  toast("Matéria descartada."+(nn?" Seus fichamentos dela continuam no Caderno.":""));
 }
 async function excluirArtigo(id){
   const a=artigo(id);await remove("artigos/"+id);
@@ -2034,7 +2046,7 @@ function abrirMateria(id){
    +'<button class="btn sm" data-act="rd-fechar">‹ Fechar</button><span class="rd-title">'+esc(a.titulo)+'</span>'
    +'<div class="row" role="group" aria-label="Marcar o trecho selecionado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="mt-marcar" data-cor="'+k+'" title="Marcar como '+esc(lg[k])+'" aria-label="Marcar como '+esc(lg[k])+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span><span class="swl-t">'+esc(lg[k])+'</span></button>').join("")+'</div>'
    +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
-   +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'</div>'
+   +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm ghost danger" data-act="mt-descartar" title="Não é relevante: tirar das listas">Descartar</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><article class="mt-texto"><header class="mt-cab"><div class="small muted">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.secao?' · '+esc(a.secao):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.autor?' · '+esc(a.autor):'')+'</div><h1>'+esc(a.titulo)+'</h1>'+(a.resumo?'<p class="mt-fina">'+esc(a.resumo)+'</p>':'')+'</header>'
    +'<div id="mt-corpo"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
   document.body.classList.add("reading");
@@ -2188,6 +2200,9 @@ const ACOES={
   "artigo-salvar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),salvo:!a.salvo}).then(()=>toast(a.salvo?"Tirada dos salvos.":"Salva para depois.")).catch(()=>{})},
   "artigo-anotar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)novaNota({artigoId:a.id,titulo:a.titulo})},
   "artigo-notas":el=>{fecharModal();S.nf={q:"",tipo:"todos",livro:"todos",topico:"todos",artigo:el.dataset.id};S.draft=null;irPara("caderno","fichamentos")},
+  "artigo-descartar":el=>confirmar(el,"Confirmar descarte",()=>{fecharModal();descartarArtigo(el.dataset.id).catch(()=>{})}),
+  "mt-descartar":el=>confirmar(el,"Confirmar",()=>{const id=R.livroId;fecharLeitor();descartarArtigo(id).catch(()=>{})}),
+  "artigo-restaurar":el=>{const a=(S.artigosTodos||[]).find(x=>x.id===el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),status:"lido"}).then(()=>toast("Matéria de volta na lista.")).catch(()=>{})},
   "artigo-excluir":el=>confirmar(el,"Confirmar exclusão",()=>{fecharModal();excluirArtigo(el.dataset.id).catch(()=>{})}),
   "pdf-anexar-artigo":el=>{fecharModal();pedirPdf({artigo:el.dataset.id})},
   "nf-limpar-artigo":()=>{S.nf.artigo="todos";render()},
@@ -2363,7 +2378,7 @@ async function iniciar(){
   const lento=setTimeout(()=>{S.slow=true;S.ready=true;render()},10000);
   const pronto=()=>{if(!S.ready&&S.loaded.cfg&&S.loaded.livros&&S.loaded.notas){S.ready=true;S.slow=false;clearTimeout(lento)}agendarRender()};
   const falha=e=>{if(e&&e.code==="revoked")S.offline=true;S.ready=true;clearTimeout(lento);render()};
-  const ouvir=(col,chave)=>db.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({id:d.id,...d.data()}));if(chave&&(!snap.metadata.fromCache||snap.size))S.loaded[chave]=true;pronto()},chave?falha:()=>{});
+  const ouvir=(col,chave)=>db.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({id:d.id,...d.data()}));if(col==="artigos"){S.artigosTodos=S.artigos;S.artigos=S.artigos.filter(a=>a.status!=="descartado")}if(chave&&(!snap.metadata.fromCache||snap.size))S.loaded[chave]=true;pronto()},chave?falha:()=>{});
   db.doc("plano/config").onSnapshot(snap=>{S.cfg=snap.exists?snap.data():null;if(!snap.metadata.fromCache||S.cfg)S.loaded.cfg=true;pronto()},falha);
   ouvir("livros","livros");ouvir("notas","notas");ouvir("topicos");ouvir("conceitos");ouvir("sessoes");ouvir("artigos");
   S.weekStart=null;irParaSemana(mondayOf(new Date()));

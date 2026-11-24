@@ -60,7 +60,7 @@ async function emDefesa(existentes: Map<string, Existente>): Promise<Materia[]> 
     const link = tag(it, "link");
     if (!/^https:\/\//.test(link)) continue;
     const ex = existentes.get(chaveLink(link));
-    if (ex && ex.data.conteudo) continue;
+    if (ex && (ex.data.conteudo || ex.data.status === "descartado")) continue;
     const id = ex ? ex.id : await idDe("edc", link);
     let conteudo = tag(it, "content:encoded");
     if (!conteudo) { try { conteudo = (await extrair(link)).conteudo; } catch { conteudo = tag(it, "description"); } }
@@ -128,7 +128,7 @@ async function oFuturo(existentes: Map<string, Existente>): Promise<Materia[]> {
   const out: Materia[] = [];
   for (const link of links) {
     const ex = existentes.get(chaveLink(link));
-    if (ex && ex.data.conteudo) continue;
+    if (ex && (ex.data.conteudo || ex.data.status === "descartado")) continue;
     const id = ex ? ex.id : await idDe("ofuturo", link);
     try {
       const x = await extrair(link);
