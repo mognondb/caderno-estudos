@@ -118,6 +118,27 @@ select.st-pausado{border-style:dashed;color:var(--muted)}
 .day-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .day-foot{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:8px}
 .day-foot input{flex:1;min-width:140px;font-size:13px}
+/* Semana no computador: 7 colunas, como uma agenda */
+@media (min-width:1000px){
+  body[data-view=semana] main,body[data-view=semana] .top-in{max-width:1500px}
+  .days{grid-template-columns:repeat(7,minmax(136px,1fr));gap:8px;align-items:stretch;overflow-x:auto;padding-bottom:2px}
+  .day .strip{position:relative}
+  .day .strip .body{padding-right:30px}
+  .day .strip .acts{position:absolute;top:6px;right:5px}
+  .day .strip .lab,.day .strip .tt{overflow-wrap:break-word}
+  .day .strip .body .btn,.day-foot .btn{white-space:normal;text-align:left;padding-left:0;padding-right:0}
+  .day{padding:8px;gap:6px;min-height:340px}
+  .day-h{flex-direction:column;align-items:flex-start;gap:2px;padding:2px 2px 6px;border-bottom:1px solid var(--line)}
+  .day-h h3{font-size:15px;line-height:1.25}
+  .day-h h3 .small{display:block;font-family:var(--body);font-weight:400;margin-top:1px}
+  .day .strip{padding:8px 6px 8px 9px;gap:6px}
+  .day .strip .tt{font-size:14px;line-height:1.3}
+  .day .strip .check{width:26px;height:26px}
+  .day-foot{margin-top:auto}
+  .day-foot input{min-width:0;width:100%}
+  .day .strip.edit{flex-direction:column;align-items:stretch}
+  .day .strip.edit select{width:100%}
+}
 .now-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
 .now{border-left:4px solid var(--c);padding:4px 10px;background:var(--sunk);border-radius:0 6px 6px 0}
 .editbar{background:var(--surface);border:1px dashed var(--muted);border-radius:10px;padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -1778,6 +1799,7 @@ function render(){
   const info=cicloAtualInfo();$("brand-sub").textContent=S.cfg?etapaLabel(etapaAtual())+(info?" · "+info.titulo:""):"";
   if(!S.ready){main.innerHTML='<p class="muted">Carregando seu caderno…</p>'+aviso();return}
   const telas={hoje:telaHoje,semana:telaSemana,biblioteca:telaBiblioteca,caderno:telaCaderno,plano:telaPlano,busca:telaBusca,historico:telaHistorico};
+  document.body.dataset.view=S.view;
   main.innerHTML=aviso()+telas[S.view]();
   if(S.view==="caderno"){if(S.cadTab==="conceitos"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
   if(S.view==="busca"){pintarBusca();const q=$("bq");if(q&&document.activeElement!==q&&!S.bq)q.focus()}
