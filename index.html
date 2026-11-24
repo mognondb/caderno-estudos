@@ -2211,10 +2211,11 @@ function ficharMateria(){
 const V={ativo:false,tocando:false,fila:[],i:0,vel:1,voz:null,gen:0,fimFonte:false,wake:null};
 const VELS=[0.8,1,1.2,1.4,1.7];
 const vozDisponivel=()=>typeof window.speechSynthesis!=="undefined"&&typeof window.SpeechSynthesisUtterance!=="undefined";
-function vozesPt(){return (vozDisponivel()?speechSynthesis.getVoices():[]).filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>(/BR/i.test(b.lang)-/BR/i.test(a.lang))||(b.localService-a.localService))}
+const BOA_VOZ=/natural|neural|premium|enhanced|aprimorad|online/i;
+function vozesPt(){return (vozDisponivel()?speechSynthesis.getVoices():[]).filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>(/BR/i.test(b.lang)-/BR/i.test(a.lang))||(BOA_VOZ.test(b.name)-BOA_VOZ.test(a.name))||(b.localService-a.localService))}
 function escolherVoz(){
   const l=vozesPt();let nome="";try{nome=localStorage.getItem("voz-nome")||""}catch(e){}
-  return l.find(v=>v.name===nome)||l.find(v=>/luciana|francisca|google português do brasil|thalita|daniel/i.test(v.name))||l[0]||null;
+  return l.find(v=>v.name===nome)||l.find(v=>/BR/i.test(v.lang)&&BOA_VOZ.test(v.name))||l.find(v=>/francisca|thalita|luciana|google português do brasil|daniel/i.test(v.name))||l[0]||null;
 }
 if(vozDisponivel()){try{speechSynthesis.onvoiceschanged=()=>{if(!V.voz)V.voz=escolherVoz();pintarPlayer()}}catch(e){}}
 try{V.vel=Number(localStorage.getItem("voz-vel"))||1}catch(e){}
