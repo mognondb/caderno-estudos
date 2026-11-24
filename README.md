@@ -33,6 +33,18 @@ Leva uns 10 minutos. O passo 2 é mais confortável num computador.
    Abra o endereço no navegador, entre e use "Adicionar à tela inicial".
    Ele vira um ícone como de aplicativo. Você só faz login uma vez por aparelho.
 
+IMPRENSA (matérias de O Futuro e Em Defesa do Comunismo)
+   A busca das matérias roda numa função do Supabase. Para instalar (uma vez só):
+   a) Supabase › Edge Functions › Deploy a new function › Via Editor.
+   b) Nome da função: imprensa
+   c) Apague o código de exemplo e cole todo o conteúdo de
+      https://raw.githubusercontent.com/mognondb/caderno-estudos/main/supabase/functions/imprensa/index.ts
+   d) Clique em Deploy.
+   e) Na função, abra Details (ou Settings) e desligue "Verify JWT with legacy secret".
+      A própria função confere o seu login.
+   Depois disso, a aba Imprensa busca as matérias sozinha (no máximo a cada 2 horas)
+   ou quando você toca em "Atualizar agora".
+
 BOM SABER
 - PDFs: até 20 MB cada. O plano gratuito do Supabase tem 1 GB para arquivos e 500 MB para dados.
 - Se o projeto ficar uma semana sem uso, o Supabase o pausa. Basta entrar em supabase.com
