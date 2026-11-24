@@ -285,6 +285,13 @@ details.grupo-notas[open]>summary::before{transform:rotate(90deg)}
 .gn-itens{padding:0 8px 8px;display:flex;flex-direction:column;gap:6px}
 .so-estreito{display:none}.so-largo{display:contents}
 @media (max-width:600px){.materia .so-largo{display:none}.materia .so-estreito{display:inline-flex}}
+.nota-ferr{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ref-termo{all:unset;cursor:pointer;color:var(--accent);border-bottom:1.5px solid color-mix(in srgb,var(--accent) 45%,transparent);font-weight:600}
+.ref-termo.ref-nome{color:var(--t-c7,#7b3f9e);border-bottom-color:color-mix(in srgb,var(--t-c7,#7b3f9e) 45%,transparent)}
+.ref-termo.ref-novo{border-bottom-style:dashed;font-weight:500}
+.pg-ref{all:unset;cursor:pointer;display:inline-block;font-family:var(--body);font-size:12px;font-weight:600;line-height:1;padding:3px 6px;border-radius:99px;background:var(--sunk);color:var(--muted);vertical-align:1px;margin-right:2px}
+.pg-ref:hover{color:var(--ink)}
+.oferta-conceito{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 8px 28px rgba(0,0,0,.22);max-width:calc(100% - 20px)}
 .gt-lista{display:flex;flex-direction:column;gap:4px;max-height:40vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px}
 .gt-op{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
 .gt-op:hover{background:var(--sunk)}.gt-op input{width:18px;height:18px;flex:none}
@@ -710,7 +717,7 @@ function strip(o){const c={...o};delete c.id;return c}
 function dis(){return S.offline||S.readOnly?" disabled":""}
 function plural(n,um,varios){return n+" "+(n===1?um:varios)}
 function toast(msg,ms){document.querySelectorAll(".toast").forEach(x=>x.remove());const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||3400)}
-function inline(s){return s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
+function inline(s){return s.replace(/\[\[([^\]\n]{1,80})\]\]/g,(m,t)=>{const c=typeof achaTermo==="function"&&achaTermo(t.replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">"));return '<button type="button" class="ref-termo'+(c?(ehNome(c)?" ref-nome":""):" ref-novo")+'" data-act="termo-ir" data-termo="'+t+'" title="'+(c?(ehNome(c)?"Abrir nome":"Abrir conceito"):"Ainda não registrado: toque para registrar")+'">'+t+'</button>'}).replace(/\[p\.\s*(\d{1,5})\]/g,'<button type="button" class="pg-ref" data-act="pg-ir" data-pg="$1" title="Página $1">p. $1</button>').replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
 function md(src){
   const lines=esc(src||"").split("\n");let out="",para=[],list=false;
   const flush=()=>{if(para.length){out+="<p>"+inline(para.join("<br>"))+"</p>";para=[]}};
@@ -1194,7 +1201,7 @@ function editorNota(){
    +(d.artigoId&&artigo(d.artigoId)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(d.artigoId).titulo)+'</strong></div>':'')
    +(concs.length?'<div class="row small"><span class="muted">Conceitos:</span>'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
    +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":(d.id?"Concluir edição":"Ver formatado"))+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
-   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
+   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<div class="nota-ferr" role="toolbar" aria-label="Inserir no texto"><button class="btn sm" data-act="nf-conceito" title="Selecione uma palavra e registre como conceito">+ Conceito</button><button class="btn sm" data-act="nf-nome" title="Selecione um nome e registre">+ Nome</button><button class="btn sm" data-act="nf-pagina" title="Marcar a página deste trecho">📄 Página</button><span class="small muted">Selecione a palavra antes. Fica como [[termo]] e [p. 45].</span></div><textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
 /* ---------- Caderno › Tudo: todos os registros numa lista ---------- */
@@ -1224,16 +1231,16 @@ function pintarTudo(){
 function telaConceitos(){
   const tipo=tipoReg(S.cadTab),L=REG[tipo];
   const lista='<div class="list"><div class="spread"><h2>'+L.titulo+'</h2><button class="btn primary" data-act="conceito-novo" data-tipo="'+tipo+'"'+dis()+'>+ Novo</button></div>'
-   +'<input type="search" id="cq" placeholder="'+L.busca+'" aria-label="'+L.busca+'" value="'+esc(S.cq)+'"><div class="items" id="conc-itens"></div></div>';
+   +'<input type="search" id="cq" placeholder="'+L.busca+'" aria-label="'+L.busca+'" value="'+esc(S.cq)+'">'+(tipo==="conceito"?'<div class="row"><button class="chip" data-act="conc-filtro-aprof" aria-pressed="'+!!S.cAprof+'">Só os que quero aprofundar <span class="muted">'+regsDo("conceito").filter(c=>c.aprofundar).length+'</span></button></div>':'')+'<div class="items" id="conc-itens"></div></div>';
   return '<div class="split'+(S.cdraft?" open":"")+'">'+lista+'<div class="editor-wrap">'+(S.cdraft?editorConceito():'<div class="empty">'+L.intro+'</div>')+'</div></div>';
 }
 function pintarListaConceitos(){
   const el=$("conc-itens");if(!el)return;const q=S.cq.trim().toLowerCase(),tipo=tipoReg(S.cadTab);
-  const l=regsDo(tipo).filter(c=>!q||(String(c.termo)+" "+String(c.definicao)+" "+String(c.periodo||"")+" "+(c.leituras||[]).map(x=>x.autor+" "+x.texto+" "+((itemDeLeitura(x.livroId)||{}).x||{}).titulo).join(" ")).toLowerCase().includes(q)).sort((a,b)=>String(a.termo).localeCompare(String(b.termo),"pt"));
+  const l=regsDo(tipo).filter(c=>!(tipo==='conceito'&&S.cAprof&&!c.aprofundar)).filter(c=>!q||(String(c.termo)+" "+String(c.definicao)+" "+String(c.periodo||"")+" "+(c.leituras||[]).map(x=>x.autor+" "+x.texto+" "+((itemDeLeitura(x.livroId)||{}).x||{}).titulo).join(" ")).toLowerCase().includes(q)).sort((a,b)=>String(a.termo).localeCompare(String(b.termo),"pt"));
   el.innerHTML=l.length?l.map(c=>{
     let sub;
     if(tipo==="nome"){const a=aparicoes(c);sub=(c.periodo?esc(c.periodo)+' · ':'')+(a.textos.length?plural(a.textos.length,"texto","textos")+(a.ciclos.length?' · '+(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):''):'Ainda sem citações')}
-    else{const aut=[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))];sub=(aut.length?esc(aut.join(", ")):"Nenhum autor ainda")+' · '+plural((c.notas||[]).length,"fichamento","fichamentos")}
+    else{const aut=[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))];sub=(c.aprofundar?'<span class="pill hot">A aprofundar</span> ':'')+(aut.length?esc(aut.join(", ")):"Nenhum autor ainda")+' · '+plural((c.notas||[]).length,"fichamento","fichamentos")}
     return '<button class="item" data-act="conceito-abrir" data-id="'+c.id+'" aria-current="'+(!!S.cdraft&&S.cdraft.id===c.id)+'"><span class="tt">'+esc(c.termo||"Sem nome")+'</span><span class="sub">'+sub+'</span></button>'}).join("")
     :'<div class="small muted" style="padding:8px">'+REG[tipo].vazio+'</div>';
 }
@@ -1241,7 +1248,7 @@ function leituraConceito(){
   const c=S.cdraft,nome=ehNome(c),L=REG[nome?"nome":"conceito"],a=aparicoes(c);
   const notas=(c.notas||[]).map(id=>S.notas.find(n=>n.id===id)).filter(Boolean);
   let h='<div class="editor leitura-nota" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><button class="btn sm primary" data-act="conceito-editar">Editar</button></div>'
-   +'<h2 class="nota-tit">'+esc(c.termo||"Sem nome")+'</h2><div class="small muted">'+[L.Um,nome&&c.periodo?esc(c.periodo):"",a.textos.length?plural(a.textos.length,"texto","textos"):"",a.ciclos.length?(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):""].filter(Boolean).join(" · ")+'</div>'
+   +'<h2 class="nota-tit">'+esc(c.termo||"Sem nome")+'</h2>'+(c.aprofundar&&!nome?'<div><span class="pill hot">A aprofundar</span></div>':'')+'<div class="small muted">'+[L.Um,nome&&c.periodo?esc(c.periodo):"",a.textos.length?plural(a.textos.length,"texto","textos"):"",a.ciclos.length?(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):""].filter(Boolean).join(" · ")+'</div>'
    +(a.trilhas.length?'<div class="row small">'+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>':'')
    +'<div class="preview">'+(String(c.definicao||"").trim()?md(c.definicao):'<p class="muted">'+(nome?"Ainda sem descrição.":"Ainda sem definição.")+'</p>')
    +(c.leituras.length?'<h3>'+L.secao+'</h3>'+c.leituras.map(l=>{const it=itemDeLeitura(l.livroId);const cab=[l.autor?esc(l.autor):"",it?'<em>'+esc(it.x.titulo)+'</em>':""].filter(Boolean).join(", ");return (cab?'<h4>'+cab+'</h4>':'')+md(l.texto||"")}).join(""):'')
@@ -1256,6 +1263,7 @@ function editorConceito(){
   let h='<div class="editor" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><span class="savestate" id="csave" aria-live="polite">'+esc(S.csave)+'</span></div>'
    +'<input class="title" type="text" id="ce-termo" placeholder="'+L.termo+'" aria-label="'+L.termo+'" value="'+esc(c.termo||"")+'">'
    +(nome?'<label class="f">Época e lugar<input type="text" id="ce-periodo" placeholder="Ex.: 1809–1865, França" value="'+esc(c.periodo||"")+'"></label>':'')
+   +(nome?'':'<label class="gt-op"><input type="checkbox" id="ce-aprof"'+(c.aprofundar?" checked":"")+'><span>Quero me aprofundar neste conceito</span></label>')
    +'<label class="f">'+L.def+'<textarea id="ce-def" rows="'+(nome?3:4)+'" class="short"'+(nome?' placeholder="Quem foi, qual papel teve, por que importa para os seus estudos"':'')+'>'+esc(c.definicao||"")+'</textarea></label>';
   if(nome&&c.id){const a=aparicoes(c);if(a.textos.length)h+='<div class="row small"><span class="muted">Aparece em:</span>'+(a.ciclos.length?'<span class="pill">'+(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", ")+'</span>':'')+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>'}
   h+='<div class="stack"><div class="spread"><strong class="small">'+L.secao+'</strong><button class="btn sm" data-act="conceito-autor"'+dis()+'>'+L.add+'</button></div>';
@@ -1644,7 +1652,7 @@ function abrirNota(id){
 }
 function lerConceito(){
   const c=S.cdraft;if(!c)return;
-  if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-periodo"))c.periodo=$("ce-periodo").value;if($("ce-def"))c.definicao=$("ce-def").value;
+  if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-periodo"))c.periodo=$("ce-periodo").value;if($("ce-def"))c.definicao=$("ce-def").value;if($("ce-aprof"))c.aprofundar=$("ce-aprof").checked;
   document.querySelectorAll("[data-cl]").forEach(el=>{const l=c.leituras[Number(el.dataset.i)];if(l)l[el.dataset.cl]=el.value});
 }
 function salvarConceito(){
@@ -1652,7 +1660,7 @@ function salvarConceito(){
   if(!c.id&&!String(c.termo||"").trim())return Promise.resolve();
   if(c.id&&!c._sujo)return Promise.resolve();c._sujo=false;
   if(!c.id)c.id=novoId("conceitos");
-  const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
+  const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),...(!ehNome(c)&&c.aprofundar?{aprofundar:true}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
   estadoConc("Salvando…");
   return save("conceitos/"+c.id,data).then(()=>{const t=new Date();estadoConc("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaConceitos()}).catch(()=>estadoConc("Erro ao salvar"));
 }
@@ -1711,7 +1719,7 @@ function aplicarZoom(){
   $("rd-zoom").textContent=Math.round(R.zoom*100)+"%";
   (R.pages||[]).forEach(pg=>{desenharPaginaVazia(pg);if(R.obs){R.obs.unobserve(pg.el);R.obs.observe(pg.el)}});
 }
-async function abrirLeitor(livroId,pdfIdForcado){
+async function abrirLeitor(livroId,pdfIdForcado,paginaInicial){
   const it=itemDeLeitura(livroId),b=it&&it.x,pdfId=pdfIdForcado||(b&&b.pdfId);
   if(!pdfId){toast("Este texto não tem PDF.");return}
   fecharLeitor();
@@ -1741,7 +1749,7 @@ async function abrirLeitor(livroId,pdfIdForcado){
     if(R.livroId!==livroId||R.drag)return;R.anot={};snap.docs.forEach(d=>{const x=d.data();R.anot[x.pagina]=x.itens||[]});
     R.pages.forEach(pg=>desenharMarcas(pg.n));pintarLateral();
   },()=>{});
-  const ini=Math.min(Math.max(1,Number(b&&b.paginaAtual)||1),R.pdf.numPages);
+  const ini=Math.min(Math.max(1,Number(paginaInicial)||Number(b&&b.paginaAtual)||1),R.pdf.numPages);
   if(ini>1)setTimeout(()=>{const pg=R.pages[ini-1];if(pg)pg.el.scrollIntoView({block:"start"})},60);
   acompanharPagina();
 }
@@ -1777,7 +1785,7 @@ function desenharMarcas(n){
 const arred=v=>Math.round(v*10)/10;
 function pontoNaPagina(pg,e){const r=pg.svg.getBoundingClientRect();return [arred((e.clientX-r.left)/r.width*pg.w),arred((e.clientY-r.top)/r.height*pg.h)]}
 function salvarMarcas(n){const it=R.anot[n]||[],p="anot/"+R.livroId+"__"+n;return (it.length?save(p,{livroId:R.livroId,pagina:n,itens:it}):remove(p)).catch(()=>{})}
-function addMarca(n,a){(R.anot[n]=R.anot[n]||[]).push(a);desenharMarcas(n);pintarLateral();salvarMarcas(n)}
+function addMarca(n,a){(R.anot[n]=R.anot[n]||[]).push(a);desenharMarcas(n);pintarLateral();salvarMarcas(n);if(a&&a.tipo==="marca"&&(a.cor||R.cor)===corConceito())oferecerConceito({})}
 function dialogoNotaPdf(n,i,x,y){
   const a=i!=null?(R.anot[n]||[])[i]:null,cor=a?a.cor:R.cor;S.noteCtx={n,i,x,y};
   abrirModal('<div class="dialog" role="dialog" aria-labelledby="np-h"><h2 id="np-h">'+(a?"Nota":"Nova nota")+' · p. '+n+'</h2><p class="small"><span class="dot" style="background:'+CORES_AN[cor]+'"></span> '+esc(legenda()[cor]||"")+'</p>'
@@ -2254,6 +2262,7 @@ function marcarTrecho(cor){
   R.marcas=lista;R.sel=null;try{window.getSelection().removeAllRanges()}catch(e){}
   pintarMarcas();pintarLateralMateria();
   salvarMarcasMateria(lista).catch(()=>{});
+  if(cor===corConceito()){const t=s.texto.replace(/\s+/g," ").trim();oferecerConceito(t.length<=60?{nome:t}:{texto:"“"+t+"”"})}
 }
 function dialogoMarca(id){
   const m=R.marcas.find(x=>x.id===id);if(!m)return;const lg=legenda();
@@ -2385,6 +2394,156 @@ function menuLigado(id,tpId){
     S.notas.some(n=>n.livroId===id||n.artigoId===id)&&[it.col==="artigos"?"artigo-notas":"livro-notas","Ver anotações",attr({id})],
     ["tp-tirar","Tirar deste tópico",attr({id,tp:tpId}),"danger"]
   ]);
+}
+
+/* =====================================================================
+   20. Conceitos e nomes a partir da leitura e do fichamento
+   - marcar em verde (a cor da legenda "Conceito") oferece registrar o conceito
+   - no fichamento: [[termo]] liga o texto a um conceito ou nome,
+     e [p. 45] marca a página de um trecho específico
+   ===================================================================== */
+function corConceito(){const lg=legenda();return Object.keys(CORES_AN).find(k=>/conceito/i.test(lg[k]||""))||"verde"}
+const achaTermo=nome=>{const n=String(nome||"").trim().toLowerCase();return S.conceitos.find(c=>String(c.termo||"").trim().toLowerCase()===n)};
+
+/* grava (ou acrescenta) um conceito/nome e devolve o id */
+async function registrarTermo({nome,texto,pagina,tipo,textoId,notaId,aprofundar,silencioso}){
+  tipo=tipo==="nome"?"nome":"conceito";const L=REG[tipo];
+  nome=String(nome||"").trim();if(!nome||!S.db)return null;
+  const it=textoId?itemDeLeitura(textoId):null,autor=it&&it.col==="livros"?(it.x.autor||""):"";
+  const linha=(String(texto||"").trim()+(pagina?" (p. "+pagina+")":"")).trim(),agora=new Date().toISOString();
+  const ex=regsDo(tipo).find(c=>String(c.termo).trim().toLowerCase()===nome.toLowerCase());
+  let id;
+  if(ex){
+    id=ex.id;const data=clone(strip(ex));data.leituras=data.leituras||[];data.notas=data.notas||[];
+    if(linha||textoId){const l=data.leituras.find(x=>(x.livroId||"")===(textoId||""));
+      if(l){if(linha&&!String(l.texto||"").includes(linha))l.texto=(l.texto?l.texto+"\n":"")+linha}
+      else data.leituras.push({autor,livroId:textoId||"",texto:linha})}
+    if(notaId&&!data.notas.includes(notaId))data.notas.push(notaId);
+    if(aprofundar)data.aprofundar=true;
+    data.atualizado=agora;await save("conceitos/"+id,data);
+    if(!silencioso)toast(L.Um+" “"+ex.termo+"” atualizado.");
+  }else{
+    id=novoId("conceitos");
+    await save("conceitos/"+id,{...(tipo==="nome"?{tipo:"nome",periodo:""}:{}),termo:nome,definicao:"",leituras:(linha||textoId)?[{autor,livroId:textoId||"",texto:linha}]:[],notas:notaId?[notaId]:[],...(aprofundar?{aprofundar:true}:{}),atualizado:agora});
+    if(!silencioso)toast(L.Um+" “"+nome+"” criado no Caderno"+(aprofundar?", marcado para aprofundar.":"."));
+  }
+  return id;
+}
+
+/* ---------- 1. marcar em verde → oferecer registrar o conceito ---------- */
+function oferecerConceito(prefill){
+  const raiz=document.querySelector(".reader");if(!raiz||S.readOnly)return;
+  let b=$("oferta-conceito");if(b)b.remove();
+  b=document.createElement("div");b.id="oferta-conceito";b.className="oferta-conceito";b.setAttribute("role","status");
+  R.ofertaConceito=prefill||{};
+  b.innerHTML='<span class="small"><span class="dot" style="background:'+CORES_AN[corConceito()]+'"></span> Marcado como conceito'+(prefill&&prefill.nome?': <strong>'+esc(prefill.nome)+'</strong>':'')+'</span>'
+    +'<button class="btn sm primary" data-act="oferta-conceito">Registrar conceito</button><button class="btn sm ghost" data-act="oferta-fechar" aria-label="Agora não">Agora não</button>';
+  raiz.appendChild(b);
+  clearTimeout(R.tOferta);R.tOferta=setTimeout(()=>{const x=$("oferta-conceito");if(x)x.remove()},12000);
+}
+function abrirOfertaConceito(){
+  const p=R.ofertaConceito||{};const x=$("oferta-conceito");if(x)x.remove();
+  dialogoTermo({tipo:"conceito",nome:p.nome||"",texto:p.texto||"",aprofundar:true,origem:"leitor"});
+}
+
+/* ---------- diálogo único: conceito ou nome ---------- */
+function dialogoTermo({tipo,nome,texto,aprofundar,origem}){
+  const nomeT=tipo==="nome";S.termoCtx={origem};
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="tm-h"><h2 id="tm-h">'+(nomeT?"Registrar nome":"Registrar conceito")+(origem==="leitor"&&R.cur?' · p. '+R.cur:'')+'</h2>'
+   +'<div class="seg" role="group" aria-label="Tipo"><button data-act="tm-tipo" data-tipo="conceito" aria-pressed="'+!nomeT+'">Conceito</button><button data-act="tm-tipo" data-tipo="nome" aria-pressed="'+nomeT+'">Nome</button></div>'
+   +'<label class="f"><span id="tm-rot">'+(nomeT?"Nome (pessoa, autor, organização)":"Conceito")+'</span><input type="text" id="tm-nome" list="tm-lista" value="'+esc(nome||"")+'" autocomplete="off"><datalist id="tm-lista">'+S.conceitos.map(c=>'<option value="'+esc(c.termo)+'"></option>').join("")+'</datalist></label>'
+   +'<label class="f"><span id="tm-rot2">'+(nomeT?"O que o texto diz sobre essa pessoa":"O que significa aqui (pode deixar em branco)")+'</span><textarea id="tm-texto" rows="4" placeholder="Com suas palavras">'+esc(texto||"")+'</textarea></label>'
+   +'<label class="gt-op" id="tm-aprof-l"'+(nomeT?' hidden':'')+'><input type="checkbox" id="tm-aprof"'+(aprofundar?" checked":"")+'><span>Quero me aprofundar depois</span></label>'
+   +'<p class="small muted">Se já existir, este trecho é acrescentado a ele.'+(origem==="nota"?' No fichamento, o termo fica destacado e leva ao registro.':'')+'</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="tm-salvar" data-tipo="'+(nomeT?"nome":"conceito")+'">Registrar</button></div></div>');
+  const i=$("tm-nome");if(i&&!nome)i.focus();
+}
+function trocarTipoTermo(el){
+  const t=el.dataset.tipo;document.querySelectorAll('[data-act="tm-tipo"]').forEach(b=>b.setAttribute("aria-pressed",String(b===el)));
+  const s=document.querySelector('[data-act="tm-salvar"]');if(s)s.dataset.tipo=t;
+  $("tm-rot").textContent=t==="nome"?"Nome (pessoa, autor, organização)":"Conceito";
+  $("tm-rot2").textContent=t==="nome"?"O que o texto diz sobre essa pessoa":"O que significa aqui (pode deixar em branco)";
+  $("tm-h").textContent=t==="nome"?"Registrar nome":"Registrar conceito";
+  $("tm-aprof-l").hidden=t==="nome";
+}
+async function salvarTermo(el){
+  const tipo=el.dataset.tipo||"conceito",nome=($("tm-nome").value||"").trim(),texto=$("tm-texto").value,aprof=tipo==="conceito"&&$("tm-aprof")&&$("tm-aprof").checked;
+  if(!nome){toast(tipo==="nome"?"Escreva o nome.":"Escreva o conceito.");return}
+  const ctx=S.termoCtx||{};fecharModal();
+  if(ctx.origem==="nota"){await termoNoFichamento(nome,texto,tipo,aprof);return}
+  if(ctx.origem==="nota-existente"&&S.draft&&S.draft.id){const d=S.draft;await registrarTermo({nome,texto,tipo,textoId:d.livroId||d.artigoId||"",notaId:d.id,aprofundar:aprof});render();return}
+  if(ctx.origem==="livre"){await registrarTermo({nome,texto,tipo,aprofundar:aprof});render();return}
+  await registrarTermo({nome,texto,pagina:R.cur,tipo,textoId:R.livroId,aprofundar:aprof});
+}
+
+function abrirTermoNoLeitor(tipo){
+  let nome="",texto="";
+  if(R.web&&typeof selecaoRecente==="function"){const s=selecaoRecente();if(s){const t=s.texto.replace(/\s+/g," ").trim();if(t.length<=60)nome=t;else texto="“"+t+"”"}}
+  dialogoTermo({tipo,nome,texto,aprofundar:false,origem:"leitor"});
+}
+/* ---------- 2. no fichamento: + Conceito / + Nome / Página ---------- */
+function selecaoNaNota(){
+  const ta=$("ne-texto");if(!ta)return {ta:null,ini:0,fim:0,texto:""};
+  const ini=ta.selectionStart||0,fim=ta.selectionEnd||0;
+  return {ta,ini,fim,texto:ta.value.slice(ini,fim)};
+}
+function abrirTermoNaNota(tipo){
+  const s=selecaoNaNota();S.selNota={ini:s.ini,fim:s.fim};
+  let nome=s.texto.trim(),texto="";
+  if(nome.length>60){texto=nome;nome=""}
+  dialogoTermo({tipo,nome:nome.replace(/^\[\[|\]\]$/g,""),texto,aprofundar:false,origem:"nota"});
+}
+function paginaPerto(texto,pos){
+  const antes=String(texto||"").slice(0,pos),m=[...antes.matchAll(/\[p\.\s*(\d+)\]/g)].pop();
+  if(m)return m[1];const d=S.draft,mm=String((d&&d.paginas)||"").match(/\d+/);return mm?mm[0]:"";
+}
+async function termoNoFichamento(nome,texto,tipo,aprof){
+  const d=S.draft;if(!d)return;
+  lerNota();
+  // insere [[nome]] no texto: no lugar da seleção, ou onde está o cursor
+  const ta=$("ne-texto"),sel=S.selNota||{ini:(d.texto||"").length,fim:(d.texto||"").length};
+  const t=d.texto||"",trecho=t.slice(sel.ini,sel.fim);
+  const marcado="[["+nome+"]]";
+  if(!/\[\[[^\]]+\]\]/.test(trecho)){
+    d.texto=trecho.trim()&&trecho.trim().toLowerCase()===nome.toLowerCase()?t.slice(0,sel.ini)+marcado+t.slice(sel.fim):t.slice(0,sel.fim)+(trecho?" ":"")+marcado+t.slice(sel.fim);
+    if(ta)ta.value=d.texto;
+  }
+  d._sujo=true;await salvarNota();
+  const pag=paginaPerto(d.texto,sel.ini);
+  await registrarTermo({nome,texto,pagina:pag,tipo,textoId:d.livroId||d.artigoId||"",notaId:d.id,aprofundar:aprof});
+  render();
+}
+function dialogoPaginaNaNota(){
+  const s=selecaoNaNota();S.selNota={ini:s.ini,fim:s.fim};
+  const sug=paginaPerto(s.ta?s.ta.value:"",s.ini);
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="pg-h"><h2 id="pg-h">Página deste trecho</h2>'
+   +'<label class="f">Página<input type="number" id="pg-num" min="1" inputmode="numeric" value="'+esc(sug)+'"></label>'
+   +'<p class="small muted">Entra no texto como [p. 45], onde está o cursor. No modo leitura vira um marcador'+(temPdfNaNota()?' que abre o PDF nessa página':'')+'.</p>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="pg-inserir">Inserir</button></div></div>');
+  const i=$("pg-num");if(i){i.focus();i.select()}
+}
+function temPdfNaNota(){const d=S.draft,it=d&&itemDeLeitura(d.livroId||d.artigoId);return !!(it&&it.x.pdfId)}
+function inserirPaginaNaNota(){
+  const n=parseInt(($("pg-num")||{}).value,10);if(!n||n<1){toast("Escreva o número da página.");return}
+  fecharModal();lerNota();const d=S.draft;if(!d)return;
+  const t=d.texto||"",pos=(S.selNota||{}).ini??t.length;
+  const antes=t.slice(0,pos),depois=t.slice(pos);
+  const ins=(antes&&!/[\s\n]$/.test(antes)?" ":"")+"[p. "+n+"] ";
+  d.texto=antes+ins+depois;const ta=$("ne-texto");
+  if(ta){ta.value=d.texto;ta.focus();const c=(antes+ins).length;ta.setSelectionRange(c,c)}
+  agendarNota();
+}
+
+/* ---------- cliques nos termos e páginas do texto formatado ---------- */
+function irParaTermo(nome){
+  const c=achaTermo(nome);
+  if(c){abrirConceito(c);irPara("caderno",ehNome(c)?"nomes":"conceitos");return}
+  dialogoTermo({tipo:"conceito",nome,texto:"",aprofundar:true,origem:S.draft&&S.draft.id?"nota-existente":"livre"});
+}
+function irParaPaginaDaNota(pg){
+  const d=S.draft,id=d&&(d.livroId||d.artigoId),it=id&&itemDeLeitura(id);
+  if(!it||!it.x.pdfId){toast("Este fichamento não está ligado a um texto com PDF.");return}
+  abrirLeitor(id,null,Number(pg));
 }
 
 /* =====================================================================
@@ -2581,8 +2740,19 @@ const ACOES={
   "rd-zoom":el=>{const i=ZOOMS.indexOf(R.zoom),j=Math.max(0,Math.min(ZOOMS.length-1,i+Number(el.dataset.dir)));if(j===i)return;const pag=R.cur;R.zoom=ZOOMS[j];aplicarZoom();setTimeout(()=>{const pg=R.pages[pag-1];if(pg)pg.el.scrollIntoView({block:"start"})},30)},
   "rd-lateral":()=>{const sd=$("rd-side");if(sd){sd.hidden=!sd.hidden;pintarLateral()}},
   "rd-ir":el=>{const pg=R.pages&&R.pages[Number(el.dataset.n)-1];if(pg)pg.el.scrollIntoView({block:"start",behavior:"smooth"});if(window.innerWidth<=760){$("rd-side").hidden=true}},
-  "rd-conceito":()=>dialogoConceitoPdf("conceito"),
-  "rd-nome":()=>dialogoConceitoPdf("nome"),
+  "rd-conceito":()=>abrirTermoNoLeitor("conceito"),
+  "rd-nome":()=>abrirTermoNoLeitor("nome"),
+  "oferta-conceito":()=>abrirOfertaConceito(),
+  "oferta-fechar":()=>{const x=$("oferta-conceito");if(x)x.remove()},
+  "tm-tipo":el=>trocarTipoTermo(el),
+  "tm-salvar":el=>{salvarTermo(el).catch(()=>{})},
+  "nf-conceito":()=>abrirTermoNaNota("conceito"),
+  "nf-nome":()=>abrirTermoNaNota("nome"),
+  "nf-pagina":()=>dialogoPaginaNaNota(),
+  "pg-inserir":()=>inserirPaginaNaNota(),
+  "termo-ir":el=>irParaTermo(el.dataset.termo.replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">")),
+  "pg-ir":el=>irParaPaginaDaNota(el.dataset.pg),
+  "conc-filtro-aprof":()=>{S.cAprof=!S.cAprof;render()},
   "cp-salvar":el=>{const tipo=el.dataset.tipo||"conceito",nome=$("cp-nome").value,tx=$("cp-texto").value;if(!nome.trim())return toast(tipo==="nome"?"Escreva o nome.":"Escreva o nome do conceito.");fecharModal();registrarConceito(nome,tx,R.cur,tipo).catch(()=>{})},
   "np-salvar":()=>{
     const c=S.noteCtx;if(!c||!R.livroId)return fecharModal();
