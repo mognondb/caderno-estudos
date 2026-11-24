@@ -275,6 +275,8 @@ body.reading{overflow:hidden}
 .mt-texto a{color:var(--accent)}
 .mt-fina{font-size:19px;color:var(--muted)}
 .mt-cab{border-bottom:1px solid var(--line);margin-bottom:18px;padding-bottom:8px}
+.mt-fim{font-family:var(--body);margin:26px 0 6px;display:flex;justify-content:center}
+.mt-fim .btn.primary{padding:10px 18px}
 .mt-dica{font-family:var(--body);border-top:1px solid var(--line);padding-top:10px;margin-top:24px}
 mark.mt-m{background:color-mix(in srgb,var(--m) 45%,transparent);color:inherit;border-radius:2px;cursor:pointer;padding:0 1px}
 mark.mt-m.com-nota{border-bottom:2px dotted var(--ink)}
@@ -1749,11 +1751,12 @@ function pintarLateral(){
 function fecharLeitor(){
   if(!R.livroId)return;
   const it=itemDeLeitura(R.livroId),b=it&&it.x,col=it?it.col:"livros";
+  if(b&&R.web&&!S.readOnly)salvarProgressoMateria(b);
   if(b&&R.pdf&&!S.readOnly){
     const tot=R.pdf.numPages,data={...strip(b),paginaAtual:R.cur};
     if(!Number(b.paginasTotal))data.paginasTotal=tot;
     if(Number(data.paginasTotal)===tot)data.paginasLidas=Math.max(Number(b.paginasLidas)||0,R.maxVisto);
-    if(col==="artigos"&&b.status!=="lido")data.status="lido";
+    if(col==="artigos"&&b.status!=="lido")data.status=R.maxVisto>=tot?"lido":"lendo";
     if(data.paginaAtual!==b.paginaAtual||data.paginasTotal!==b.paginasTotal||data.paginasLidas!==b.paginasLidas||data.status!==b.status)save(col+"/"+b.id,data).catch(()=>{});
   }
   if(R.unsub)R.unsub();if(R.obs)R.obs.disconnect();if(R.pdf){try{R.pdf.destroy()}catch(e){}}
@@ -1986,8 +1989,8 @@ function talvezAtualizarImprensa(){
 function linhaImprensa(a){
   const lk=linkSeguro(a.link),lida=a.status==="lido";
   return '<div class="strip'+(lida?" done":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":"var(--t-c6)")+';align-items:center"><div class="body"><div class="tt"'+(lida?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
-   +'<div class="sub">'+[a.secao?esc(a.secao):"",a.data?fmtDM(parseISO(a.data)):""].filter(Boolean).join(" · ")+(lida?'':' <span class="pill hot">Nova</span>')+'</div></div>'
-   +'<div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir</a>':''))+'</div></div>';
+   +'<div class="sub">'+[a.secao?esc(a.secao):"",a.data?fmtDM(parseISO(a.data)):""].filter(Boolean).join(" · ")+(lida?'':a.status==="lendo"?' <span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':' <span class="pill hot">Nova</span>')+'</div></div>'
+   +'<div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir</a>':''))+'</div></div>';
 }
 function imprensaDoDia(){
   talvezAtualizarImprensa();
@@ -2022,8 +2025,8 @@ function telaImprensa(){
       +'<div class="side"><div class="row">'+(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm" data-act="artigo-restaurar" data-id="'+a.id+'">Restaurar</button></div></div></article>';
     return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
       +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
-      +'<div class="meta" style="margin-top:4px">'+(a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
-      +'<div class="side"><div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">Ler</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
+      +'<div class="meta" style="margin-top:4px">'+(a.status==="lendo"?'<span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
+      +'<div class="side"><div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
       +'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div></article>';
   }).join("");
 }
@@ -2130,11 +2133,45 @@ function abrirMateria(id){
    +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
    +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm ghost danger" data-act="mt-descartar" title="Não é relevante: tirar das listas">Descartar</button></span><button class="btn sm so-estreito" data-act="mt-mais" aria-label="Mais ações">⋯</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><article class="mt-texto"><header class="mt-cab"><div class="small muted">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.secao?' · '+esc(a.secao):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.autor?' · '+esc(a.autor):'')+'</div><h1>'+esc(a.titulo)+'</h1>'+(a.resumo?'<p class="mt-fina">'+esc(a.resumo)+'</p>':'')+'</header>'
-   +'<div id="mt-corpo"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
+   +'<div id="mt-corpo"></div><div id="mt-fim" class="mt-fim"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
   document.body.classList.add("reading");
   pintarMarcas();
-  if(a.status!=="lido"&&!S.readOnly)save("artigos/"+a.id,{...strip(a),status:"lido"}).catch(()=>{});
+  R.prog=Number(a.progresso)||0;R.concluiu=a.status==="lido";
+  if(a.status!=="lido"&&a.status!=="lendo"&&!S.readOnly)save("artigos/"+a.id,{...strip(a),status:"lendo",progresso:R.prog}).catch(()=>{});
+  const sc=$("rd-scroll");
+  if(sc){
+    if(R.prog>0.02&&R.prog<0.98)requestAnimationFrame(()=>{sc.scrollTop=R.prog*(sc.scrollHeight-sc.clientHeight);toast("Continuando de onde você parou.")});
+    sc.addEventListener("scroll",()=>{clearTimeout(R.tScroll);R.tScroll=setTimeout(acompanharLeitura,250)},{passive:true});
+  }
+  pintarFimMateria();
   if(S.db)R.unsub=S.db.doc("marcas/"+id).onSnapshot(s=>{if(R.livroId!==id)return;R.marcas=(s.exists&&s.data().marcas)||[];pintarMarcas();pintarLateralMateria()},()=>{});
+}
+/* ---------- progresso da leitura ---------- */
+function fracaoLida(){const sc=$("rd-scroll");if(!sc)return 0;const max=sc.scrollHeight-sc.clientHeight;return max<=0?1:Math.min(1,sc.scrollTop/max)}
+function acompanharLeitura(){
+  if(!R.web)return;const f=fracaoLida();R.prog=Math.max(R.prog||0,f);
+  const fim=$("mt-fim");
+  if(!R.concluiu&&fim&&fim.getBoundingClientRect().top<window.innerHeight-40)concluirMateria(true);
+}
+function salvarProgressoMateria(a){
+  const prog=Math.round(Math.max(Number(R.prog)||0,fracaoLida())*100)/100;
+  const st=R.concluiu?"lido":(a.status==="lido"?"lido":"lendo");
+  if(st!==a.status||Math.abs(prog-(Number(a.progresso)||0))>=0.02)save("artigos/"+a.id,{...strip(a),status:st,progresso:st==="lido"?1:prog}).catch(()=>{});
+}
+function concluirMateria(auto){
+  const a=artigo(R.livroId);if(!a||S.readOnly)return;
+  R.concluiu=true;R.prog=1;
+  save("artigos/"+a.id,{...strip(a),status:"lido",progresso:1}).catch(()=>{});
+  pintarFimMateria();toast(auto?"Você chegou ao fim: matéria marcada como lida.":"Leitura concluída.");
+}
+function reabrirMateria(){
+  const a=artigo(R.livroId);if(!a)return;R.concluiu=false;
+  save("artigos/"+a.id,{...strip(a),status:"lendo",progresso:fracaoLida()}).catch(()=>{});pintarFimMateria();
+}
+function pintarFimMateria(){
+  const el=$("mt-fim");if(!el)return;
+  el.innerHTML=R.concluiu?'<div class="row"><span class="pill soft">✓ Leitura concluída</span><button class="btn sm ghost" data-act="mt-reabrir">Marcar como não lida</button><button class="btn sm" data-act="mt-fichar">Fichar</button></div>'
+    :'<button class="btn primary" data-act="mt-concluir">✓ Concluí a leitura</button>';
 }
 function pintarMarcas(){
   const c=$("mt-corpo");if(!c||!R.web)return;
@@ -2278,7 +2315,7 @@ const ACOES={
   "artigo-novo":()=>dialogoArtigo(),
   "artigo-menu":el=>menuArtigo(el.dataset.id),
   "artigo-site":el=>{const a=artigo(el.dataset.id);if(a&&a.status!=="lido")save("artigos/"+a.id,{...strip(a),status:"lido"}).catch(()=>{})},
-  "artigo-lido":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),status:a.status==="lido"?"novo":"lido"}).catch(()=>{})},
+  "artigo-lido":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),status:a.status==="lido"?"novo":"lido",progresso:a.status==="lido"?0:1}).catch(()=>{})},
   "artigo-salvar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)save("artigos/"+a.id,{...strip(a),salvo:!a.salvo}).then(()=>toast(a.salvo?"Tirada dos salvos.":"Salva para depois.")).catch(()=>{})},
   "artigo-anotar":el=>{fecharModal();const a=artigo(el.dataset.id);if(a)novaNota({artigoId:a.id,titulo:a.titulo})},
   "artigo-notas":el=>{fecharModal();S.nf={q:"",tipo:"todos",livro:"todos",topico:"todos",artigo:el.dataset.id};S.draft=null;irPara("caderno","fichamentos")},
@@ -2311,7 +2348,9 @@ const ACOES={
   "mk-apagar":el=>confirmar(el,"Confirmar",()=>apagarMarca(el.dataset.id)),
   "mt-lateral":()=>{fecharModal();const s=$("mt-side");if(!s)return;s.hidden=!s.hidden;pintarLateralMateria()},
   "mt-ir":el=>{const m=document.querySelector('mark[data-id="'+el.dataset.id+'"]');if(m){m.scrollIntoView({behavior:"smooth",block:"center"});m.classList.add("pisca");setTimeout(()=>m.classList.remove("pisca"),1200)}if(window.innerWidth<760){const s=$("mt-side");if(s)s.hidden=true}},
-    "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
+    "mt-concluir":()=>concluirMateria(false),
+  "mt-reabrir":()=>reabrirMateria(),
+  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
   "mt-site":()=>{fecharModal();const a=artigo(R.livroId),lk=a&&linkSeguro(a.link);if(lk)window.open(lk,"_blank","noopener")},
   "mt-fichar":()=>{fecharModal();ficharMateria()},
   "imp-atualizar":()=>atualizarImprensa(true),
