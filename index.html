@@ -79,7 +79,10 @@ label.f>*{color:var(--ink)}
 .banner{background:var(--accent-soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
-.seg{display:inline-flex;background:var(--sunk);border-radius:8px;padding:3px;gap:2px}
+.seg{display:inline-flex;background:var(--sunk);border-radius:8px;padding:3px;gap:2px;max-width:100%;overflow-x:auto;scrollbar-width:none;align-self:flex-start}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none}
+@media (max-width:480px){.seg{flex-wrap:wrap;overflow:visible}.seg button{padding:5px 9px;font-size:13px}}
 .seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;color:var(--muted);font-size:14px}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .meter{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
@@ -182,6 +185,8 @@ select.st-pausado{border-style:dashed;color:var(--muted)}
 .checklist{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:6px}
 .checklist label{display:flex;gap:8px;align-items:flex-start;font-size:14px}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 10px;cursor:pointer;font-size:13px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed="true"] .muted{color:inherit;opacity:.7}
 @media (max-width:760px){
   .split{grid-template-columns:1fr}
   .split.open .list{display:none}
@@ -569,7 +574,7 @@ const S={
   db:null,assets:null,downloads:null,offline:false,readOnly:false,ready:false,slow:false,
   cfg:null,livros:[],topicos:[],notas:[],conceitos:[],sessoes:[],artigos:[],af:{fonte:"todas",status:"novos"},semanasCache:null,semanaDoc:null,unsubSemana:null,
   loaded:{cfg:false,livros:false,notas:false},
-  view:"hoje",bibTab:"textos",cadTab:"fichamentos",topicoAberto:null,
+  view:"hoje",bibTab:"textos",cadTab:"tudo",tf:{tipo:"todos",ordem:"recentes"},tq:"",topicoAberto:null,
   weekStart:null,editWeek:null,
   fl:{etapa:"atual",trilha:"todas",status:"todas"},
   nf:{q:"",tipo:"todos",livro:"todos",topico:"todos"},
@@ -999,8 +1004,8 @@ function telaPasta(tp){
 
 /* ---------- Caderno (fichamentos, sínteses, conceitos) ---------- */
 function telaCaderno(){
-  const seg='<div class="seg" role="group" aria-label="Caderno">'+[["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"],["nomes","Nomes"]].map(([k,l])=>'<button data-act="cad-aba" data-tab="'+k+'" aria-pressed="'+(S.cadTab===k)+'">'+l+'</button>').join("")+'</div>';
-  return seg+(S.cadTab==="conceitos"||S.cadTab==="nomes"?telaConceitos():telaNotas());
+  const seg='<div class="seg" role="group" aria-label="Caderno">'+[["tudo","Tudo"],["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"],["nomes","Nomes"]].map(([k,l])=>'<button data-act="cad-aba" data-tab="'+k+'" aria-pressed="'+(S.cadTab===k)+'">'+l+'</button>').join("")+'</div>';
+  return seg+(S.cadTab==="tudo"?telaTudo():S.cadTab==="conceitos"||S.cadTab==="nomes"?telaConceitos():telaNotas());
 }
 function notasFiltradas(){
   const f=S.nf,q=f.q.trim().toLowerCase(),modo=S.cadTab,tipos=tiposDe(modo);
@@ -1038,6 +1043,30 @@ function editorNota(){
    +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":"Ver formatado")+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
    +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
+}
+/* ---------- Caderno › Tudo: todos os registros numa lista ---------- */
+const TUDO_TIPOS=[["todos","Tudo"],["fichamentos","Fichamentos"],["sinteses","Sínteses"],["conceitos","Conceitos"],["nomes","Nomes"]];
+function registrosTodos(){
+  const l=[];
+  S.notas.forEach(n=>{const it=itemDeLeitura(n.livroId||n.artigoId),fonte=it?it.x.titulo:"";
+    l.push({k:ehEscrito(n.tipo)?"sinteses":"fichamentos",id:n.id,titulo:n.titulo||"Sem título",rotulo:TIPOS_NOTA[n.tipo]||"Fichamento",fonte,cor:T(n.trilha||(it&&it.x.trilha)||"rotativo").cor,data:n.atualizado||"",busca:[n.titulo,n.texto,fonte].join(" ")})});
+  S.conceitos.forEach(c=>{const nome=ehNome(c),a=nome?aparicoes(c):null;
+    l.push({k:nome?"nomes":"conceitos",id:c.id,titulo:c.termo||"Sem nome",rotulo:nome?"Nome":"Conceito",fonte:nome?(c.periodo||"")+(a.textos.length?(c.periodo?" · ":"")+plural(a.textos.length,"texto","textos"):""):[...new Set((c.leituras||[]).map(x=>x.autor).filter(Boolean))].join(", "),cor:"var(--muted)",data:c.atualizado||"",busca:[c.termo,c.definicao,c.periodo,...(c.leituras||[]).map(x=>x.autor+" "+x.texto)].join(" ")})});
+  return l;
+}
+function telaTudo(){
+  const todos=registrosTodos(),cont=k=>k==="todos"?todos.length:todos.filter(r=>r.k===k).length;
+  return '<section class="card"><div class="spread"><h2>Todos os registros</h2><select id="tf-ordem" aria-label="Ordem"><option value="recentes"'+(S.tf.ordem==="recentes"?" selected":"")+'>Mais recentes</option><option value="az"'+(S.tf.ordem==="az"?" selected":"")+'>A–Z</option></select></div>'
+   +'<div class="row">'+TUDO_TIPOS.map(([k,l])=>'<button class="chip" data-act="tudo-tipo" data-tipo="'+k+'" aria-pressed="'+(S.tf.tipo===k)+'">'+l+' <span class="muted">'+cont(k)+'</span></button>').join("")+'</div>'
+   +'<input type="search" id="tq" placeholder="Buscar em fichamentos, sínteses, conceitos e nomes" aria-label="Buscar em todos os registros" value="'+esc(S.tq)+'" style="width:100%">'
+   +'<div class="items" id="tudo-itens" style="max-height:none"></div></section>';
+}
+function pintarTudo(){
+  const el=$("tudo-itens");if(!el)return;const q=S.tq.trim().toLowerCase();
+  let l=registrosTodos().filter(r=>(S.tf.tipo==="todos"||r.k===S.tf.tipo)&&(!q||r.busca.toLowerCase().includes(q)));
+  l.sort(S.tf.ordem==="az"?(a,b)=>a.titulo.localeCompare(b.titulo,"pt"):(a,b)=>String(b.data).localeCompare(String(a.data)));
+  el.innerHTML=l.length?l.map(r=>'<button class="item" style="--c:'+r.cor+'" data-act="'+(r.k==="conceitos"||r.k==="nomes"?"conceito-ir":"nota-ir")+'" data-id="'+r.id+'"><span class="tt">'+esc(r.titulo)+'</span><span class="sub">'+esc(r.rotulo)+(r.fonte?' · '+esc(r.fonte):'')+(r.data?' · '+fmtDM(new Date(r.data)):'')+'</span></button>').join("")
+    :'<div class="small muted" style="padding:8px">'+(q?"Nada encontrado.":"Nenhum registro ainda.")+'</div>';
 }
 function telaConceitos(){
   const tipo=tipoReg(S.cadTab),L=REG[tipo];
@@ -1835,7 +1864,7 @@ function render(){
   const telas={hoje:telaHoje,semana:telaSemana,biblioteca:telaBiblioteca,caderno:telaCaderno,plano:telaPlano,busca:telaBusca,historico:telaHistorico};
   document.body.dataset.view=S.view;
   main.innerHTML=aviso()+telas[S.view]();
-  if(S.view==="caderno"){if(S.cadTab==="conceitos"||S.cadTab==="nomes"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
+  if(S.view==="caderno"){if(S.cadTab==="tudo")pintarTudo();else if(S.cadTab==="conceitos"||S.cadTab==="nomes"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
   if(S.view==="busca"){pintarBusca();const q=$("bq");if(q&&document.activeElement!==q&&!S.bq)q.focus()}
   pintarCronometro();
 }
@@ -1913,6 +1942,7 @@ const ACOES={
   "topico-anotar":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({topicoId:tp.id,titulo:tp.nome})},
   "topico-sintese":el=>{const tp=topico(el.dataset.id);if(tp)novaNota({tipo:"sintese",topicoId:tp.id,titulo:"Síntese — "+tp.nome,texto:""})},
   /* caderno */
+  "tudo-tipo":el=>{S.tf.tipo=el.dataset.tipo;render()},
   "cad-aba":async el=>{await guardarRascunhos();S.cadTab=el.dataset.tab;S.cq="";S.draft=null;S.cdraft=null;render()},
   "nota-nova":()=>S.cadTab==="sinteses"?novaNota({tipo:"sintese",trilha:"sintese",titulo:"",texto:"",livroId:S.nf.livro!=="todos"?S.nf.livro:""}):novaNota({livroId:S.nf.livro!=="todos"?S.nf.livro:""}),
   "nota-abrir":async el=>{if(S.draft){lerNota();await salvarNota()}abrirNota(el.dataset.id)},
@@ -2001,6 +2031,7 @@ document.addEventListener("change",e=>{
   if(el.classList.contains("motivo")){const v=el.value.trim();salvarSemana(d=>{d.motivos=d.motivos||{};if(v)d.motivos[el.dataset.dia]=v;else delete d.motivos[el.dataset.dia]}).catch(()=>{});return}
   if(el.id==="af-fonte"||el.id==="af-status"){S.af[el.id.slice(3)]=el.value;render();return}
   if(["fl-etapa","fl-trilha","fl-status"].includes(el.id)){const k=el.id.slice(3);S.fl[k]=k==="etapa"&&!isNaN(el.value)?Number(el.value):el.value;render();return}
+  if(el.id==="tf-ordem"){S.tf.ordem=el.value;pintarTudo();return}
   if(el.id==="nf-tipo"||el.id==="nf-livro"){S.nf[el.id.slice(3)]=el.value;pintarListaNotas();return}
   if(el.id==="ne-tipo"&&el.value==="conjuntura"&&S.draft&&$("ne-texto")&&!$("ne-texto").value.trim())$("ne-texto").value=cfg().modeloConjuntura||DEFAULT_MODELO_CONJUNTURA;
   if(/^ne-(tipo|livro|topico)$/.test(el.id)){lerNota();agendarNota();return}
@@ -2011,6 +2042,7 @@ document.addEventListener("input",e=>{
   const el=e.target;
   if(el.id==="nf-q"){S.nf.q=el.value;pintarListaNotas();return}
   if(el.id==="cq"){S.cq=el.value;pintarListaConceitos();return}
+  if(el.id==="tq"){S.tq=el.value;pintarTudo();return}
   if(el.id==="cnq"){S.cnq=el.value;pintarNotasDoConceito();return}
   if(el.id==="bq"){S.bq=el.value;pintarBusca();return}
   if(el.id&&el.id.startsWith("ne-")){lerNota();agendarNota();return}
