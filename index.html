@@ -331,7 +331,7 @@ const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_ANON";
   const cache = {};          // col -> Map(id -> data)
   const carregando = {};     // col -> Promise
   const ouvintes = new Set();// {col, id?, campo?, valor?, cb, err}
-  const erro = (e, code) => {const x = new Error((e && e.message) || String(e));x.code = code || "unavailable";return x};
+  const erro = (e, code) => {const x = new Error(((e && e.message) || String(e)) + (e && e.code ? " [" + e.code + "]" : "") + (e && e.hint ? " " + e.hint : ""));x.code = code || "unavailable";return x};
   const novoIdLocal = () => {const c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";let s = "";const r = crypto.getRandomValues(new Uint8Array(20));for(const b of r)s += c[b % 62];return s};
   const partes = p => {const i = String(p).indexOf("/");return [p.slice(0, i), p.slice(i + 1)]};
   const copia = d => d == null ? d : JSON.parse(JSON.stringify(d));
@@ -554,7 +554,7 @@ function clone(o){return JSON.parse(JSON.stringify(o))}
 function strip(o){const c={...o};delete c.id;return c}
 function dis(){return S.offline||S.readOnly?" disabled":""}
 function plural(n,um,varios){return n+" "+(n===1?um:varios)}
-function toast(msg){const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3400)}
+function toast(msg,ms){document.querySelectorAll(".toast").forEach(x=>x.remove());const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||3400)}
 function inline(s){return s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
 function md(src){
   const lines=esc(src||"").split("\n");let out="",para=[],list=false;
@@ -1250,7 +1250,7 @@ async function restaurar(d){
   let n=0;
   for(const [p,data] of ops){
     try{await comRetentativa(()=>S.db.doc(p).set(data));n++;if(n%15===0)toast("Restaurando… "+n+" de "+ops.length)}
-    catch(e){erroDeEscrita(e);toast("Restauração interrompida em "+n+" de "+ops.length+" itens.");return}
+    catch(e){erroDeEscrita(e);toast("Restauração interrompida em "+n+" de "+ops.length+" itens."+(e&&e.message?" Detalhe: "+String(e.message).slice(0,160):""),9000);return}
   }
   toast("Backup restaurado: "+n+" itens.");
 }
