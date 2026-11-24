@@ -180,6 +180,8 @@ select.st-pausado{border-style:dashed;color:var(--muted)}
 .preview blockquote{margin:8px 0;padding:4px 12px;border-left:3px solid var(--accent);color:var(--muted)}
 .preview h3{font-size:19px;margin:12px 0 4px} .preview h4{font-size:16px;margin:10px 0 4px}
 .preview p{margin:0 0 10px}
+.nota-tit{font-size:24px;margin:4px 0 0;line-height:1.25}
+.leitura-nota .preview{min-height:0}
 .savestate{font-size:12px;color:var(--muted)}
 .leitura{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .checklist{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:6px}
@@ -1029,8 +1031,17 @@ function pintarListaNotas(){
   el.innerHTML=l.length?l.map(n=>{const b=livro(n.livroId),tp=n.topicoId&&topico(n.topicoId);return '<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-abrir" data-id="'+n.id+'" aria-current="'+(!!S.draft&&S.draft.id===n.id)+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(b?" · "+esc(b.titulo):"")+(tp?" · "+esc(tp.nome):"")+(n.artigoId&&artigo(n.artigoId)?" · "+esc(artigo(n.artigoId).titulo):"")+(n.atualizado?" · "+fmtDM(new Date(n.atualizado)):"")+'</span></button>'}).join("")
     :'<div class="small muted" style="padding:8px">Nada por aqui ainda.</div>';
 }
+function leituraNota(){
+  const d=S.draft,concs=S.conceitos.filter(c=>(c.notas||[]).includes(d.id)),it=itemDeLeitura(d.livroId||d.artigoId),tp=d.topicoId?topico(d.topicoId):null;
+  const meta=[TIPOS_NOTA[d.tipo]||"",it?esc(it.x.titulo):"",d.paginas?"p. "+esc(d.paginas):"",tp?esc(tp.nome):"",d.atualizado?"editado em "+fmtDM(new Date(d.atualizado)):""].filter(Boolean).join(" · ");
+  return '<div class="editor leitura-nota" id="nota-editor"><div class="spread"><button class="btn sm ghost" data-act="nota-fechar">‹ Voltar à lista</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn sm primary" data-act="nota-previa">Editar</button></div></div>'
+   +'<h2 class="nota-tit">'+esc(d.titulo||"Sem título")+'</h2><div class="small muted">'+meta+'</div>'
+   +(concs.length?'<div class="row small">'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
+   +'<div class="preview">'+(String(d.texto||"").trim()?md(d.texto):'<p class="muted">Sem texto ainda. Toque em Editar para escrever.</p>')+'</div></div>';
+}
 function editorNota(){
   const d=S.draft,modo=ehEscrito(d.tipo)?"sinteses":"fichamentos";
+  if(S.preview&&d.id)return leituraNota();
   const concs=d.id?S.conceitos.filter(c=>(c.notas||[]).includes(d.id)):[];
   return '<div class="editor" id="nota-editor"><div class="spread"><button class="btn sm ghost" data-act="nota-fechar">‹ Voltar à lista</button><span class="savestate" id="savestate" aria-live="polite">'+esc(S.saveState)+'</span></div>'
    +'<input class="title" type="text" id="ne-titulo" placeholder="Título" aria-label="Título" value="'+esc(d.titulo||"")+'">'
@@ -1040,7 +1051,7 @@ function editorNota(){
    +'<label class="f">Páginas<input type="text" id="ne-paginas" placeholder="ex.: 45–62" value="'+esc(d.paginas||"")+'"></label></div>'
    +(d.artigoId&&artigo(d.artigoId)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(d.artigoId).titulo)+'</strong></div>':'')
    +(concs.length?'<div class="row small"><span class="muted">Conceitos:</span>'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
-   +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":"Ver formatado")+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
+   +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":(d.id?"Concluir edição":"Ver formatado"))+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
    +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
@@ -1084,7 +1095,20 @@ function pintarListaConceitos(){
     return '<button class="item" data-act="conceito-abrir" data-id="'+c.id+'" aria-current="'+(!!S.cdraft&&S.cdraft.id===c.id)+'"><span class="tt">'+esc(c.termo||"Sem nome")+'</span><span class="sub">'+sub+'</span></button>'}).join("")
     :'<div class="small muted" style="padding:8px">'+REG[tipo].vazio+'</div>';
 }
+function leituraConceito(){
+  const c=S.cdraft,nome=ehNome(c),L=REG[nome?"nome":"conceito"],a=aparicoes(c);
+  const notas=(c.notas||[]).map(id=>S.notas.find(n=>n.id===id)).filter(Boolean);
+  let h='<div class="editor leitura-nota" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><button class="btn sm primary" data-act="conceito-editar">Editar</button></div>'
+   +'<h2 class="nota-tit">'+esc(c.termo||"Sem nome")+'</h2><div class="small muted">'+[L.Um,nome&&c.periodo?esc(c.periodo):"",a.textos.length?plural(a.textos.length,"texto","textos"):"",a.ciclos.length?(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):""].filter(Boolean).join(" · ")+'</div>'
+   +(a.trilhas.length?'<div class="row small">'+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>':'')
+   +'<div class="preview">'+(String(c.definicao||"").trim()?md(c.definicao):'<p class="muted">'+(nome?"Ainda sem descrição.":"Ainda sem definição.")+'</p>')
+   +(c.leituras.length?'<h3>'+L.secao+'</h3>'+c.leituras.map(l=>{const it=itemDeLeitura(l.livroId);const cab=[l.autor?esc(l.autor):"",it?'<em>'+esc(it.x.titulo)+'</em>':""].filter(Boolean).join(", ");return (cab?'<h4>'+cab+'</h4>':'')+md(l.texto||"")}).join(""):'')
+   +'</div>'
+   +(notas.length?'<div><strong class="small">Fichamentos ligados</strong><div class="items" style="max-height:none;margin-top:6px">'+notas.map(n=>'<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+'</span></button>').join("")+'</div></div>':'');
+  return h+'</div>';
+}
 function editorConceito(){
+  if(S.cread&&S.cdraft.id)return leituraConceito();
   const c=S.cdraft,livs=livrosOrdenados(),nome=ehNome(c),L=REG[nome?"nome":"conceito"];
   const arts=nome?S.artigos.slice().sort((a,b)=>String(b.data||"").localeCompare(String(a.data||""))):[];
   let h='<div class="editor" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><span class="savestate" id="csave" aria-live="polite">'+esc(S.csave)+'</span></div>'
@@ -1102,7 +1126,7 @@ function editorConceito(){
      +'<textarea rows="3" class="short" data-cl="texto" data-i="'+i+'" aria-label="'+L.txt+'" placeholder="'+L.txt+'">'+esc(l.texto||"")+'</textarea><div><button class="btn sm ghost" data-act="conceito-autor-remover" data-i="'+i+'">'+L.rem+'</button></div></div>';
   });
   return h+'</div><div><strong class="small">Fichamentos ligados</strong><input type="search" id="cnq" placeholder="Filtrar fichamentos" aria-label="Filtrar fichamentos" value="'+esc(S.cnq)+'" style="width:100%;margin:6px 0"><div id="conc-notas" class="checklist"></div></div>'
-   +'<div class="spread"><button class="btn sm danger" data-act="conceito-excluir"'+(c.id?"":" disabled")+'>Excluir</button><button class="btn primary" data-act="conceito-salvar"'+dis()+'>Salvar</button></div></div>';
+   +'<div class="spread"><button class="btn sm danger" data-act="conceito-excluir"'+(c.id?"":" disabled")+'>Excluir</button><div class="row">'+(c.id?'<button class="btn" data-act="conceito-concluir">Concluir edição</button>':'')+'<button class="btn primary" data-act="conceito-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
 function pintarNotasDoConceito(){
   const el=$("conc-notas");if(!el||!S.cdraft)return;
@@ -1392,12 +1416,13 @@ function lerNota(){
 function salvarNota(){
   clearTimeout(notaTimer);const d=S.draft;if(!d||!S.db||S.readOnly)return Promise.resolve();
   if(!d.id&&!String(d.titulo||"").trim()&&!String(d.texto||"").trim())return Promise.resolve();
+  if(d.id&&!d._sujo)return Promise.resolve();d._sujo=false;
   const agora=new Date().toISOString();if(!d.id){d.id=novoId("notas");d.criado=agora}d.atualizado=agora;
   const data={titulo:d.titulo||"",tipo:d.tipo,livroId:d.livroId||"",topicoId:d.topicoId||"",artigoId:d.artigoId||"",trilha:d.trilha||"",paginas:d.paginas||"",texto:d.texto||"",criado:d.criado||agora,atualizado:agora};
   estadoNota("Salvando…");
   return save("notas/"+d.id,data).then(()=>{const t=new Date();estadoNota("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaNotas()}).catch(()=>estadoNota("Erro ao salvar"));
 }
-function agendarNota(){clearTimeout(notaTimer);estadoNota("Alterações não salvas");notaTimer=setTimeout(salvarNota,1800)}
+function agendarNota(){if(S.draft)S.draft._sujo=true;clearTimeout(notaTimer);estadoNota("Alterações não salvas");notaTimer=setTimeout(salvarNota,1800)}
 async function guardarRascunhos(){if(S.draft){lerNota();await salvarNota()}if(S.cdraft){lerConceito();await salvarConceito()}}
 function novaNota(opts){
   const o=opts||{},b=o.livroId?livro(o.livroId):null,tp=o.topicoId?topico(o.topicoId):null;
@@ -1412,7 +1437,7 @@ function novaNota(opts){
 }
 function abrirNota(id){
   const n=S.notas.find(x=>x.id===id);if(!n)return;
-  S.draft=clone(n);S.preview=false;S.saveState="Salvo";
+  S.draft=clone(n);S.preview=true;S.saveState="Salvo";
   irPara("caderno",ehEscrito(n.tipo)?"sinteses":"fichamentos");
 }
 function lerConceito(){
@@ -1423,13 +1448,14 @@ function lerConceito(){
 function salvarConceito(){
   clearTimeout(concTimer);const c=S.cdraft;if(!c||!S.db||S.readOnly)return Promise.resolve();
   if(!c.id&&!String(c.termo||"").trim())return Promise.resolve();
+  if(c.id&&!c._sujo)return Promise.resolve();c._sujo=false;
   if(!c.id)c.id=novoId("conceitos");
   const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
   estadoConc("Salvando…");
   return save("conceitos/"+c.id,data).then(()=>{const t=new Date();estadoConc("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaConceitos()}).catch(()=>estadoConc("Erro ao salvar"));
 }
-function agendarConceito(){clearTimeout(concTimer);estadoConc("Alterações não salvas");concTimer=setTimeout(salvarConceito,1800)}
-function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno",ehNome(c)?"nomes":"conceitos")}
+function agendarConceito(){if(S.cdraft)S.cdraft._sujo=true;clearTimeout(concTimer);estadoConc("Alterações não salvas");concTimer=setTimeout(salvarConceito,1800)}
+function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.cread=!!(c&&c.id);S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno",ehNome(c)?"nomes":"conceitos")}
 
 /* =====================================================================
    10. PDFs e leitor
@@ -1948,8 +1974,8 @@ const ACOES={
   "nota-abrir":async el=>{if(S.draft){lerNota();await salvarNota()}abrirNota(el.dataset.id)},
   "nota-ir":async el=>{fecharModal();await guardarRascunhos();abrirNota(el.dataset.id)},
   "nota-fechar":async()=>{lerNota();await salvarNota();S.draft=null;render()},
-  "nota-salvar":()=>{lerNota();salvarNota()},
-  "nota-previa":()=>{lerNota();S.preview=!S.preview;render()},
+  "nota-salvar":()=>{lerNota();if(S.draft)S.draft._sujo=true;salvarNota()},
+  "nota-previa":()=>{lerNota();S.preview=!S.preview;if(S.preview)salvarNota();render()},
   "nota-copiar":()=>{lerNota();copy(notaTexto(S.draft))},
   "notas-copiar":()=>{const l=notasFiltradas();if(!l.length)return toast("Nada para copiar.");copy(l.map(notaTexto).join("\n---\n\n"))},
   "nota-excluir":el=>{if(!S.draft||!S.draft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(notaTimer);remove("notas/"+S.draft.id).then(()=>{S.draft=null;render();toast("Excluído.")}).catch(()=>{})})},
@@ -1958,8 +1984,10 @@ const ACOES={
   "conceito-abrir":async el=>{if(S.cdraft){lerConceito();await salvarConceito()}abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
   "conceito-ir":async el=>{fecharModal();await guardarRascunhos();abrirConceito(S.conceitos.find(c=>c.id===el.dataset.id))},
   "conceito-fechar":async()=>{lerConceito();await salvarConceito();S.cdraft=null;render()},
-  "conceito-salvar":()=>{lerConceito();salvarConceito()},
-  "conceito-autor":()=>{lerConceito();S.cdraft.leituras.push({autor:"",livroId:"",texto:""});render();setTimeout(()=>{const l=document.querySelectorAll('[data-cl="autor"]');if(l.length)l[l.length-1].focus()},30)},
+  "conceito-salvar":()=>{lerConceito();if(S.cdraft)S.cdraft._sujo=true;salvarConceito()},
+  "conceito-editar":()=>{S.cread=false;render()},
+  "conceito-concluir":async()=>{lerConceito();await salvarConceito();S.cread=true;render()},
+  "conceito-autor":()=>{lerConceito();S.cdraft._sujo=true;S.cdraft.leituras.push({autor:"",livroId:"",texto:""});render();setTimeout(()=>{const l=document.querySelectorAll('[data-cl="autor"]');if(l.length)l[l.length-1].focus()},30)},
   "conceito-autor-remover":el=>{lerConceito();S.cdraft.leituras.splice(Number(el.dataset.i),1);render();agendarConceito()},
   "conceito-excluir":el=>{if(!S.cdraft||!S.cdraft.id)return;confirmar(el,"Confirmar exclusão",()=>{clearTimeout(concTimer);const era=ehNome(S.cdraft)?"Nome":"Conceito";remove("conceitos/"+S.cdraft.id).then(()=>{S.cdraft=null;render();toast(era+" excluído.")}).catch(()=>{})})},
   /* plano */
