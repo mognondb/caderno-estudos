@@ -535,6 +535,26 @@ const SUPABASE_ANON_KEY = "sb_publishable_C7gWfaR3_bFOe06KhJeAOA_bE3AY-MB";
   let tempoRealLigado = false;
   function ligarTempoRealUmaVez(){if(!tempoRealLigado){tempoRealLigado = true;try{ligarTempoReal()}catch(e){}}}
 
+  /* ---------- botão "Atualizar": baixa a versão mais nova do caderno, sem depender do cache ---------- */
+  async function recarregarCaderno(){
+    const b = document.getElementById("btn-recarregar");if(b){b.disabled = true;b.textContent = "Atualizando…"}
+    try{await fetch(location.pathname + "?v=" + Date.now(), {cache: "reload"})}catch(e){}
+    try{if(window.caches) for(const k of await caches.keys()) await caches.delete(k)}catch(e){}
+    try{if(typeof guardarRascunhos === "function") await guardarRascunhos()}catch(e){}
+    location.replace(location.pathname + "?v=" + Date.now() + location.hash);
+  }
+  function botaoRecarregar(){
+    const lado = document.querySelector("header.top .side");
+    if(!lado || document.getElementById("btn-recarregar")) return;
+    const b = document.createElement("button");
+    b.id = "btn-recarregar";b.className = "btn sm ghost";b.type = "button";b.textContent = "↻ Atualizar";
+    b.title = "Baixar a versão mais nova do caderno";b.setAttribute("aria-label", "Atualizar o caderno para a versão mais nova");
+    b.addEventListener("click", recarregarCaderno);
+    lado.insertBefore(b, lado.lastElementChild);
+  }
+  if(/[?&]v=\d+/.test(location.search)){try{history.replaceState(null, "", location.pathname + location.hash)}catch(e){}}
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", botaoRecarregar); else botaoRecarregar();
+
   /* ---------- sessão ---------- */
   async function verificarSessao(){
     if(!sb){telaLogin();return}
