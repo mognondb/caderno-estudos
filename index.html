@@ -255,7 +255,17 @@ body.reading{overflow:hidden}
 .legend-sum{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 @media (max-width:760px){.rd-side{position:absolute;right:0;top:0;bottom:0;width:88%;box-shadow:-6px 0 20px rgba(0,0,0,.2);z-index:2}}
 /* Leitor de matérias */
-.materia .rd-scroll{background:var(--surface)}
+.materia{overflow:hidden;width:100vw;max-width:100%}
+.materia .rd-bar{max-width:100%;flex-wrap:wrap;overflow:hidden}
+.materia .rd-title{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.materia .rd-body{min-width:0;overflow:hidden}
+.materia .rd-scroll{background:var(--surface);overflow-x:hidden;overflow-y:auto;min-width:0;overscroll-behavior-x:none;touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch}
+.mt-texto,.mt-texto *{max-width:100%;box-sizing:border-box}
+.mt-texto{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.mt-texto pre,.mt-texto code{white-space:pre-wrap;word-break:break-word}
+.mt-texto table{display:block;overflow-x:auto;border-collapse:collapse;font-size:15px}
+.mt-texto td,.mt-texto th{border:1px solid var(--line);padding:4px 6px;max-width:none;min-width:7em;overflow-wrap:normal;vertical-align:top}
+.mt-texto img,.mt-texto video{height:auto}
 .mt-texto{max-width:68ch;margin:0 auto;font-family:var(--display);font-size:18px;line-height:1.7;color:var(--ink);padding:8px 4px 40px}
 .mt-texto h1{font-size:28px;line-height:1.2;margin:6px 0 10px}
 .mt-texto h2{font-size:22px;margin:24px 0 8px} .mt-texto h3{font-size:19px;margin:20px 0 6px}
