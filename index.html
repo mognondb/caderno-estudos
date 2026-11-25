@@ -292,6 +292,23 @@ details.grupo-notas[open]>summary::before{transform:rotate(90deg)}
 .pg-ref{all:unset;cursor:pointer;display:inline-block;font-family:var(--body);font-size:12px;font-weight:600;line-height:1;padding:3px 6px;border-radius:99px;background:var(--sunk);color:var(--muted);vertical-align:1px;margin-right:2px}
 .pg-ref:hover{color:var(--ink)}
 .oferta-conceito{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 8px 28px rgba(0,0,0,.22);max-width:calc(100% - 20px)}
+.tmf{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:8px 10px;display:flex;flex-direction:column;gap:6px;max-width:calc(100vw - 28px)}
+.tmf-linha{display:flex;align-items:center;gap:6px}
+.tmf-clock{font-variant-numeric:tabular-nums;font-size:20px;letter-spacing:.5px;min-width:58px}
+.tmf .tmf-b{min-width:34px;justify-content:center;padding:5px 8px}
+.tmf.min{padding:6px 8px;border-radius:99px}.tmf.min .tmf-clock{font-size:16px;min-width:48px}
+.tmf-alvo{max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legenda-cores{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted)}
+.legenda-cores>span{display:inline-flex;align-items:center;gap:5px}
+.legenda-cores.compacta{font-size:12px;gap:3px 10px;max-width:260px}
+body.tm-ativo .oferta-conceito{bottom:calc(74px + env(safe-area-inset-bottom))}
+body.tm-ativo .toast{bottom:76px}
+.ct-lista{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto}
+.ct-op{all:unset;cursor:pointer;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:14px}
+.ct-op[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.ct-op .sub{color:var(--muted);font-size:13px}.ct-novo{color:var(--accent);font-weight:600}
+blockquote.cit-fund{margin:10px 0;padding:6px 14px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+blockquote.cit-fund footer{font-family:var(--body);font-size:13px;color:var(--muted);margin-top:6px}
 .gt-lista{display:flex;flex-direction:column;gap:4px;max-height:40vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px}
 .gt-op{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
 .gt-op:hover{background:var(--sunk)}.gt-op input{width:18px;height:18px;flex:none}
@@ -304,7 +321,7 @@ mark.mt-m{background:color-mix(in srgb,var(--m) 45%,transparent);color:inherit;b
 mark.mt-m.com-nota{border-bottom:2px dotted var(--ink)}
 mark.mt-m.pisca{outline:3px solid var(--accent)}
 .materia .rd-bar .swl{user-select:none;-webkit-user-select:none}
-@media (max-width:600px){.materia .rd-bar{gap:6px;padding:6px 8px}.materia .swl-t{display:none}.materia .swl{padding:4px 7px}.materia .swl .dot{width:14px;height:14px}.materia .rd-title{flex-basis:calc(100% - 90px)}.mt-texto{font-size:17px}}
+@media (max-width:600px){.materia .rd-bar{gap:6px;padding:6px 8px}.materia .swl-t{font-size:12px}.materia .swl{padding:4px 7px}.materia .swl .dot{width:14px;height:14px}.materia .rd-title{flex-basis:calc(100% - 90px)}.mt-texto{font-size:17px}}
 </style>
 <style>
 #sb-login{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -990,7 +1007,7 @@ function telaHoje(){
   const hoje=new Date();irParaSemana(mondayOf(hoje));
   const N=weekIndex(S.weekStart),d=DIAS.find(x=>x.i===hoje.getDay()),bl=blocosDoDia(d,hoje,N),hr=(cfg().horarios||{})[d.i];
   let h='<section class="card"><div class="spread"><div><div class="small muted">'+d.nome+', '+hoje.getDate()+' de '+MESES_LONGOS[hoje.getMonth()]+(hr?' · '+esc(hr):'')+'</div><h2>Hoje</h2></div>'
-   +'<div class="row" id="timer-box">'+timerHtml()+'</div></div><div class="small muted">Estudado nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a></div></section>';
+   +'<div class="row" id="timer-box">'+timerHtml()+'</div></div>'+legendaHtml(false)+'<div class="small muted">Estudado nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a></div></section>';
   if(!bl.keys.length){
     let prox=null;for(let k=1;k<=7&&!prox;k++){const dt=addDays(hoje,k),l=slotsPadrao()[dt.getDay()]||[];if(l.length)prox={dt,l}}
     return h+avulsasDeHoje()+'<div class="empty">Hoje não há estudo planejado.'+(prox?'<br><span class="small">Próximo: '+DIAS.find(x=>x.i===prox.dt.getDay()).nome+', '+prox.l.map(s=>esc(T(resolveTrilha(s.trilha,weekIndex(mondayOf(prox.dt)))).curto)).join(" + ")+'.</span>':'')+'</div>'+imprensaDoDia()+lembreteBackupHtml();
@@ -1201,7 +1218,7 @@ function editorNota(){
    +(d.artigoId&&artigo(d.artigoId)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(d.artigoId).titulo)+'</strong></div>':'')
    +(concs.length?'<div class="row small"><span class="muted">Conceitos:</span>'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
    +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":(d.id?"Concluir edição":"Ver formatado"))+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
-   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<div class="nota-ferr" role="toolbar" aria-label="Inserir no texto"><button class="btn sm" data-act="nf-conceito" title="Selecione uma palavra e registre como conceito">+ Conceito</button><button class="btn sm" data-act="nf-nome" title="Selecione um nome e registre">+ Nome</button><button class="btn sm" data-act="nf-pagina" title="Marcar a página deste trecho">📄 Página</button><span class="small muted">Selecione a palavra antes. Fica como [[termo]] e [p. 45].</span></div><textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
+   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<div class="nota-ferr" role="toolbar" aria-label="Registrar trecho"><button class="btn sm" data-act="nf-citar" data-tipo="conceito" title="Registrar o trecho selecionado como citação de um conceito">Conceito</button><button class="btn sm" data-act="nf-citar" data-tipo="nome" title="Registrar o trecho selecionado em um nome">Nome</button><button class="btn sm" data-act="nf-pagina" title="Marcar a página deste trecho">📄 Página</button><span class="small muted">Selecione o trecho (ou deixe o cursor no parágrafo) e toque.</span></div><textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
 /* ---------- Caderno › Tudo: todos os registros numa lista ---------- */
@@ -1250,7 +1267,7 @@ function leituraConceito(){
   let h='<div class="editor leitura-nota" id="conc-editor"><div class="spread"><button class="btn sm ghost" data-act="conceito-fechar">‹ Voltar à lista</button><button class="btn sm primary" data-act="conceito-editar">Editar</button></div>'
    +'<h2 class="nota-tit">'+esc(c.termo||"Sem nome")+'</h2>'+(c.aprofundar&&!nome?'<div><span class="pill hot">A aprofundar</span></div>':'')+'<div class="small muted">'+[L.Um,nome&&c.periodo?esc(c.periodo):"",a.textos.length?plural(a.textos.length,"texto","textos"):"",a.ciclos.length?(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", "):""].filter(Boolean).join(" · ")+'</div>'
    +(a.trilhas.length?'<div class="row small">'+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>':'')
-   +'<div class="preview">'+(String(c.definicao||"").trim()?md(c.definicao):'<p class="muted">'+(nome?"Ainda sem descrição.":"Ainda sem definição.")+'</p>')
+   +'<div class="preview">'+(String(c.definicao||"").trim()?md(c.definicao):'<p class="muted">'+(nome?"Ainda sem descrição.":"Ainda sem definição.")+'</p>')+htmlCitacoes(c,false)
    +(c.leituras.length?'<h3>'+L.secao+'</h3>'+c.leituras.map(l=>{const it=itemDeLeitura(l.livroId);const cab=[l.autor?esc(l.autor):"",it?'<em>'+esc(it.x.titulo)+'</em>':""].filter(Boolean).join(", ");return (cab?'<h4>'+cab+'</h4>':'')+md(l.texto||"")}).join(""):'')
    +'</div>'
    +(notas.length?'<div><strong class="small">Fichamentos ligados</strong><div class="items" style="max-height:none;margin-top:6px">'+notas.map(n=>'<button class="item" style="--c:'+T(n.trilha).cor+'" data-act="nota-ir" data-id="'+n.id+'"><span class="tt">'+esc(n.titulo||"Sem título")+'</span><span class="sub">'+(TIPOS_NOTA[n.tipo]||"")+(livro(n.livroId)?" · "+esc(livro(n.livroId).titulo):"")+'</span></button>').join("")+'</div></div>':'');
@@ -1266,6 +1283,7 @@ function editorConceito(){
    +(nome?'':'<label class="gt-op"><input type="checkbox" id="ce-aprof"'+(c.aprofundar?" checked":"")+'><span>Quero me aprofundar neste conceito</span></label>')
    +'<label class="f">'+L.def+'<textarea id="ce-def" rows="'+(nome?3:4)+'" class="short"'+(nome?' placeholder="Quem foi, qual papel teve, por que importa para os seus estudos"':'')+'>'+esc(c.definicao||"")+'</textarea></label>';
   if(nome&&c.id){const a=aparicoes(c);if(a.textos.length)h+='<div class="row small"><span class="muted">Aparece em:</span>'+(a.ciclos.length?'<span class="pill">'+(a.ciclos.length>1?"Ciclos ":"Ciclo ")+a.ciclos.join(", ")+'</span>':'')+a.trilhas.map(t=>'<span class="pill"><span class="dot" style="background:'+T(t).cor+'"></span> '+esc(T(t).curto)+'</span>').join("")+'</div>'}
+  h+=htmlCitacoes(c,true);
   h+='<div class="stack"><div class="spread"><strong class="small">'+L.secao+'</strong><button class="btn sm" data-act="conceito-autor"'+dis()+'>'+L.add+'</button></div>';
   if(!c.leituras.length)h+='<p class="small muted">'+L.ex+'</p>';
   c.leituras.forEach((l,i)=>{
@@ -1654,18 +1672,19 @@ function lerConceito(){
   const c=S.cdraft;if(!c)return;
   if($("ce-termo"))c.termo=$("ce-termo").value;if($("ce-periodo"))c.periodo=$("ce-periodo").value;if($("ce-def"))c.definicao=$("ce-def").value;if($("ce-aprof"))c.aprofundar=$("ce-aprof").checked;
   document.querySelectorAll("[data-cl]").forEach(el=>{const l=c.leituras[Number(el.dataset.i)];if(l)l[el.dataset.cl]=el.value});
+  document.querySelectorAll("[data-cc]").forEach(el=>{const x=(c.citacoes||[])[Number(el.dataset.i)];if(x)x[el.dataset.cc]=el.value});
 }
 function salvarConceito(){
   clearTimeout(concTimer);const c=S.cdraft;if(!c||!S.db||S.readOnly)return Promise.resolve();
   if(!c.id&&!String(c.termo||"").trim())return Promise.resolve();
   if(c.id&&!c._sujo)return Promise.resolve();c._sujo=false;
   if(!c.id)c.id=novoId("conceitos");
-  const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),...(!ehNome(c)&&c.aprofundar?{aprofundar:true}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),notas:c.notas||[],atualizado:new Date().toISOString()};
+  const data={...(ehNome(c)?{tipo:"nome",periodo:c.periodo||""}:{}),...(!ehNome(c)&&c.aprofundar?{aprofundar:true}:{}),termo:c.termo||"",definicao:c.definicao||"",leituras:c.leituras.map(l=>({autor:l.autor||"",livroId:l.livroId||"",texto:l.texto||""})),...((c.citacoes||[]).length?{citacoes:c.citacoes}:{}),notas:c.notas||[],atualizado:new Date().toISOString()};
   estadoConc("Salvando…");
   return save("conceitos/"+c.id,data).then(()=>{const t=new Date();estadoConc("Salvo às "+pad(t.getHours())+":"+pad(t.getMinutes()));pintarListaConceitos()}).catch(()=>estadoConc("Erro ao salvar"));
 }
 function agendarConceito(){if(S.cdraft)S.cdraft._sujo=true;clearTimeout(concTimer);estadoConc("Alterações não salvas");concTimer=setTimeout(salvarConceito,1800)}
-function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),notas:(c.notas||[]).slice()}:null;S.cread=!!(c&&c.id);S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno",ehNome(c)?"nomes":"conceitos")}
+function abrirConceito(c){S.cdraft=c?{...clone(c),leituras:clone(c.leituras||[]),citacoes:clone(c.citacoes||[]),notas:(c.notas||[]).slice()}:null;S.cread=!!(c&&c.id);S.csave=c&&c.id?"Salvo":"";S.cnq="";irPara("caderno",ehNome(c)?"nomes":"conceitos")}
 
 /* =====================================================================
    10. PDFs e leitor
@@ -1878,12 +1897,13 @@ function ligarPonteiroDoLeitor(){
    ===================================================================== */
 function pintarCronometro(){
   const box=$("timer-box");if(box)box.innerHTML=timerHtml();
-  const mini=$("tm-mini");if(mini){mini.hidden=!TM.fase;mini.textContent=TM.fase?(TM.fase==="foco"?"Foco ":"Pausa ")+fmtClock(tmResto()):""}
+  const mini=$("tm-mini");if(mini)mini.hidden=true;
+  salvarTM();pintarFlutuante();
 }
 function tique(){
   if(!TM.fase||TM.pausado)return;
   const r=tmResto(),c=$("tm-clock"),mini=$("tm-mini");
-  if(c)c.textContent=fmtClock(r);if(mini)mini.textContent=(TM.fase==="foco"?"Foco ":"Pausa ")+fmtClock(r);
+  if(c)c.textContent=fmtClock(r);const fc=$("tmf-clock");if(fc)fc.textContent=fmtClock(r);
   if(r>0)return;
   try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
   if(TM.fase==="foco"){registrarSessao(TM.foco);const p=TM.foco>=50?10:5;TM.fase="pausa";TM.fim=Date.now()+p*60000;toast("Sessão concluída. Pausa de "+p+" minutos.")}
@@ -2547,6 +2567,113 @@ function irParaPaginaDaNota(pg){
 }
 
 /* =====================================================================
+   21. Citações fundamentais: um trecho do fichamento registrado no conceito
+   ===================================================================== */
+function trechoNoCursor(){
+  const ta=$("ne-texto");if(!ta)return null;
+  const v=ta.value,a=ta.selectionStart||0,b=ta.selectionEnd||0;
+  let ini=a,fim=b;
+  if(a===b){ // sem seleção: o parágrafo onde está o cursor
+    ini=v.lastIndexOf("\n\n",a-1);ini=ini<0?0:ini+2;
+    fim=v.indexOf("\n\n",a);fim=fim<0?v.length:fim;
+  }
+  const bruto=v.slice(ini,fim);
+  const pm=bruto.match(/\[p\.\s*(\d+)\]/);
+  const texto=bruto.replace(/\[p\.\s*\d+\]\s*/g,"").split("\n").map(l=>l.replace(/^\s*>\s?/,"").replace(/^\s*[-*]\s+/,"")).join("\n").replace(/\[\[([^\]]+)\]\]/g,"$1").trim();
+  return {texto,pagina:pm?pm[1]:paginaPerto(v,ini),ini,fim};
+}
+function dialogoCitar(tipo){
+  const t=trechoNoCursor();if(!t||!t.texto){toast("Selecione o trecho (ou deixe o cursor no parágrafo) antes.");return}
+  S.ct={tipo:tipo==="nome"?"nome":"conceito",sel:null,busca:""};
+  const nomeT=S.ct.tipo==="nome";
+  abrirModal('<div class="dialog" role="dialog" aria-labelledby="ct-h"><h2 id="ct-h">'+(nomeT?"Registrar citação em um nome":"Registrar citação em um conceito")+'</h2>'
+   +'<label class="f">Citação<textarea id="ct-texto" rows="4">'+esc(t.texto)+'</textarea></label>'
+   +'<label class="f" style="max-width:140px">Página<input type="number" id="ct-pag" min="1" inputmode="numeric" value="'+esc(t.pagina||"")+'"></label>'
+   +'<label class="f">'+(nomeT?"Nome":"Conceito")+'<input type="search" id="ct-busca" placeholder="'+(nomeT?"Buscar ou criar um nome":"Buscar ou criar um conceito")+'" autocomplete="off"></label>'
+   +'<div class="ct-lista" id="ct-lista" role="listbox"></div>'
+   +'<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-act="modal-fechar">Cancelar</button><button class="btn primary" data-act="ct-salvar" disabled>Registrar</button></div></div>');
+  pintarListaCitar();
+  const i=$("ct-busca");if(i)i.focus();
+}
+function pintarListaCitar(){
+  const el=$("ct-lista");if(!el||!S.ct)return;
+  const q=S.ct.busca.trim(),ql=q.toLowerCase();
+  const l=regsDo(S.ct.tipo).filter(c=>!ql||String(c.termo).toLowerCase().includes(ql)).sort((a,b)=>String(b.atualizado||"").localeCompare(String(a.atualizado||"")));
+  const exato=l.some(c=>String(c.termo).trim().toLowerCase()===ql);
+  const sel=S.ct.sel||{};
+  el.innerHTML=(q&&!exato?'<button class="ct-op ct-novo" data-act="ct-escolher" data-novo="'+esc(q)+'" aria-pressed="'+(sel.novo===q)+'">＋ Criar “'+esc(q)+'”</button>':'')
+   +l.slice(0,40).map(c=>{const n=(c.citacoes||[]).length;return '<button class="ct-op" data-act="ct-escolher" data-id="'+c.id+'" aria-pressed="'+(sel.id===c.id)+'"><strong>'+esc(c.termo)+'</strong>'+(n?'<span class="sub"> · '+plural(n,"citação","citações")+'</span>':'')+'</button>'}).join("")
+   +(!q&&!l.length?'<p class="small muted">Nenhum '+(S.ct.tipo==="nome"?"nome":"conceito")+' ainda. Escreva acima para criar.</p>':'');
+  const b=document.querySelector('[data-act="ct-salvar"]');if(b)b.disabled=!(sel.id||sel.novo);
+}
+function escolherCitar(el){
+  S.ct.sel=el.dataset.novo?{novo:el.dataset.novo}:{id:el.dataset.id};
+  pintarListaCitar();
+}
+async function salvarCitar(){
+  const ct=S.ct;if(!ct||!ct.sel)return;
+  const texto=($("ct-texto").value||"").trim(),pagina=($("ct-pag").value||"").trim();
+  if(!texto){toast("A citação está vazia.");return}
+  fecharModal();
+  lerNota();const d=S.draft;if(!d)return;
+  d._sujo=true;await salvarNota();
+  const textoId=d.livroId||d.artigoId||"",it=textoId?itemDeLeitura(textoId):null,autor=it&&it.col==="livros"?(it.x.autor||""):"";
+  const cit={id:novoId("cit"),texto,livroId:textoId,autor,pagina,notaId:d.id,criado:new Date().toISOString()};
+  const agora=new Date().toISOString();let termo;
+  if(ct.sel.id){
+    const c=S.conceitos.find(x=>x.id===ct.sel.id);if(!c)return;termo=c.termo;
+    const data=clone(strip(c));data.citacoes=[...(data.citacoes||[]),cit];data.notas=[...new Set([...(data.notas||[]),d.id])];data.atualizado=agora;
+    await save("conceitos/"+c.id,data);
+  }else{
+    termo=ct.sel.novo;
+    await save("conceitos/"+novoId("conceitos"),{...(ct.tipo==="nome"?{tipo:"nome",periodo:""}:{}),termo,definicao:"",leituras:[],citacoes:[cit],notas:[d.id],atualizado:agora});
+  }
+  toast("Citação registrada em “"+termo+"”.");render();
+}
+function htmlCitacoes(c,editando){
+  const l=c.citacoes||[];if(!l.length)return "";
+  if(editando)return '<div class="stack"><strong class="small">Citações fundamentais</strong>'+l.map((x,i)=>'<div class="leitura"><textarea rows="3" class="short" data-cc="texto" data-i="'+i+'" aria-label="Citação">'+esc(x.texto||"")+'</textarea><div class="spread"><span class="small muted">'+esc(fonteCitacao(x))+'</span><button class="btn sm ghost" data-act="conceito-cit-remover" data-i="'+i+'">Remover</button></div></div>').join("")+'</div>';
+  return '<h3>Citações fundamentais</h3>'+l.map(x=>'<blockquote class="cit-fund">'+esc(x.texto).replace(/\n/g,"<br>")+'<footer>— '+esc(fonteCitacao(x))+(x.notaId&&S.notas.some(n=>n.id===x.notaId)?' · <button type="button" class="ref-termo" data-act="nota-ir" data-id="'+x.notaId+'">ver fichamento</button>':'')+'</footer></blockquote>').join("");
+}
+function fonteCitacao(x){const it=x.livroId&&itemDeLeitura(x.livroId);return [x.autor,it?it.x.titulo:"",x.pagina?"p. "+x.pagina:""].filter(Boolean).join(", ")}
+
+/* =====================================================================
+   22. Cronômetro flutuante (visível em todas as telas e nos leitores)
+   e legenda das cores sempre à mão
+   ===================================================================== */
+function legendaHtml(compacta){
+  const lg=legenda();
+  return '<div class="legenda-cores'+(compacta?" compacta":"")+'" aria-label="Legenda das cores">'+Object.keys(CORES_AN).map(k=>'<span><span class="dot" style="background:'+CORES_AN[k]+'"></span>'+esc(lg[k]||k)+'</span>').join("")+'</div>';
+}
+/* estado do cronômetro sobrevive a recarregar a página */
+function salvarTM(){try{if(TM.fase)localStorage.setItem("tm-estado",JSON.stringify({fase:TM.fase,fim:TM.fim,resto:TM.resto,pausado:TM.pausado,foco:TM.foco,alvo:TM.alvo||null,inicio:TM.inicio||0}));else localStorage.removeItem("tm-estado")}catch(e){}}
+function restaurarTM(){
+  let x=null;try{x=JSON.parse(localStorage.getItem("tm-estado")||"null")}catch(e){}
+  if(!x||!x.fase)return;
+  Object.assign(TM,x);
+  if(!TM.pausado&&TM.fim<=Date.now()){ // terminou enquanto a página estava fechada
+    if(TM.fase==="foco"){setTimeout(()=>{try{registrarSessao(TM.foco)}catch(e){}},4000);toast("A sessão de foco terminou enquanto o caderno estava fechado. Ela foi registrada.")}
+    TM.fase="";TM.pausado=false;salvarTM();return;
+  }
+  clearInterval(TM.iv);TM.iv=setInterval(tique,1000);
+}
+function pintarFlutuante(){
+  let el=$("tm-flutuante");
+  document.body.classList.toggle("tm-ativo",!!TM.fase);
+  if(!TM.fase){if(el)el.remove();return}
+  if(!el){el=document.createElement("div");el.id="tm-flutuante";el.className="tmf";el.setAttribute("role","timer");document.body.appendChild(el)}
+  let min=false,leg=false;try{min=localStorage.getItem("tmf-min")==="1";leg=localStorage.getItem("tmf-leg")==="1"}catch(e){}
+  el.classList.toggle("min",min);
+  el.innerHTML='<div class="tmf-linha"><strong class="tmf-clock" id="tmf-clock">'+fmtClock(tmResto())+'</strong>'
+   +(min?'':'<span class="pill'+(TM.fase==="foco"?" hot":"")+'">'+(TM.pausado?"Pausado":TM.fase==="foco"?"Foco":"Pausa")+'</span>')
+   +'<button class="btn sm tmf-b" data-act="tm-pausar" aria-label="'+(TM.pausado?"Continuar":"Pausar")+'">'+(TM.pausado?"▶":"❚❚")+'</button>'
+   +(min?'':'<button class="btn sm ghost tmf-b" data-act="tm-encerrar" aria-label="Encerrar a sessão" title="Encerrar">■</button><button class="btn sm ghost tmf-b" data-act="tmf-legenda" aria-pressed="'+leg+'" aria-label="Legenda das cores" title="Legenda das cores">🎨</button>')
+   +'<button class="btn sm ghost tmf-b" data-act="tmf-min" aria-label="'+(min?"Expandir":"Minimizar")+'">'+(min?"▴":"▾")+'</button></div>'
+   +(!min&&TM.alvo&&TM.fase==="foco"?'<div class="small muted tmf-alvo">'+esc(TM.alvo.rotulo)+'</div>':'')
+   +(!min&&leg?legendaHtml(true):'');
+}
+
+/* =====================================================================
    12. Navegação e desenho da tela
    ===================================================================== */
 const main=$("main");
@@ -2622,6 +2749,8 @@ const ACOES={
   "inverter-escolher":el=>{fecharModal();inverterBlocos(el.dataset.a,el.dataset.b)},
   /* hoje */
   "tm-iniciar":el=>iniciarCronometro(Number(el.dataset.min)||25),
+  "tmf-min":()=>{try{localStorage.setItem("tmf-min",localStorage.getItem("tmf-min")==="1"?"0":"1")}catch(e){}pintarFlutuante()},
+  "tmf-legenda":()=>{try{localStorage.setItem("tmf-leg",localStorage.getItem("tmf-leg")==="1"?"0":"1")}catch(e){}pintarFlutuante()},
   "tm-pausar":()=>{if(TM.pausado){TM.fim=Date.now()+TM.resto;TM.pausado=false}else{TM.resto=TM.fim-Date.now();TM.pausado=true}pintarCronometro()},
   "tm-encerrar":()=>encerrarCronometro(true),
   "sessao-nova":()=>dialogoSessao(),
@@ -2746,8 +2875,10 @@ const ACOES={
   "oferta-fechar":()=>{const x=$("oferta-conceito");if(x)x.remove()},
   "tm-tipo":el=>trocarTipoTermo(el),
   "tm-salvar":el=>{salvarTermo(el).catch(()=>{})},
-  "nf-conceito":()=>abrirTermoNaNota("conceito"),
-  "nf-nome":()=>abrirTermoNaNota("nome"),
+  "nf-citar":el=>dialogoCitar(el.dataset.tipo),
+  "ct-escolher":el=>escolherCitar(el),
+  "ct-salvar":()=>{salvarCitar().catch(()=>{})},
+  "conceito-cit-remover":el=>confirmar(el,"Confirmar",()=>{lerConceito();S.cdraft.citacoes.splice(Number(el.dataset.i),1);S.cdraft._sujo=true;render()}),
   "nf-pagina":()=>dialogoPaginaNaNota(),
   "pg-inserir":()=>inserirPaginaNaNota(),
   "termo-ir":el=>irParaTermo(el.dataset.termo.replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">")),
@@ -2806,6 +2937,7 @@ document.addEventListener("input",e=>{
   if(el.id==="nf-q"){S.nf.q=el.value;pintarListaNotas();return}
   if(el.id==="cq"){S.cq=el.value;pintarListaConceitos();return}
   if(el.id==="tq"){S.tq=el.value;pintarTudo();return}
+  if(el.id==="ct-busca"){S.ct.busca=el.value;if(S.ct.sel&&S.ct.sel.novo)S.ct.sel=null;pintarListaCitar();return}
   if(el.id==="cnq"){S.cnq=el.value;pintarNotasDoConceito();return}
   if(el.id==="bq"){S.bq=el.value;pintarBusca();return}
   if(el.id&&el.id.startsWith("ne-")){lerNota();agendarNota();return}
@@ -2840,6 +2972,7 @@ async function iniciar(){
   db.doc("plano/config").onSnapshot(snap=>{S.cfg=snap.exists?snap.data():null;if(!snap.metadata.fromCache||S.cfg)S.loaded.cfg=true;pronto()},falha);
   ouvir("livros","livros");ouvir("notas","notas");ouvir("topicos");ouvir("conceitos");ouvir("sessoes");ouvir("artigos");
   S.weekStart=null;irParaSemana(mondayOf(new Date()));
+  restaurarTM();pintarCronometro();
   setTimeout(()=>{if(S.loaded.livros&&S.loaded.cfg)talvezCopiaNaNuvem();else setTimeout(talvezCopiaNaNuvem,15000)},8000);
   window.claude.use("assets").then(a=>{S.assets=a;agendarRender()}).catch(()=>{});
   window.claude.use("downloads").then(d=>{S.downloads=d;agendarRender()}).catch(()=>{});
