@@ -1203,7 +1203,7 @@ function leituraNota(){
   return '<div class="editor leitura-nota" id="nota-editor"><div class="spread"><button class="btn sm ghost" data-act="nota-fechar">‹ Voltar à lista</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn sm primary" data-act="nota-previa">Editar</button></div></div>'
    +'<h2 class="nota-tit">'+esc(d.titulo||"Sem título")+'</h2><div class="small muted">'+meta+'</div>'
    +(concs.length?'<div class="row small">'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
-   +'<div class="preview">'+(String(d.texto||"").trim()?md(d.texto):'<p class="muted">Sem texto ainda. Toque em Editar para escrever.</p>')+'</div></div>';
+   +'<div class="preview">'+(String(d.texto||"").trim()?realcarTermos(md(d.texto)):'<p class="muted">Sem texto ainda. Toque em Editar para escrever.</p>')+'</div></div>';
 }
 function editorNota(){
   const d=S.draft,modo=ehEscrito(d.tipo)?"sinteses":"fichamentos";
@@ -1218,7 +1218,7 @@ function editorNota(){
    +(d.artigoId&&artigo(d.artigoId)?'<div class="row small"><span class="muted">Matéria:</span><strong>'+esc(artigo(d.artigoId).titulo)+'</strong></div>':'')
    +(concs.length?'<div class="row small"><span class="muted">Conceitos:</span>'+concs.map(c=>'<button class="chip" data-act="conceito-ir" data-id="'+c.id+'">'+esc(c.termo)+'</button>').join("")+'</div>':'')
    +'<div class="row"><button class="btn sm" data-act="nota-previa" aria-pressed="'+S.preview+'">'+(S.preview?"Voltar a editar":(d.id?"Concluir edição":"Ver formatado"))+'</button><span class="small muted"># título · ## subtítulo · &gt; citação · - lista · **negrito**</span></div>'
-   +(S.preview?'<div class="preview">'+md(d.texto)+'</div>':'<div class="nota-ferr" role="toolbar" aria-label="Registrar trecho"><button class="btn sm" data-act="nf-citar" data-tipo="conceito" title="Registrar o trecho selecionado como citação de um conceito">Conceito</button><button class="btn sm" data-act="nf-citar" data-tipo="nome" title="Registrar o trecho selecionado em um nome">Nome</button><button class="btn sm" data-act="nf-pagina" title="Marcar a página deste trecho">📄 Página</button><span class="small muted">Selecione o trecho (ou deixe o cursor no parágrafo) e toque.</span></div><textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
+   +(S.preview?'<div class="preview">'+realcarTermos(md(d.texto))+'</div>':'<div class="nota-ferr" role="toolbar" aria-label="Registrar trecho"><button class="btn sm" data-act="nf-destacar" title="Destacar a palavra selecionada (ou onde está o cursor)"><span class="ref-termo" style="pointer-events:none">Destacar</span></button><button class="btn sm" data-act="nf-citar" data-tipo="conceito" title="Registrar o trecho selecionado como citação de um conceito">Conceito</button><button class="btn sm" data-act="nf-citar" data-tipo="nome" title="Registrar o trecho selecionado em um nome">Nome</button><button class="btn sm" data-act="nf-pagina" title="Marcar a página deste trecho">📄 Página</button><span class="small muted">Destacar: a palavra. Conceito e Nome: o trecho ou parágrafo. Conceitos já registrados ficam destacados sozinhos.</span></div><textarea class="long" id="ne-texto" aria-label="Texto" placeholder="Escreva aqui.">'+esc(d.texto||"")+'</textarea>')
    +'<div class="spread"><button class="btn sm danger" data-act="nota-excluir"'+(d.id?"":" disabled")+'>Excluir</button><div class="row"><button class="btn sm" data-act="nota-copiar">Copiar</button><button class="btn primary" data-act="nota-salvar"'+dis()+'>Salvar</button></div></div></div>';
 }
 /* ---------- Caderno › Tudo: todos os registros numa lista ---------- */
@@ -2638,6 +2638,62 @@ function htmlCitacoes(c,editando){
 function fonteCitacao(x){const it=x.livroId&&itemDeLeitura(x.livroId);return [x.autor,it?it.x.titulo:"",x.pagina?"p. "+x.pagina:""].filter(Boolean).join(", ")}
 
 /* =====================================================================
+   23. Destaque de termos no fichamento
+   - automático: conceitos e nomes registrados aparecem destacados no texto
+   - botão "Destacar": marca a palavra selecionada (vira [[palavra]])
+   ===================================================================== */
+const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+let _reTermos={chave:"",re:null};
+function regexTermos(){
+  const termos=S.conceitos.map(c=>String(c.termo||"").trim()).filter(t=>t.length>=3);
+  const chave=termos.join("|");
+  if(_reTermos.chave!==chave){
+    _reTermos.chave=chave;
+    _reTermos.re=termos.length?new RegExp("(?<![\\p{L}\\p{N}])("+termos.sort((a,b)=>b.length-a.length).map(escRe).join("|")+")(?![\\p{L}\\p{N}])","giu"):null;
+  }
+  return _reTermos.re;
+}
+function realcarTermos(html){
+  const re=regexTermos();if(!re)return html;
+  const box=document.createElement("div");box.innerHTML=html;
+  const w=document.createTreeWalker(box,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest("button,a,code,pre")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const nos=[];let n;while((n=w.nextNode()))nos.push(n);
+  for(const no of nos){
+    const t=no.nodeValue;re.lastIndex=0;if(!re.test(t))continue;re.lastIndex=0;
+    const frag=document.createDocumentFragment();let pos=0,m;
+    while((m=re.exec(t))){
+      if(m.index>pos)frag.appendChild(document.createTextNode(t.slice(pos,m.index)));
+      const c=achaTermo(m[1]),b=document.createElement("button");
+      b.type="button";b.className="ref-termo"+(c&&ehNome(c)?" ref-nome":"");b.dataset.act="termo-ir";b.dataset.termo=c?c.termo:m[1];b.title=c&&ehNome(c)?"Abrir nome":"Abrir conceito";b.textContent=m[1];
+      frag.appendChild(b);pos=m.index+m[1].length;
+    }
+    if(pos<t.length)frag.appendChild(document.createTextNode(t.slice(pos)));
+    no.parentNode.replaceChild(frag,no);
+  }
+  return box.innerHTML;
+}
+function destacarNaNota(){
+  const ta=$("ne-texto");if(!ta)return;
+  let a=ta.selectionStart||0,b=ta.selectionEnd||0;const v=ta.value;
+  if(a===b){ // sem seleção: a palavra onde está o cursor
+    const L=/[\p{L}\p{N}\-]/u;while(a>0&&L.test(v[a-1]))a--;while(b<v.length&&L.test(v[b]))b++;
+  }
+  // não inclui espaços nas pontas
+  while(a<b&&/\s/.test(v[a]))a++;while(b>a&&/\s/.test(v[b-1]))b--;
+  const sel=v.slice(a,b);
+  if(!sel){toast("Selecione a palavra ou deixe o cursor nela.");return}
+  if(/\n/.test(sel)||sel.length>80){toast("Destaque palavras ou expressões curtas. Para trechos longos, use Conceito.");return}
+  const antes=v.slice(0,a),depois=v.slice(b);
+  if(antes.endsWith("[[")&&depois.startsWith("]]")){ // já destacada: tira o destaque
+    ta.value=antes.slice(0,-2)+sel+depois.slice(2);ta.setSelectionRange(a-2,b-2);
+  }else{
+    ta.value=antes+"[["+sel+"]]"+depois;ta.setSelectionRange(a+2,b+2);
+  }
+  ta.focus();
+  if(S.draft){S.draft.texto=ta.value;agendarNota()}
+}
+
+/* =====================================================================
    22. Cronômetro flutuante (visível em todas as telas e nos leitores)
    e legenda das cores sempre à mão
    ===================================================================== */
@@ -2875,6 +2931,7 @@ const ACOES={
   "oferta-fechar":()=>{const x=$("oferta-conceito");if(x)x.remove()},
   "tm-tipo":el=>trocarTipoTermo(el),
   "tm-salvar":el=>{salvarTermo(el).catch(()=>{})},
+  "nf-destacar":()=>destacarNaNota(),
   "nf-citar":el=>dialogoCitar(el.dataset.tipo),
   "ct-escolher":el=>escolherCitar(el),
   "ct-salvar":()=>{salvarCitar().catch(()=>{})},
@@ -2904,7 +2961,7 @@ const ACOES={
 function lerTrilhas(){return trilhas().map((t,i)=>{const g=id=>$(id)?$(id).value:null;return {id:t.id,nome:(g("tr-n-"+i)||t.nome).trim()||t.nome,curto:(g("tr-c-"+i)||t.curto||t.nome).trim(),cor:g("tr-cor-"+i)||t.cor}})}
 function salvarTrilhas(l,msg){const n=clone(cfg());n.trilhas=l;S.secAberta="trilhas";return salvarConfig(n,msg)}
 
-document.addEventListener("mousedown",e=>{if(e.target.closest(".materia .rd-bar button"))e.preventDefault()});
+document.addEventListener("mousedown",e=>{if(e.target.closest(".materia .rd-bar button,.nota-ferr button"))e.preventDefault()});
 document.addEventListener("click",e=>{
   const el=e.target.closest("[data-act]");if(!el)return;
   const fn=ACOES[el.dataset.act];if(fn)fn(el,e);
