@@ -46,7 +46,12 @@ const decodificar = (s: string) => s
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&amp;/g, "&").trim();
 const tag = (xml: string, nome: string) => { const m = xml.match(new RegExp("<" + nome + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + nome + ">", "i")); return m ? decodificar(m[1]) : ""; };
 const tags = (xml: string, nome: string) => [...xml.matchAll(new RegExp("<" + nome + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + nome + ">", "gi"))].map((m) => decodificar(m[1]));
-const textoPuro = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const ENT: Record<string, string> = { nbsp: " ", quot: '"', apos: "'", lt: "<", gt: ">", amp: "&", laquo: "«", raquo: "»", ndash: "–", mdash: "—", hellip: "…", ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’" };
+const entidades = (s: string) => s
+  .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+  .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+  .replace(/&([a-z]+);/gi, (m, n) => ENT[n.toLowerCase()] ?? m);
+const textoPuro = (html: string) => entidades(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 
 type Materia = { id: string; fonteId: string; titulo: string; link: string; data: string; secao: string; autor: string; resumo: string; imagem: string; conteudo: string };
 
@@ -67,8 +72,8 @@ async function emDefesa(existentes: Map<string, Existente>): Promise<Materia[]> 
     const cats = tags(it, "category").filter((c) => !/^recentes?$/i.test(c));
     const img = (it.match(/<media:content[^>]+url="([^"]+)"/i) || [])[1] || "";
     out.push({
-      id, fonteId: "edc", titulo: tag(it, "title"), link, data: dataISO(new Date(tag(it, "pubDate"))),
-      secao: cats.join(", "), autor: tag(it, "dc:creator"), resumo: textoPuro(tag(it, "description")).slice(0, 400),
+      id, fonteId: "edc", titulo: entidades(tag(it, "title")), link, data: dataISO(new Date(tag(it, "pubDate"))),
+      secao: entidades(cats.join(", ")), autor: entidades(tag(it, "dc:creator")), resumo: textoPuro(tag(it, "description")).slice(0, 400),
       imagem: /^https:\/\//.test(img) ? img : "", conteudo,
     });
     if (out.length >= MAX_NOVAS_POR_FONTE) break;

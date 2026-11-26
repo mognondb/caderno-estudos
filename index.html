@@ -157,6 +157,11 @@ select.st-pausado{border-style:dashed;color:var(--muted)}
 .book .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .book .full{grid-column:1/-1}
 .book .side{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+@media (max-width:600px){
+  .book{grid-template-columns:1fr}
+  .book .side{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+  .book .side>.row{flex-wrap:wrap}
+}
 .book.concluido .tt{text-decoration:line-through;text-decoration-color:var(--muted)}
 .prog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .prog .meter{flex:1;height:6px}
@@ -698,6 +703,11 @@ function aparicoes(c){
   const ciclos=[...new Set(ls.map(b=>b.etapa).filter(e=>e!=null&&e!==""))].sort((a,b)=>a-b);
   const trs=[...new Set(ls.map(b=>b.trilha).filter(Boolean))];
   return {textos:ls,ciclos,trilhas:trs};
+}
+function desentidade(s){
+  if(typeof s!=="string"||s.indexOf("&")<0)return s;
+  return s.replace(/&#x([0-9a-f]+);/gi,(m,h)=>String.fromCodePoint(parseInt(h,16))).replace(/&#(\d+);/g,(m,d)=>String.fromCodePoint(Number(d)))
+    .replace(/&(nbsp|quot|apos|lt|gt|amp|laquo|raquo|ndash|mdash|hellip|ldquo|rdquo|lsquo|rsquo);/g,(m,n)=>({nbsp:" ",quot:'"',apos:"'",lt:"<",gt:">",amp:"&",laquo:"«",raquo:"»",ndash:"–",mdash:"—",hellip:"…",ldquo:"“",rdquo:"”",lsquo:"‘",rsquo:"’"})[n]);
 }
 const HASH_ANTIGO={livros:["biblioteca","textos"],topicos:["biblioteca","topicos"],fichamentos:["caderno","fichamentos"],sinteses:["caderno","sinteses"],conceitos:["caderno","conceitos"]};
 
@@ -3032,7 +3042,7 @@ async function iniciar(){
   const lento=setTimeout(()=>{S.slow=true;S.ready=true;render()},10000);
   const pronto=()=>{if(!S.ready&&S.loaded.cfg&&S.loaded.livros&&S.loaded.notas){S.ready=true;S.slow=false;clearTimeout(lento)}agendarRender()};
   const falha=e=>{if(e&&e.code==="revoked")S.offline=true;S.ready=true;clearTimeout(lento);render()};
-  const ouvir=(col,chave)=>db.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({id:d.id,...d.data()}));if(col==="artigos"){S.artigosTodos=S.artigos;S.artigos=S.artigos.filter(a=>a.status!=="descartado")}if(chave&&(!snap.metadata.fromCache||snap.size))S.loaded[chave]=true;pronto()},chave?falha:()=>{});
+  const ouvir=(col,chave)=>db.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({id:d.id,...d.data()}));if(col==="artigos"){S.artigos.forEach(a=>{for(const k of ["titulo","resumo","autor","secao"])if(typeof a[k]==="string"&&a[k].indexOf("&")>=0)a[k]=desentidade(a[k])});S.artigosTodos=S.artigos;S.artigos=S.artigos.filter(a=>a.status!=="descartado")}if(chave&&(!snap.metadata.fromCache||snap.size))S.loaded[chave]=true;pronto()},chave?falha:()=>{});
   db.doc("plano/config").onSnapshot(snap=>{S.cfg=snap.exists?snap.data():null;if(!snap.metadata.fromCache||S.cfg)S.loaded.cfg=true;pronto()},falha);
   ouvir("livros","livros");ouvir("notas","notas");ouvir("topicos");ouvir("conceitos");ouvir("sessoes");ouvir("artigos");
   S.weekStart=null;irParaSemana(mondayOf(new Date()));
