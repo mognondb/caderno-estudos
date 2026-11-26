@@ -2066,7 +2066,7 @@ function talvezAtualizarImprensa(){
 /* ---------- seção do Hoje: notícias do dia ---------- */
 function linhaImprensa(a){
   const lk=linkSeguro(a.link),lida=a.status==="lido";
-  return '<div class="strip'+(lida?" done":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":"var(--t-c6)")+';align-items:center"><div class="body"><div class="tt"'+(lida?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
+  return '<div class="strip'+(lida?" done":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":"var(--t-c6)")+';align-items:center"><div class="body"><div class="tt"'+(lida?' style="font-weight:400"':'')+'>'+(a.prioridade&&!lida?'⭐ ':'')+esc(a.titulo)+'</div>'
    +'<div class="sub">'+[a.secao?esc(a.secao):"",a.data?fmtDM(parseISO(a.data)):""].filter(Boolean).join(" · ")+(lida?'':a.status==="lendo"?' <span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':' <span class="pill hot">Nova</span>')+'</div></div>'
    +'<div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir</a>':''))+'</div></div>';
 }
@@ -2074,11 +2074,16 @@ function imprensaDoDia(){
   talvezAtualizarImprensa();
   if(!S.artigos.length&&!window.cadernoImprensa)return "";
   const hoje=iso(new Date()),porData=(a,b)=>String(b.data||"").localeCompare(String(a.data||""))||String(b.criado||"").localeCompare(String(a.criado||""));
+  // Prioridades: ficam no topo até serem lidas
+  const prio=S.artigos.filter(a=>a.prioridade&&a.status!=="lido").sort(porData),idsPrio=new Set(prio.map(a=>a.id));
   // De cada fonte: todas as matérias de hoje; se não houver, a última ainda não lida.
-  const daFonte=f=>{const l=S.artigos.filter(a=>a.fonteId===f).sort(porData),dh=l.filter(a=>a.data===hoje);
-    if(dh.length)return {rot:"hoje",l:dh};const nl=l.find(a=>a.status!=="lido");return {rot:"última não lida",l:nl?[nl]:[]}};
-  const fu=daFonte("ofuturo"),ed=daFonte("edc");
+  // Em Defesa do Comunismo: além das de hoje, sempre a última não lida.
+  const daFonte=(f,sempreNaoLida)=>{const l=S.artigos.filter(a=>a.fonteId===f&&!idsPrio.has(a.id)).sort(porData),dh=l.filter(a=>a.data===hoje),nl=l.find(a=>a.status!=="lido");
+    if(dh.length){const extra=sempreNaoLida&&nl&&!dh.includes(nl)?[nl]:[];return {rot:extra.length?"hoje e a última não lida":"hoje",l:[...dh,...extra]}}
+    return {rot:"última não lida",l:nl?[nl]:[]}};
+  const fu=daFonte("ofuturo",false),ed=daFonte("edc",true);
   let h='<section class="card"><div class="spread"><h2>Imprensa</h2><a class="btn sm ghost" href="#biblioteca" data-act="bib-aba" data-tab="imprensa">Ver tudo ›</a></div>';
+  if(prio.length)h+='<div class="small muted">⭐ Prioridades</div>'+prio.map(linhaImprensa).join("");
   [["O Futuro",fu],["Em Defesa do Comunismo",ed]].forEach(([nome,x])=>{
     h+='<div class="small muted">'+nome+(x.l.length?' · '+x.rot:'')+'</div>'
       +(x.l.length?x.l.map(linhaImprensa).join(""):'<p class="small muted" style="margin:0">'+(S.impRodando?"Buscando…":"Nada novo: nenhuma matéria de hoje e nada por ler.")+'</p>');
@@ -2101,7 +2106,7 @@ function telaImprensa(){
     const nn=S.notas.filter(n=>n.artigoId===a.id).length,lk=linkSeguro(a.link);
     if(a.status==="descartado")return '<article class="book lido" style="--c:var(--muted)"><div><div class="tt" style="font-weight:400">'+esc(a.titulo)+'</div><div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.descartadoEm?' · descartada em '+fmtDM(new Date(a.descartadoEm)):'')+'</div></div>'
       +'<div class="side"><div class="row">'+(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm" data-act="artigo-restaurar" data-id="'+a.id+'">Restaurar</button></div></div></article>';
-    return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+esc(a.titulo)+'</div>'
+    return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+(a.prioridade&&a.status!=="lido"?'⭐ ':'')+esc(a.titulo)+'</div>'
       +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
       +'<div class="meta" style="margin-top:4px">'+(a.status==="lendo"?'<span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+pillsTopicos(a)+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
       +'<div class="side"><div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
@@ -2116,6 +2121,7 @@ function menuArtigo(id){
     ["artigo-lido",a.status==="lido"?"Marcar como não lida":"Marcar como lida",attr({id})],
     ["artigo-salvar",a.salvo?"Tirar dos salvos":"Salvar para depois",attr({id})],
     ["artigo-anotar","Anotar ou fichar",attr({id})],
+    ["artigo-prioridade",a.prioridade?"Tirar da prioridade":"⭐ Marcar como prioridade",attr({id})],
     ["gt-abrir",topicosDoTexto(a).length?"Guardar em tópicos ("+topicosDoTexto(a).length+")":"Guardar em tópico",attr({id})],
     nn&&["artigo-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
     ["artigo-descartar","Descartar (não é relevante)",attr({id}),"danger"]
@@ -2210,7 +2216,7 @@ function abrirMateria(id){
   $("reader-root").innerHTML='<div class="reader materia" role="dialog" aria-label="Leitor de matéria"><div class="rd-bar">'
    +'<button class="btn sm" data-act="rd-fechar">‹ Fechar</button><span class="rd-title">'+esc(a.titulo)+'</span>'
    +'<div class="row" role="group" aria-label="Marcar o trecho selecionado">'+Object.keys(CORES_AN).map(k=>'<button class="swl" data-act="mt-marcar" data-cor="'+k+'" title="Marcar como '+esc(lg[k])+'" aria-label="Marcar como '+esc(lg[k])+'"><span class="dot" style="background:'+CORES_AN[k]+'"></span><span class="swl-t">'+esc(lg[k])+'</span></button>').join("")+'</div>'
-   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="gt-abrir" data-id="'+a.id+'">📁 Tópico</button><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
+   +'<button class="btn sm" data-act="rd-conceito">+ Conceito</button><button class="btn sm" data-act="rd-nome">+ Nome</button><span class="so-largo"><button class="btn sm" data-act="artigo-prioridade" data-id="'+a.id+'" aria-pressed="'+!!a.prioridade+'" title="Prioridade: fica no Hoje até ser lida">'+(a.prioridade?"⭐ Prioridade":"☆ Prioridade")+'</button><button class="btn sm" data-act="gt-abrir" data-id="'+a.id+'">📁 Tópico</button><button class="btn sm" data-act="mt-fichar">Fichar</button><button class="btn sm" data-act="mt-lateral" id="mt-notas-btn">Marcações</button>'
    +(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm ghost danger" data-act="mt-descartar" title="Não é relevante: tirar das listas">Descartar</button></span><button class="btn sm so-estreito" data-act="mt-mais" aria-label="Mais ações">⋯</button></div>'
    +'<div class="rd-body"><div class="rd-scroll" id="rd-scroll"><article class="mt-texto"><header class="mt-cab"><div class="small muted">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.secao?' · '+esc(a.secao):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.autor?' · '+esc(a.autor):'')+'</div><h1>'+esc(a.titulo)+'</h1>'+(a.resumo?'<p class="mt-fina">'+esc(a.resumo)+'</p>':'')+'</header>'
    +'<div id="mt-corpo"></div><div id="mt-fim" class="mt-fim"></div><p class="small muted mt-dica">Para marcar: selecione um trecho e toque numa cor. Toque numa marcação para escrever uma nota, mudar a cor ou apagar.</p></article></div><aside class="rd-side" id="mt-side" hidden></aside></div></div>';
@@ -2852,9 +2858,10 @@ const ACOES={
   "lt-salvar":el=>{salvarLigarTexto(el.dataset.id).catch(()=>{})},
   "tp-ligado-menu":el=>menuLigado(el.dataset.id,el.dataset.tp),
   "tp-tirar":el=>confirmar(el,"Confirmar",()=>{fecharModal();tirarDoTopico(el.dataset.tp,el.dataset.id).catch(()=>{})}),
+  "artigo-prioridade":el=>{fecharModal();const a=artigo(el.dataset.id||R.livroId);if(!a)return;const p=!a.prioridade;save("artigos/"+a.id,{...strip(a),prioridade:p}).then(()=>toast(p?"Marcada como prioridade: fica no Hoje até ser lida.":"Tirada da prioridade.")).catch(()=>{})},
   "mt-concluir":()=>concluirMateria(false),
   "mt-reabrir":()=>reabrirMateria(),
-  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["gt-abrir","Guardar em tópico",attr({id:R.livroId})],["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
+  "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["artigo-prioridade",a&&a.prioridade?"Tirar da prioridade":"⭐ Marcar como prioridade",attr({id:R.livroId})],["gt-abrir","Guardar em tópico",attr({id:R.livroId})],["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
   "mt-site":()=>{fecharModal();const a=artigo(R.livroId),lk=a&&linkSeguro(a.link);if(lk)window.open(lk,"_blank","noopener")},
   "mt-fichar":()=>{fecharModal();ficharMateria()},
   "imp-atualizar":()=>atualizarImprensa(true),
