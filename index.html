@@ -1729,6 +1729,12 @@ function pedirPdf(alvo){
 }
 /* descobre título e autor no próprio PDF: primeiro os metadados; se forem lixo (nome de arquivo,
    código, "Microsoft Word - ..."), o texto em letra maior no alto da primeira página */
+function nomeDeArquivoLimpo(n){
+  let t=String(n||"").replace(/\.pdf$/i,"");try{t=decodeURIComponent(t)}catch(e){}
+  t=t.replace(/[+_]+/g," ").replace(/\s*-\s*/g," - ").replace(/\s+/g," ").trim();
+  t=t.replace(/^[a-z]{2,8}[,;]\s*/,""); // prefixos curtos de repositório ("contri, ...")
+  return t?t.charAt(0).toUpperCase()+t.slice(1):"Texto sem título";
+}
 const pareceCodigo=t=>{t=String(t||"").trim();return !t||t.length<3||/^[\w\-.]+$/.test(t)&&!/\s/.test(t)&&(/\d{3,}|[_]|\.(pdf|docx?|odt)$/i.test(t)||t.length>18)||/^(microsoft (word|powerpoint)|untitled|sem t[ií]tulo|documento\d*|scan|img)/i.test(t)||/\.(pdf|docx?|odt|indd|qxd)$/i.test(t)};
 async function lerTituloDoPdf(file){
   const out={titulo:"",autor:""};
@@ -1741,10 +1747,11 @@ async function lerTituloDoPdf(file){
     }catch(e){}
     if(!out.titulo){
       const pg=await pdf.getPage(1),vp=pg.getViewport({scale:1}),tc=await pg.getTextContent();
-      const itens=tc.items.filter(x=>x.str&&x.str.trim()).map(x=>({s:x.str,t:Math.round(Math.hypot(x.transform[2],x.transform[3])*10)/10,y:x.transform[5]})).filter(x=>x.y>vp.height*0.35);
+      const itens=linhasDaPagina(tc,1).map(l=>({s:l.t,t:Math.round(l.h*10)/10,y:l.y})).filter(x=>x.y>vp.height*0.35);
       if(itens.length){
         const max=Math.max(...itens.map(x=>x.t)),tams=itens.map(x=>x.t).sort((a,b)=>a-b),mediana=tams[Math.floor(tams.length/2)];
-        const grandes=max>=mediana*1.25?itens.filter(x=>x.t>=max*0.92).sort((a,b)=>b.y-a.y):[];
+        const todos=max>=mediana*1.25?itens.filter(x=>x.t>=max*0.92).sort((a,b)=>b.y-a.y):[],grandes=[];
+        for(const x of todos){const u=grandes[grandes.length-1];if(u&&u.y-x.y>x.t*2.4)break;grandes.push(x)} // só o primeiro bloco contínuo
         const t=grandes.map(x=>x.s).join(" ").replace(/\s+/g," ").trim().replace(/-\s+(?=[a-zà-ú])/g,"");
         if(t.length>=3&&!pareceCodigo(t))out.titulo=t.length>160?t.slice(0,160).replace(/\s+\S*$/,"")+"…":t;
       }
@@ -1783,7 +1790,7 @@ async function importarPdf(file){
       const tp=topico(alvo.topico);if(!tp)return;
       const lendo=S.livros.some(x=>x.topicoId===tp.id&&x.status==="lendo");
       const info=await lerTituloDoPdf(file),nid=novoId("livros");
-      await save("livros/"+nid,{titulo:info.titulo||file.name.replace(/\.pdf$/i,"").replace(/[_]+/g," "),autor:info.autor||"",trilha:topTrilha(tp),etapa:etapaAtual(),mes:null,status:lendo?"fila":"lendo",tipo:"principal",foco:"",topicoId:tp.id,pdfId:r.id,pdfNome:file.name,ordem:Math.max(0,...S.livros.map(x=>Number(x.ordem)||0))+10,paginasLidas:null,paginasTotal:null});
+      await save("livros/"+nid,{titulo:info.titulo||nomeDeArquivoLimpo(file.name),autor:info.autor||"",trilha:topTrilha(tp),etapa:etapaAtual(),mes:null,status:lendo?"fila":"lendo",tipo:"principal",foco:"",topicoId:tp.id,pdfId:r.id,pdfNome:file.name,ordem:Math.max(0,...S.livros.map(x=>Number(x.ordem)||0))+10,paginasLidas:null,paginasTotal:null});
       dialogoTituloAutor(nid,info.titulo?"Encontrei este título no PDF. Confira e, se quiser, ajuste.":"Não encontrei o título dentro do PDF. Escreva o título e o autor.",true);
     }
   }catch(e){}
@@ -2838,6 +2845,56 @@ function pintarFlutuante(){
    ===================================================================== */
 const PARTE_MAX=180000;
 const CONV={rodando:{}};
+/* agrupa os pedaços de texto de uma página em linhas, descartando cópias sobrepostas
+   (PDFs que imitam negrito ou sombra desenhando o mesmo texto duas ou mais vezes) */
+function linhasDaPagina(tc,n){
+  const itens=tc.items.filter(x=>x.str&&x.str.trim()).map(x=>({s:x.str,x:x.transform[4],y:x.transform[5],h:Math.hypot(x.transform[2],x.transform[3])||10,w:x.width||0}));
+  // 1) cópias idênticas no mesmo lugar
+  const vistos=new Set(),unicos=[];
+  for(const it of itens){const k=it.s.trim()+"|"+Math.round(it.x/2)+"|"+Math.round(it.y/2);if(vistos.has(k))continue;vistos.add(k);unicos.push(it)}
+  // 2) agrupar por altura (linhas)
+  unicos.sort((a,b)=>b.y-a.y);
+  const grupos=[];
+  for(const it of unicos){const g=grupos.find(g=>Math.abs(g.y-it.y)<Math.max(g.h,it.h)*0.5);if(g){g.itens.push(it);g.h=Math.max(g.h,it.h)}else grupos.push({y:it.y,h:it.h,itens:[it]})}
+  // 3) em cada linha, da esquerda para a direita, pulando o que cai em cima do que já foi escrito;
+  //    um vão largo separa pedaços (colunas)
+  const segs=[],porGrupo=[];
+  for(const g of grupos){
+    g.itens.sort((a,b)=>a.x-b.x||b.w-a.w);
+    let seg=null,x1=-1e9;const meus=[];
+    for(const it of g.itens){
+      const fim=it.x+it.w,tol=it.h*0.3;let s=it.s;
+      if(it.w>0&&it.x<x1-tol){
+        if(fim<=x1+tol)continue;
+        const frac=(fim-x1)/it.w;s=it.s.slice(Math.max(0,Math.round(it.s.length*(1-frac))));
+        if(s.trim().length<2)continue;
+        seg.t+=s;seg.x1=x1=fim;continue;
+      }
+      if(!seg||it.x-x1>Math.max(it.h,g.h)*1.2){seg={t:"",y:g.y,x0:it.x,x1:fim,h:g.h,p:n};meus.push(seg)}
+      seg.t+=(seg.t&&it.x-x1>it.h*0.15&&!/\s$/.test(seg.t)&&!/^\s/.test(s)?" ":"")+s;seg.x1=x1=Math.max(x1,fim);
+    }
+    const ok=meus.filter(s=>s.t.trim());segs.push(...ok);porGrupo.push(ok);
+  }
+  // 4) duas colunas? procura um corredor vertical que quase nada atravessa
+  let corte=null;
+  if(segs.length>=10){
+    const L=Math.min(...segs.map(s=>s.x0)),R=Math.max(...segs.map(s=>s.x1)),w=R-L;let melhor=null;
+    for(let x=L+w*0.3;x<=L+w*0.7;x+=1){
+      let cruz=0,esq=0,dir=0;
+      for(const s of segs){if(s.x1<=x)esq++;else if(s.x0>=x)dir++;else cruz++}
+      if(esq>=Math.max(4,segs.length*0.2)&&dir>=Math.max(4,segs.length*0.2)&&(!melhor||cruz<melhor.cruz))melhor={x,cruz};
+    }
+    if(melhor&&melhor.cruz<=segs.length*0.25)corte=melhor.x;
+  }
+  if(corte===null)return porGrupo.filter(a=>a.length).map(a=>({t:a.map(s=>s.t).join(" "),y:a[0].y,x0:a[0].x0,x1:a[a.length-1].x1,h:a[0].h,p:n}));
+  // lê a coluna da esquerda inteira, depois a da direita; o que atravessa (título largo) separa os blocos
+  const esqMin=Math.min(...segs.filter(s=>s.x1<=corte).map(s=>s.x0)),dirMin=Math.min(...segs.filter(s=>s.x0>=corte).map(s=>s.x0)),desl=dirMin-esqMin;
+  const linhas=[];let E=[],D=[];
+  const soltar=()=>{linhas.push(...E,...D.map(s=>({...s,x0:s.x0-desl,x1:s.x1-desl})));E=[];D=[]};
+  for(const s of segs){if(s.x1<=corte)E.push(s);else if(s.x0>=corte)D.push(s);else{soltar();linhas.push(s)}}
+  soltar();
+  return linhas;
+}
 
 async function lerPartesTexto(id){
   if(S.db&&S.db.lerPrefixo)return (await S.db.lerPrefixo("conteudos",id+"__")).sort((a,b)=>Number(a.id.split("__")[1])-Number(b.id.split("__")[1])).map(x=>x.data.html||"").join("");
@@ -2856,17 +2913,7 @@ async function extrairTextoDoPdf(buf,aoAvancar){
   const L=await carregarPdfjs(),pdf=await L.getDocument({data:new Uint8Array(buf)}).promise,N=pdf.numPages,paginas=[];
   for(let n=1;n<=N;n++){
     const pg=await pdf.getPage(n),vp=pg.getViewport({scale:1}),tc=await pg.getTextContent();
-    const itens=tc.items.filter(x=>x.str!==undefined).map(x=>({s:x.str,x:x.transform[4],y:x.transform[5],h:Math.hypot(x.transform[2],x.transform[3])||10,w:x.width||0})).filter(x=>x.s.trim()||x.s===" ");
-    itens.sort((a,b)=>b.y-a.y||a.x-b.x);
-    const linhas=[];
-    for(const it of itens){
-      if(!it.s.trim())continue;
-      const l=linhas.length?linhas[linhas.length-1]:null;
-      if(l&&Math.abs(l.y-it.y)<Math.max(l.h,it.h)*0.5){
-        const gap=it.x-l.x1;
-        l.t+=(gap>it.h*0.15&&!/\s$/.test(l.t)&&!/^\s/.test(it.s)?" ":"")+it.s;l.x1=Math.max(l.x1,it.x+it.w);l.h=Math.max(l.h,it.h);
-      }else linhas.push({t:it.s,y:it.y,x0:it.x,x1:it.x+it.w,h:it.h,p:n});
-    }
+    const linhas=linhasDaPagina(tc,n);
     linhas.forEach(l=>{l.t=l.t.replace(/\s+/g," ").trim();l.h=Math.round(l.h*2)/2});
     paginas.push({n,linhas:linhas.filter(l=>l.t),alt:vp.height,larg:vp.width});
     try{pg.cleanup()}catch(e){}
