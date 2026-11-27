@@ -1455,7 +1455,8 @@ function menuLivro(id){
     ["anotar-livro","Anotar",attr({id})],
     nn&&["livro-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
     ["gt-abrir",topicosDoTexto(b).length?"Guardar em tópicos ("+topicosDoTexto(b).length+")":"Guardar em tópico",attr({id})],
-    ["livro-editar","Editar",attr({id})],
+    ["ta-abrir","Título e autor",attr({id})],
+    ["livro-editar","Editar tudo",attr({id})],
     ["livro-subir","Subir na ordem",attr({id})],
     ["livro-descer","Descer na ordem",attr({id})],
     ["livro-excluir","Excluir",attr({id}),"danger"]
@@ -1710,6 +1711,46 @@ function pedirPdf(alvo){
   if(!S.assets){toast("Importar arquivos não está disponível agora. Recarregue a página.");return}
   S.pdfTarget=alvo;const inp=$("pdf-input");inp.value="";inp.click();
 }
+/* descobre título e autor no próprio PDF: primeiro os metadados; se forem lixo (nome de arquivo,
+   código, "Microsoft Word - ..."), o texto em letra maior no alto da primeira página */
+const pareceCodigo=t=>{t=String(t||"").trim();return !t||t.length<3||/^[\w\-.]+$/.test(t)&&!/\s/.test(t)&&(/\d{3,}|[_]|\.(pdf|docx?|odt)$/i.test(t)||t.length>18)||/^(microsoft (word|powerpoint)|untitled|sem t[ií]tulo|documento\d*|scan|img)/i.test(t)||/\.(pdf|docx?|odt|indd|qxd)$/i.test(t)};
+async function lerTituloDoPdf(file){
+  const out={titulo:"",autor:""};
+  try{
+    const L=await carregarPdfjs(),buf=await file.arrayBuffer(),pdf=await L.getDocument({data:new Uint8Array(buf)}).promise;
+    try{const m=await pdf.getMetadata(),i=(m&&m.info)||{};
+      const t=String(i.Title||"").replace(/\s+/g," ").trim(),a=String(i.Author||"").replace(/\s+/g," ").trim();
+      if(!pareceCodigo(t))out.titulo=t;
+      if(a&&!/^(user|usu[aá]rio|admin|owner|microsoft|adobe|windows|pc|hp|dell)\b/i.test(a)&&a.length<120&&!/^[\w.-]+$/.test(a)||/\s/.test(a)&&a.length<120)out.autor=a;
+    }catch(e){}
+    if(!out.titulo){
+      const pg=await pdf.getPage(1),vp=pg.getViewport({scale:1}),tc=await pg.getTextContent();
+      const itens=tc.items.filter(x=>x.str&&x.str.trim()).map(x=>({s:x.str,t:Math.round(Math.hypot(x.transform[2],x.transform[3])*10)/10,y:x.transform[5]})).filter(x=>x.y>vp.height*0.35);
+      if(itens.length){
+        const max=Math.max(...itens.map(x=>x.t)),tams=itens.map(x=>x.t).sort((a,b)=>a-b),mediana=tams[Math.floor(tams.length/2)];
+        const grandes=max>=mediana*1.25?itens.filter(x=>x.t>=max*0.92).sort((a,b)=>b.y-a.y):[];
+        const t=grandes.map(x=>x.s).join(" ").replace(/\s+/g," ").trim().replace(/-\s+(?=[a-zà-ú])/g,"");
+        if(t.length>=3&&!pareceCodigo(t))out.titulo=t.length>160?t.slice(0,160).replace(/\s+\S*$/,"")+"…":t;
+      }
+    }
+    try{pdf.destroy()}catch(e){}
+  }catch(e){}
+  if(out.titulo&&out.titulo===out.titulo.toUpperCase()&&/[A-ZÀ-Ú]{4}/.test(out.titulo))out.titulo=out.titulo.toLowerCase().replace(/(^|[\s(“"'—–-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/\b(De|Da|Do|Das|Dos|E|Em|Na|No|Nas|Nos|A|O|As|Os|Para|Por|Com|Sobre)\b/g,(m,i,o)=>o===0?m:m.toLowerCase());
+  return out;
+}
+/* janela rápida: título e autor(es) de um texto */
+function dialogoTituloAutor(id,aviso){
+  const it=itemDeLeitura(id);if(!it)return;const b=it.x,col=it.col;
+  abrirModal('<form class="dialog" id="ta-form" aria-labelledby="ta-h"><h2 id="ta-h">Título e autor</h2>'+(aviso?'<p class="small muted" style="margin-top:-4px">'+aviso+'</p>':'')
+   +'<label class="f">Título<input type="text" id="ta-titulo" value="'+esc(b.titulo||"")+'" required></label>'
+   +'<label class="f">Autor ou autores<input type="text" id="ta-autor" value="'+esc(b.autor||"")+'" placeholder="Ex.: Marx e Engels; Paulani, L."></label>'
+   +(b.pdfNome?'<p class="small muted">Arquivo: '+esc(b.pdfNome)+'</p>':'')
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">'+(aviso?"Manter assim":"Cancelar")+'</button><button type="submit" class="btn primary">Salvar</button></div></form>');
+  const f=$("ta-form");
+  f.addEventListener("submit",ev=>{ev.preventDefault();const t=$("ta-titulo").value.trim();if(!t){toast("Dê um título.");return}
+    const x=(itemDeLeitura(id)||{}).x;if(!x)return;save(col+"/"+id,{...strip(x),titulo:t,autor:$("ta-autor").value.trim()}).then(()=>{fecharModal();toast("Texto atualizado.")}).catch(()=>{})});
+  const i=$("ta-titulo");if(i){i.focus();i.select()}
+}
 async function importarPdf(file){
   const alvo=S.pdfTarget;S.pdfTarget=null;if(!file||!alvo)return;
   if(!/pdf$/i.test(file.type)&&!/\.pdf$/i.test(file.name)){toast("Escolha um arquivo PDF.");return}
@@ -1724,8 +1765,9 @@ async function importarPdf(file){
     else if(alvo.topico){
       const tp=topico(alvo.topico);if(!tp)return;
       const lendo=S.livros.some(x=>x.topicoId===tp.id&&x.status==="lendo");
-      await save("livros/"+novoId("livros"),{titulo:file.name.replace(/\.pdf$/i,""),autor:"",trilha:topTrilha(tp),etapa:etapaAtual(),mes:null,status:lendo?"fila":"lendo",tipo:"principal",foco:"",topicoId:tp.id,pdfId:r.id,pdfNome:file.name,ordem:Math.max(0,...S.livros.map(x=>Number(x.ordem)||0))+10,paginasLidas:null,paginasTotal:null});
-      toast("PDF importado para o tópico. Para mudar o título, use ⋯ › Editar.");
+      const info=await lerTituloDoPdf(file),nid=novoId("livros");
+      await save("livros/"+nid,{titulo:info.titulo||file.name.replace(/\.pdf$/i,"").replace(/[_]+/g," "),autor:info.autor||"",trilha:topTrilha(tp),etapa:etapaAtual(),mes:null,status:lendo?"fila":"lendo",tipo:"principal",foco:"",topicoId:tp.id,pdfId:r.id,pdfNome:file.name,ordem:Math.max(0,...S.livros.map(x=>Number(x.ordem)||0))+10,paginasLidas:null,paginasTotal:null});
+      dialogoTituloAutor(nid,info.titulo?"Encontrei este título no PDF. Confira e, se quiser, ajuste.":"Não encontrei o título dentro do PDF. Escreva o título e o autor.");
     }
   }catch(e){}
 }
@@ -2126,7 +2168,7 @@ function telaImprensa(){
     if(a.status==="descartado")return '<article class="book lido" style="--c:var(--muted)"><div><div class="tt" style="font-weight:400">'+esc(a.titulo)+'</div><div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.descartadoEm?' · descartada em '+fmtDM(new Date(a.descartadoEm)):'')+'</div></div>'
       +'<div class="side"><div class="row">'+(lk?'<a class="btn sm ghost" href="'+esc(lk)+'" target="_blank" rel="noopener">Abrir no site</a>':'')+'<button class="btn sm" data-act="artigo-restaurar" data-id="'+a.id+'">Restaurar</button></div></div></article>';
     return '<article class="book'+(a.status==="lido"?" lido":"")+'" style="--c:'+(a.fonteId==="edc"?"var(--t-c7)":a.fonteId==="ofuturo"?"var(--t-c6)":"var(--muted)")+'"><div><div class="tt"'+(a.status==="lido"?' style="font-weight:400"':'')+'>'+(a.prioridade&&a.status!=="lido"?'⭐ ':'')+esc(a.titulo)+'</div>'
-      +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
+      +'<div class="sub">'+esc((FONTES[a.fonteId]||FONTES.outra).nome)+(a.autor?' · '+esc(a.autor):'')+(a.data?' · '+fmtDM(parseISO(a.data)):'')+(a.secao?' · '+esc(a.secao):'')+'</div>'+(a.resumo?'<div class="sub" style="margin-top:2px">'+esc(a.resumo.length>180?a.resumo.slice(0,180)+"…":a.resumo)+'</div>':'')
       +'<div class="meta" style="margin-top:4px">'+(a.status==="lendo"?'<span class="pill">Em leitura'+(a.progresso>0.02?' · '+Math.round(a.progresso*100)+'%':'')+'</span>':a.status!=="lido"?'<span class="pill hot">Nova</span>':'')+(a.salvo?'<span class="pill soft">Salva</span>':'')+pillsTopicos(a)+(nn?'<span class="pill">'+plural(nn,"anotação","anotações")+'</span>':'')+(a.pdfId?'<span class="pill">PDF</span>':'')+'</div></div>'
       +'<div class="side"><div class="row">'+(a.conteudo||a.pdfId?'<button class="btn sm primary" data-act="ler" data-id="'+a.id+'">'+(a.status==="lendo"?"Continuar":"Ler")+'</button>':'')+(lk?'<a class="btn sm" href="'+esc(lk)+'" target="_blank" rel="noopener" data-act="artigo-site" data-id="'+a.id+'">Abrir no site</a>':'')
       +'<button class="btn more ghost" data-act="artigo-menu" data-id="'+a.id+'" aria-label="Mais ações">⋯</button></div></div></article>';
@@ -2140,6 +2182,7 @@ function menuArtigo(id){
     ["artigo-lido",a.status==="lido"?"Marcar como não lida":"Marcar como lida",attr({id})],
     ["artigo-salvar",a.salvo?"Tirar dos salvos":"Salvar para depois",attr({id})],
     ["artigo-anotar","Anotar ou fichar",attr({id})],
+    ["ta-abrir","Título e autor",attr({id})],
     ["artigo-prioridade",a.prioridade?"Tirar da prioridade":"⭐ Marcar como prioridade",attr({id})],
     ["gt-abrir",topicosDoTexto(a).length?"Guardar em tópicos ("+topicosDoTexto(a).length+")":"Guardar em tópico",attr({id})],
     nn&&["artigo-notas","Ver "+plural(nn,"anotação","anotações"),attr({id})],
@@ -2148,13 +2191,13 @@ function menuArtigo(id){
 }
 function dialogoArtigo(){
   abrirModal('<form class="dialog" id="artigo-form" aria-labelledby="ar-h"><h2 id="ar-h">Adicionar matéria</h2><p class="small muted">Para uma matéria de outro portal ou uma que a atualização automática não trouxe.</p>'
-   +'<label class="f">Título<input type="text" id="ar-titulo" required></label><label class="f">Link (https://…)<input type="text" id="ar-link" placeholder="https://"></label>'
+   +'<label class="f">Título<input type="text" id="ar-titulo" required></label><label class="f">Autor ou autores<input type="text" id="ar-autor" placeholder="Opcional"></label><label class="f">Link (https://…)<input type="text" id="ar-link" placeholder="https://"></label>'
    +'<div class="grid"><label class="f">Fonte<select id="ar-fonte">'+Object.keys(FONTES).map(k=>'<option value="'+k+'">'+FONTES[k].nome+'</option>').join("")+'</select></label><label class="f">Data<input type="date" id="ar-data" value="'+iso(new Date())+'"></label></div>'
    +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Adicionar</button></div></form>');
   $("artigo-form").addEventListener("submit",ev=>{
     ev.preventDefault();const t=$("ar-titulo").value.trim(),l=$("ar-link").value.trim();
     if(!t){toast("Dê um título.");return}if(l&&!linkSeguro(l)){toast("O link precisa começar com https://");return}
-    save("artigos/"+novoId("artigos"),{fonteId:$("ar-fonte").value,titulo:t,link:l,data:$("ar-data").value,secao:"",status:"novo",salvo:false,criado:new Date().toISOString()}).then(()=>{fecharModal();toast("Matéria adicionada.")}).catch(()=>{});
+    save("artigos/"+novoId("artigos"),{fonteId:$("ar-fonte").value,titulo:t,autor:$("ar-autor").value.trim(),link:l,data:$("ar-data").value,secao:"",status:"novo",salvo:false,criado:new Date().toISOString()}).then(()=>{fecharModal();toast("Matéria adicionada.")}).catch(()=>{});
   });
 }
 /* Descartar: some das listas, libera o texto e as marcações, mas guarda título e link
@@ -2878,6 +2921,7 @@ const ACOES={
   "tp-ligado-menu":el=>menuLigado(el.dataset.id,el.dataset.tp),
   "tp-tirar":el=>confirmar(el,"Confirmar",()=>{fecharModal();tirarDoTopico(el.dataset.tp,el.dataset.id).catch(()=>{})}),
   "artigo-prioridade":el=>{fecharModal();const a=artigo(el.dataset.id||R.livroId);if(!a)return;const p=!a.prioridade;save("artigos/"+a.id,{...strip(a),prioridade:p}).then(()=>toast(p?"Marcada como prioridade: fica no Hoje até ser lida.":"Tirada da prioridade.")).catch(()=>{})},
+  "ta-abrir":el=>{fecharModal();dialogoTituloAutor(el.dataset.id)},
   "mt-concluir":()=>concluirMateria(false),
   "mt-reabrir":()=>reabrirMateria(),
   "mt-mais":()=>{const a=artigo(R.livroId);menu(a?a.titulo:"Matéria",[["artigo-prioridade",a&&a.prioridade?"Tirar da prioridade":"⭐ Marcar como prioridade",attr({id:R.livroId})],["gt-abrir","Guardar em tópico",attr({id:R.livroId})],["mt-fichar","Criar fichamento com as marcações",""],["mt-lateral","Ver marcações",""],a&&linkSeguro(a.link)&&["mt-site","Abrir no site",""],["mt-descartar","Descartar (não é relevante)","","danger"]])},
