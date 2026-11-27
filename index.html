@@ -1946,6 +1946,15 @@ function registrarSessao(min){
   save("sessoes/"+novoId("sessoes"),{data:iso(agora),inicio:new Date(agora.getTime()-min*60000).toISOString(),minutos:min,trilha:a.trilha||"",livroId:a.livroId||"",topicoId:a.topicoId||"",rotulo:a.rotulo||""}).catch(()=>{});
 }
 function minutosCronometrados(ws){const ini=iso(ws),fim=iso(addDays(ws,6));return S.sessoes.filter(x=>x.data>=ini&&x.data<=fim).reduce((s,x)=>s+(Number(x.minutos)||0),0)}
+/* início do plano: a semana em que os estudos começaram (o ciclo 1, a primeira sessão registrada
+   ou o ajuste de “Plano”); semanas anteriores não entram no histórico */
+function inicioDoPlano(){
+  const c=cfg(),cands=[];
+  if(c.inicioPlano)return mondayOf(parseISO(c.inicioPlano));
+  if(c.inicioEtapa)cands.push(parseISO(c.inicioEtapa));
+  S.sessoes.forEach(x=>{if(x.data)cands.push(parseISO(x.data))});
+  return cands.length?mondayOf(new Date(Math.min(...cands))):null;
+}
 function planejadoDaSemana(ws,doc){
   const slots=(doc&&doc.slots)||slotsPadrao(),feitos=(doc&&doc.feitos)||{};let plano=0,feito=0;
   DIAS.forEach((d,k)=>{
@@ -1960,11 +1969,11 @@ async function carregarSemanas(){
 }
 function telaHistorico(){
   if(!S.semanasCache){S.semanasCache={};carregarSemanas()}
-  const atual=mondayOf(new Date()),semanas=[];
-  for(let k=7;k>=0;k--){const ws=addDays(atual,-7*k),doc=iso(ws)===iso(S.weekStart||atual)?S.semanaDoc:S.semanasCache[iso(ws)];semanas.push({ws,crono:minutosCronometrados(ws),...planejadoDaSemana(ws,doc)})}
+  const atual=mondayOf(new Date()),semanas=[],ini=inicioDoPlano();
+  for(let k=7;k>=0;k--){const ws=addDays(atual,-7*k);if(ini&&addDays(ws,6)<ini)continue;const doc=iso(ws)===iso(S.weekStart||atual)?S.semanaDoc:S.semanasCache[iso(ws)];semanas.push({ws,crono:minutosCronometrados(ws),...planejadoDaSemana(ws,doc)})}
   const maxv=Math.max(60,...semanas.map(s=>Math.max(s.plano,s.crono)));
   let h='<div class="spread"><div><h2>Histórico de estudo</h2><p class="small muted">Tempo registrado (cronômetro e leituras fora do horário), comparado com o planejado de cada semana.</p></div><button class="btn primary" data-act="sessao-nova"'+dis()+'>+ Registrar sessão</button></div>';
-  h+='<section class="card"><h3>Últimas 8 semanas</h3><div class="hist">'+semanas.map(s=>{
+  h+='<section class="card"><h3>'+(semanas.length<8?(semanas.length===1?"Esta semana":"Desde o início ("+semanas.length+" semanas)"):"Últimas 8 semanas")+'</h3><div class="hist">'+semanas.map(s=>{
     const pc=Math.round(s.crono/maxv*100),pp=Math.round(s.plano/maxv*100),eAtual=iso(s.ws)===iso(atual);
     const dica=fmtDM(s.ws)+": "+fmtHM(s.crono)+" registradas de "+fmtHM(s.plano)+" planejadas; blocos marcados como feitos: "+fmtHM(s.feito);
     return '<div class="hist-row" title="'+esc(dica)+'"><span class="hist-lab'+(eAtual?" atual":"")+'">'+fmtDM(s.ws)+'</span><div class="hist-track"><span class="hist-plan" style="width:'+pp+'%"></span><span class="hist-bar" style="width:'+pc+'%"></span></div><span class="hist-val hours">'+fmtHM(s.crono)+' <span class="muted">/ '+fmtHM(s.plano)+'</span></span></div>';
