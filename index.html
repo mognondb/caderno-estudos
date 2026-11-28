@@ -227,6 +227,19 @@ ul.help{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13px}
 .hist-val{font-size:13px;white-space:nowrap}
 .key{display:inline-block;width:14px;height:8px;vertical-align:1px;border-radius:2px}
 .key-bar{background:var(--accent)} .key-plan{border:1.5px dashed var(--muted)}
+.hist-det>summary{list-style:none;cursor:pointer;border-radius:6px}
+.hist-det>summary::-webkit-details-marker{display:none}
+.hist-det>summary .hist-lab::before{content:"▸";display:inline-block;width:12px;transition:transform .15s;color:var(--muted)}
+.hist-det[open]>summary .hist-lab::before{transform:rotate(90deg)}
+.hist-det>summary:hover{background:var(--sunk)}
+.hist-dias{display:flex;flex-direction:column;gap:6px;margin:8px 0 10px 14px;padding-left:10px;border-left:2px solid var(--line)}
+.hist-row.hist-dia{grid-template-columns:96px 1fr auto}
+.hist-row.hist-dia.vazio .hist-lab{padding-left:12px}
+.hist-dia .hist-track{height:10px}
+.hist-sessoes{display:flex;flex-direction:column;gap:4px;margin:4px 0 6px 12px}
+.hist-sessao{display:grid;grid-template-columns:10px 1fr auto auto;gap:8px;align-items:center;font-size:13px}
+.hist-sessao .hs-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.hist-sessao .btn{padding:2px 8px}
 .hist-row:has(.wide){grid-template-columns:150px 1fr auto}
 /* Hoje e cronômetro */
 .clock{font-size:22px;font-family:var(--display)}
@@ -1035,7 +1048,7 @@ function telaHoje(){
   const hoje=new Date();irParaSemana(mondayOf(hoje));
   const N=weekIndex(S.weekStart),d=DIAS.find(x=>x.i===hoje.getDay()),bl=blocosDoDia(d,hoje,N),hr=(cfg().horarios||{})[d.i];
   let h='<section class="card"><div class="spread"><div><div class="small muted">'+d.nome+', '+hoje.getDate()+' de '+MESES_LONGOS[hoje.getMonth()]+(hr?' · '+esc(hr):'')+'</div><h2>Hoje</h2></div>'
-   +'<div class="row" id="timer-box">'+timerHtml()+'</div></div>'+legendaHtml(false)+'<div class="small muted">Estudado nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a></div></section>';
+   +'<div class="row" id="timer-box">'+timerHtml()+'</div></div>'+legendaHtml(false)+'<div class="small muted">Estudado hoje: <strong class="hours">'+fmtHM(minutosDoDia(iso(hoje)))+'</strong> · nesta semana: '+fmtHM(minutosCronometrados(mondayOf(hoje)))+' · <a href="#historico">Histórico</a> · <button class="linkish" data-act="sessao-nova"'+dis()+'>+ Registrar tempo</button></div></section>';
   if(!bl.keys.length){
     let prox=null;for(let k=1;k<=7&&!prox;k++){const dt=addDays(hoje,k),l=slotsPadrao()[dt.getDay()]||[];if(l.length)prox={dt,l}}
     return h+avulsasDeHoje()+'<div class="empty">Hoje não há estudo planejado.'+(prox?'<br><span class="small">Próximo: '+DIAS.find(x=>x.i===prox.dt.getDay()).nome+', '+prox.l.map(s=>esc(T(resolveTrilha(s.trilha,weekIndex(mondayOf(prox.dt)))).curto)).join(" + ")+'.</span>':'')+'</div>'+imprensaDoDia()+lembreteBackupHtml();
@@ -1049,9 +1062,10 @@ function telaSemana(){
   const ws=S.weekStart,N=weekIndex(ws),editando=!!S.editWeek,w=wk(),hoje=iso(new Date());
   let plano=0,feito=0,falta=0;
   DIAS.forEach((d,k)=>{const bl=blocosDoDia(d,addDays(ws,k),N);
-    bl.slots.forEach(s=>{const key=d.i+":"+s.id,m=Number(s.min)||0;plano+=m;if((w.feitos||{})[key])feito+=m;if((w.pulados||{})[key])falta+=m});
-    bl.extras.forEach(b=>{const key="x:"+b.id,m=Number(b.extraMin)||60;plano+=m;if((w.feitos||{})[key])feito+=m;if((w.pulados||{})[key])falta+=m});
+    bl.slots.forEach(s=>{const key=d.i+":"+s.id,m=Number(s.min)||0;plano+=m;if((w.pulados||{})[key])falta+=m});
+    bl.extras.forEach(b=>{const key="x:"+b.id,m=Number(b.extraMin)||60;plano+=m;if((w.pulados||{})[key])falta+=m});
   });
+  feito=minutosCronometrados(ws); // só o tempo do cronômetro e o registrado à mão
   const info=cicloAtualInfo(),pct=plano?Math.round(feito/plano*100):0;
   const semLabel=N==null?"defina o início do ciclo em Plano":N<1?"o ciclo começa em "+fmtDM(parseISO(cfg().inicioEtapa)):"semana "+N+" do ciclo";
   const agora=bookTrilhas().map(t=>{
@@ -1061,7 +1075,7 @@ function telaSemana(){
     return '<div class="now" style="--c:'+T(t).cor+'"><div class="lab">'+esc(T(t).curto)+'</div><div class="tt" style="font-size:14px">'+txt+'</div></div>';
   }).join("");
   let h='<section class="card"><div class="spread"><div><div class="small muted">'+etapaLabel(etapaAtual())+' · '+esc(semLabel)+'</div><h2>'+esc(info?info.titulo:"Plano de estudos")+'</h2></div>'
-   +'<div style="min-width:190px"><div class="spread small"><span>Horas feitas</span><strong class="hours">'+fmtHM(feito)+' / '+fmtHM(plano)+'</strong></div><div class="meter" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+pct+'%"></span></div>'+(falta?'<div class="small miss" style="margin-top:4px">Não estudado: '+fmtHM(falta)+'</div>':'')+'<div class="small muted" style="margin-top:4px">Tempo registrado: '+fmtHM(minutosCronometrados(ws))+' · <a href="#historico">Histórico</a></div></div></div>'
+   +'<div style="min-width:190px"><div class="spread small"><span title="Tempo do cronômetro e registrado à mão">Horas estudadas</span><strong class="hours">'+fmtHM(feito)+' / '+fmtHM(plano)+'</strong></div><div class="meter" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+pct+'%"></span></div>'+(falta?'<div class="small miss" style="margin-top:4px">Não estudado: '+fmtHM(falta)+'</div>':'')+'<div class="small muted" style="margin-top:4px">Tempo registrado: '+fmtHM(minutosCronometrados(ws))+' · <a href="#historico">Histórico</a></div></div></div>'
    +'<div class="now-grid">'+agora+'</div></section>';
   h+='<div class="spread"><div class="weeknav"><button class="btn" data-act="sem-ant" aria-label="Semana anterior">‹</button><span class="range">'+fmtDM(ws)+' – '+fmtDM(addDays(ws,6))+'</span><button class="btn" data-act="sem-prox" aria-label="Próxima semana">›</button><button class="btn ghost" data-act="sem-hoje">Hoje</button></div>'
    +(editando?'':'<div class="row">'+(w.slots?'<span class="pill">Semana ajustada</span>':'')+'<button class="btn" data-act="avulsa-nova"'+dis()+'>+ Leitura fora do horário</button><button class="btn" data-act="extra-novo"'+dis()+'>+ Leitura extraordinária</button><button class="btn" data-act="sem-editar"'+dis()+'>Reorganizar</button></div>')+'</div>';
@@ -1992,7 +2006,7 @@ function tique(){
   pintarCronometro();
 }
 function iniciarCronometro(min){const sel=$("tm-alvo"),op=S.tmOpcoes||[];TM.alvo=op[sel?Number(sel.value):op.length-1]||{rotulo:"Estudo",trilha:""};Object.assign(TM,{fase:"foco",foco:min,fim:Date.now()+min*60000,pausado:false});clearInterval(TM.iv);TM.iv=setInterval(tique,1000);pintarCronometro()}
-function encerrarCronometro(manual){if(manual&&TM.fase==="foco"){const m=minutosDaSessao();if(m>=5){registrarSessao(m);toast("Sessão de "+fmtHM(m)+" registrada.")}}TM.fase="";TM.pausado=false;clearInterval(TM.iv);TM.iv=null;pintarCronometro()}
+function encerrarCronometro(manual){if(manual&&TM.fase==="foco"){const m=minutosDaSessao();if(m>=1){registrarSessao(m);toast("Sessão de "+fmtHM(m)+" registrada.")}}TM.fase="";TM.pausado=false;clearInterval(TM.iv);TM.iv=null;pintarCronometro()}
 
 /* =====================================================================
    15. Sessões cronometradas e histórico
@@ -2016,6 +2030,7 @@ function registrarSessao(min){
   const a=TM.alvo,agora=new Date();
   save("sessoes/"+novoId("sessoes"),{data:iso(agora),inicio:new Date(agora.getTime()-min*60000).toISOString(),minutos:min,trilha:a.trilha||"",livroId:a.livroId||"",topicoId:a.topicoId||"",rotulo:a.rotulo||""}).catch(()=>{});
 }
+function minutosDoDia(d){return S.sessoes.filter(x=>x.data===d).reduce((s,x)=>s+(Number(x.minutos)||0),0)}
 function minutosCronometrados(ws){const ini=iso(ws),fim=iso(addDays(ws,6));return S.sessoes.filter(x=>x.data>=ini&&x.data<=fim).reduce((s,x)=>s+(Number(x.minutos)||0),0)}
 /* início do plano: a semana em que os estudos começaram (o ciclo 1, a primeira sessão registrada
    ou o ajuste de “Plano”); semanas anteriores não entram no histórico */
@@ -2043,12 +2058,23 @@ function telaHistorico(){
   const atual=mondayOf(new Date()),semanas=[],ini=inicioDoPlano();
   for(let k=7;k>=0;k--){const ws=addDays(atual,-7*k);if(ini&&addDays(ws,6)<ini)continue;const doc=iso(ws)===iso(S.weekStart||atual)?S.semanaDoc:S.semanasCache[iso(ws)];semanas.push({ws,crono:minutosCronometrados(ws),...planejadoDaSemana(ws,doc)})}
   const maxv=Math.max(60,...semanas.map(s=>Math.max(s.plano,s.crono)));
-  let h='<div class="spread"><div><h2>Histórico de estudo</h2><p class="small muted">Tempo registrado (cronômetro e leituras fora do horário), comparado com o planejado de cada semana.</p></div><button class="btn primary" data-act="sessao-nova"'+dis()+'>+ Registrar sessão</button></div>';
-  h+='<section class="card"><h3>'+(semanas.length<8?(semanas.length===1?"Esta semana":"Desde o início ("+semanas.length+" semanas)"):"Últimas 8 semanas")+'</h3><div class="hist">'+semanas.map(s=>{
-    const pc=Math.round(s.crono/maxv*100),pp=Math.round(s.plano/maxv*100),eAtual=iso(s.ws)===iso(atual);
-    const dica=fmtDM(s.ws)+": "+fmtHM(s.crono)+" registradas de "+fmtHM(s.plano)+" planejadas; blocos marcados como feitos: "+fmtHM(s.feito);
-    return '<div class="hist-row" title="'+esc(dica)+'"><span class="hist-lab'+(eAtual?" atual":"")+'">'+fmtDM(s.ws)+'</span><div class="hist-track"><span class="hist-plan" style="width:'+pp+'%"></span><span class="hist-bar" style="width:'+pc+'%"></span></div><span class="hist-val hours">'+fmtHM(s.crono)+' <span class="muted">/ '+fmtHM(s.plano)+'</span></span></div>';
-  }).join("")+'</div><p class="small muted"><span class="key key-bar"></span> registrado &nbsp; <span class="key key-plan"></span> planejado (semana padrão ou o ajuste daquela semana, mais as leituras extraordinárias)</p></section>';
+  let h='<div class="spread"><div><h2>Histórico de estudo</h2><p class="small muted">Tempo estudado (cronômetro e registros à mão), comparado com o planejado de cada semana.</p></div><button class="btn primary" data-act="sessao-nova"'+dis()+'>+ Registrar sessão</button></div>';
+  S.histAbertos=S.histAbertos||{[iso(atual)]:true};
+  const hojeIso=iso(new Date()),DS=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+  const linhaSessao=x=>{const ini=x.inicio?new Date(x.inicio):null,hora=ini&&!x.avulsa&&!x.manual&&(ini.getHours()||ini.getMinutes())?pad(ini.getHours())+":"+pad(ini.getMinutes())+" · ":"";
+    return '<div class="hist-sessao" style="--c:'+(x.trilha?T(x.trilha).cor:"var(--muted)")+'"><span class="dot" style="background:var(--c)"></span><span class="hs-t">'+hora+esc(x.rotulo||(x.trilha?T(x.trilha).curto:"Estudo"))+(x.avulsa?' <span class="muted">· fora do horário</span>':x.manual?' <span class="muted">· registrado à mão</span>':'')+'</span><strong class="hours">'+fmtHM(x.minutos)+'</strong><button class="btn sm ghost" data-act="sessao-excluir" data-id="'+x.id+'"'+dis()+' aria-label="Excluir sessão">✕</button></div>'};
+  h+='<section class="card"><h3>'+(semanas.length<8?(semanas.length===1?"Esta semana":"Desde o início ("+semanas.length+" semanas)"):"Últimas 8 semanas")+'</h3><p class="small muted">Toque numa semana para ver cada dia, e num dia para ver as sessões.</p><div class="hist">'+semanas.map(s=>{
+    const pc=Math.round(s.crono/maxv*100),pp=Math.round(s.plano/maxv*100),eAtual=iso(s.ws)===iso(atual),k=iso(s.ws);
+    const dica=fmtDM(s.ws)+": "+fmtHM(s.crono)+" estudadas de "+fmtHM(s.plano)+" planejadas";
+    const dias=[0,1,2,3,4,5,6].map(i=>{const dt=addDays(s.ws,i),di=iso(dt);if(di>hojeIso)return null;const l=S.sessoes.filter(x=>x.data===di).sort((a,b)=>String(a.inicio||"").localeCompare(String(b.inicio||"")));return {dt,di,i,l,min:l.reduce((t,x)=>t+(Number(x.minutos)||0),0)}}).filter(Boolean);
+    const maxd=Math.max(60,...dias.map(d=>d.min));
+    const corpo=dias.map(d=>{
+      const lin='<span class="hist-lab'+(d.di===hojeIso?" atual":"")+'">'+DS[d.i]+' '+fmtDM(d.dt)+'</span><div class="hist-track"><span class="hist-bar" style="width:'+Math.round(d.min/maxd*100)+'%"></span></div><span class="hist-val hours">'+(d.min?fmtHM(d.min):'<span class="muted">—</span>')+'</span>';
+      if(!d.l.length)return '<div class="hist-row hist-dia vazio">'+lin+'</div>';
+      return '<details class="hist-det hist-dia-det" data-hist="'+d.di+'"'+(S.histAbertos[d.di]?" open":"")+'><summary class="hist-row hist-dia">'+lin+'</summary><div class="hist-sessoes">'+d.l.map(linhaSessao).join("")+'</div></details>';
+    }).join("");
+    return '<details class="hist-det" data-hist="'+k+'"'+(S.histAbertos[k]?" open":"")+'><summary class="hist-row" title="'+esc(dica)+'"><span class="hist-lab'+(eAtual?" atual":"")+'">'+fmtDM(s.ws)+'</span><div class="hist-track"><span class="hist-plan" style="width:'+pp+'%"></span><span class="hist-bar" style="width:'+pc+'%"></span></div><span class="hist-val hours">'+fmtHM(s.crono)+' <span class="muted">/ '+fmtHM(s.plano)+'</span></span></summary><div class="hist-dias">'+(corpo||'<p class="small muted">Sem dias passados nesta semana.</p>')+'</div></details>';
+  }).join("")+'</div><p class="small muted"><span class="key key-bar"></span> estudado (cronômetro e registros à mão) &nbsp; <span class="key key-plan"></span> planejado (semana padrão ou o ajuste daquela semana, mais as leituras extraordinárias)</p></section>';
   const desde=iso(addDays(atual,-21)),ult=S.sessoes.filter(x=>x.data>=desde),porTrilha={};
   ult.forEach(x=>{const k=x.trilha||"";porTrilha[k]=(porTrilha[k]||0)+(Number(x.minutos)||0)});
   const linhas=Object.entries(porTrilha).sort((a,b)=>b[1]-a[1]),maxt=Math.max(1,...linhas.map(l=>l[1]));
@@ -2059,14 +2085,14 @@ function telaHistorico(){
 }
 function dialogoSessao(){
   abrirModal('<form class="dialog" id="sessao-form" aria-labelledby="ss-h"><h2 id="ss-h">Registrar sessão</h2><p class="small muted">Para o tempo que você estudou sem o cronômetro.</p>'
-   +'<div class="grid"><label class="f">Data<input type="date" id="ss-data" value="'+iso(new Date())+'"></label><label class="f">Minutos<input type="number" id="ss-min" min="1" value="60"></label>'
+   +'<div class="grid"><label class="f">Data<input type="date" id="ss-data" value="'+iso(new Date())+'"></label><label class="f">Minutos<input type="number" id="ss-min" min="1" inputmode="numeric" placeholder="ex.: 40"></label>'
    +'<label class="f">Trilha<select id="ss-trilha"><option value="">Outro estudo</option>'+[...bookTrilhas(),"sintese"].map(t=>'<option value="'+t+'">'+esc(T(t).curto)+'</option>').join("")+'</select></label></div>'
    +'<label class="f">O que estudou (opcional)<input type="text" id="ss-rot"></label>'
    +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Cancelar</button><button type="submit" class="btn primary">Registrar</button></div></form>');
   $("sessao-form").addEventListener("submit",ev=>{
     ev.preventDefault();const m=Number($("ss-min").value),d=$("ss-data").value;
     if(!d||!(m>0)){toast("Informe a data e os minutos.");return}
-    save("sessoes/"+novoId("sessoes"),{data:d,inicio:parseISO(d).toISOString(),minutos:m,trilha:$("ss-trilha").value,livroId:"",topicoId:"",rotulo:$("ss-rot").value.trim()}).then(()=>{fecharModal();toast("Sessão registrada.")}).catch(()=>{});
+    save("sessoes/"+novoId("sessoes"),{data:d,inicio:parseISO(d).toISOString(),minutos:m,trilha:$("ss-trilha").value,livroId:"",topicoId:"",rotulo:$("ss-rot").value.trim(),manual:true}).then(()=>{fecharModal();toast("Sessão registrada.")}).catch(()=>{});
   });
 }
 
@@ -2111,6 +2137,31 @@ function avulsasDeHoje(){
   return '<section class="card"><div class="spread"><h3>Fora do horário</h3><button class="btn sm" data-act="avulsa-nova"'+dis()+'>+ Registrar leitura</button></div>'
    +(l.length?l.map(x=>'<div class="strip done" style="--c:'+T(x.trilha).cor+';opacity:1"><div class="body"><div class="lab">Leitura fora do horário · '+fmtHM(x.minutos)+'</div><div class="tt">'+esc(x.rotulo||"Leitura")+'</div></div><span class="check" aria-label="Feito" style="background:var(--ok);border-color:var(--ok)">'+CHECK_SVG+'</span></div>').join("")
      :'<p class="small muted">Leu algo no almoço, no Kindle ou no livro físico? Registre aqui: conta como estudo e pode valer como o bloco da semana.</p>')+'</section>';
+}
+
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.hist){S.histAbertos=S.histAbertos||{};S.histAbertos[d.dataset.hist]=d.open}},true);
+/* ---------- ao concluir um bloco: o tempo vem do cronômetro ou é informado à mão ---------- */
+function infoDoBloco(key){
+  if(key.startsWith("x:")){const b=livro(key.slice(2));return b?{data:b.extraData||iso(new Date()),trilha:b.trilha,livroId:b.id,topicoId:b.topicoId||"",rotulo:b.titulo}:null}
+  const x=blocosDaSemana().find(y=>y.key===key);if(!x)return null;
+  return {data:iso(x.date),trilha:x.t==="sintese"?"sintese":(x.atual?x.atual.trilha:x.t),livroId:x.atual?x.atual.id:"",topicoId:"",rotulo:x.atual?x.atual.titulo:T(x.t).curto};
+}
+function marcarBlocoFeito(key){
+  const jaFeito=!!(wk().feitos||{})[key];
+  salvarSemana(d=>{d.feitos=d.feitos||{};if(d.feitos[key])delete d.feitos[key];else{d.feitos[key]=true;if(d.pulados)delete d.pulados[key]}}).catch(()=>{});
+  if(jaFeito||S.readOnly)return;
+  const inf=infoDoBloco(key);if(!inf||inf.data>iso(new Date()))return;
+  const temSessao=S.sessoes.some(x=>x.data===inf.data&&(!inf.trilha||x.trilha===inf.trilha||(inf.livroId&&x.livroId===inf.livroId)));
+  if(temSessao)return; // o cronômetro já registrou o tempo deste estudo
+  abrirModal('<form class="dialog" id="bt-form" aria-labelledby="bt-h"><h2 id="bt-h">Quanto tempo você estudou?</h2><p class="small muted">'+esc(inf.rotulo)+' · '+fmtDM(parseISO(inf.data))+'. O cronômetro não registrou este estudo; informe o tempo para ele entrar no histórico.</p>'
+   +'<div class="row"><label class="f" style="flex:1">Minutos<input type="number" id="bt-min" min="1" inputmode="numeric" placeholder="ex.: 50" autofocus></label></div>'
+   +'<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-act="modal-fechar">Só marcar como feito</button><button type="submit" class="btn primary">Registrar</button></div></form>');
+  setTimeout(()=>{const i=$("bt-min");if(i)i.focus()},50);
+  $("bt-form").addEventListener("submit",ev=>{
+    ev.preventDefault();const m=Number($("bt-min").value);
+    if(!(m>0)){toast("Informe os minutos, ou toque em “Só marcar como feito”.");return}
+    save("sessoes/"+novoId("sessoes"),{data:inf.data,inicio:parseISO(inf.data).toISOString(),minutos:m,trilha:inf.trilha||"",livroId:inf.livroId||"",topicoId:inf.topicoId||"",rotulo:inf.rotulo||"",manual:true}).then(()=>{fecharModal();toast(fmtHM(m)+" registradas.")}).catch(()=>{});
+  });
 }
 
 /* =====================================================================
@@ -3131,7 +3182,7 @@ const ACOES={
   "slot-adicionar":el=>{(S.editWeek[el.dataset.dia]=S.editWeek[el.dataset.dia]||[]).push({id:uid("s"),trilha:bookTrilhas()[0],min:60});render()},
   "slot-remover":el=>{S.editWeek[el.dataset.dia].splice(Number(el.dataset.idx),1);render()},
   "extra-novo":()=>{const hoje=new Date(),dentro=iso(hoje)>=iso(S.weekStart)&&iso(hoje)<=iso(addDays(S.weekStart,6));dialogoLivro(null,{status:"lendo",tipo:"complemento",extraData:iso(dentro?hoje:S.weekStart),extraMin:60})},
-  "bloco-feito":el=>{const k=el.dataset.key;salvarSemana(d=>{d.feitos=d.feitos||{};if(d.feitos[k])delete d.feitos[k];else{d.feitos[k]=true;if(d.pulados)delete d.pulados[k]}}).catch(()=>{})},
+  "bloco-feito":el=>marcarBlocoFeito(el.dataset.key),
   "bloco-menu":el=>menuBloco(el),
   "bloco-pular":el=>{fecharModal();const k=el.dataset.key;salvarSemana(d=>{d.pulados=d.pulados||{};d.feitos=d.feitos||{};if(d.pulados[k])delete d.pulados[k];else{d.pulados[k]=true;delete d.feitos[k]}}).catch(()=>{})},
   "dia-pular":el=>{const ks=el.dataset.keys.split(",");salvarSemana(d=>{d.pulados=d.pulados||{};d.feitos=d.feitos||{};const desfazer=ks.every(k=>d.pulados[k]);ks.forEach(k=>{if(desfazer)delete d.pulados[k];else{d.pulados[k]=true;delete d.feitos[k]}})}).catch(()=>{})},
