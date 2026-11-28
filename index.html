@@ -293,6 +293,11 @@ details.grupo-notas[open]>summary::before{transform:rotate(90deg)}
 .nota-ferr{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .ref-termo{all:unset;cursor:pointer;color:var(--accent);border-bottom:1.5px solid color-mix(in srgb,var(--accent) 45%,transparent);font-weight:600}
 .ref-termo.ref-nome{color:var(--t-c7,#7b3f9e);border-bottom-color:color-mix(in srgb,var(--t-c7,#7b3f9e) 45%,transparent)}
+.termo-lt{cursor:pointer;border-bottom:2px solid color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:3px;padding:0 1px}
+.termo-lt.nome{border-bottom-color:color-mix(in srgb,var(--t-c7,#7b3f9e) 55%,transparent);background:color-mix(in srgb,var(--t-c7,#7b3f9e) 9%,transparent)}
+mark.mt-m .termo-lt{background:transparent}
+.termo-pop{position:fixed;z-index:80;background:var(--surface);color:var(--ink,inherit);border:1px solid var(--line,#8884);border-radius:12px;padding:12px;box-shadow:0 8px 28px #0004;display:flex;flex-direction:column;gap:6px;font-family:inherit}
+.termo-pop p{margin:0}
 .ref-termo.ref-novo{border-bottom-style:dashed;font-weight:500}
 .pg-ref{all:unset;cursor:pointer;display:inline-block;font-family:var(--body);font-size:12px;font-weight:600;line-height:1;padding:3px 6px;border-radius:99px;background:var(--sunk);color:var(--muted);vertical-align:1px;margin-right:2px}
 .pg-ref:hover{color:var(--ink)}
@@ -2364,6 +2369,7 @@ function pintarMarcas(){
     if(txt.slice(ini,fim)!==m.texto){const i=txt.indexOf(m.texto);if(i<0)return;ini=i;fim=i+m.texto.length}
     envolver(c,ini,fim,()=>{const el=document.createElement("mark");el.className="mt-m";el.dataset.act="mt-marca";el.dataset.id=m.id;el.style.setProperty("--m",CORES_AN[m.cor]||CORES_AN.amarelo);if(m.nota)el.classList.add("com-nota");return el});
   });
+  realcarNaLeitura(c);
 }
 function selecaoNaMateria(){
   const c=$("mt-corpo"),s=window.getSelection();
@@ -2764,22 +2770,58 @@ function regexTermos(){
 function realcarTermos(html){
   const re=regexTermos();if(!re)return html;
   const box=document.createElement("div");box.innerHTML=html;
-  const w=document.createTreeWalker(box,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest("button,a,code,pre")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  realcarNo(box,(c,txt)=>{const b=document.createElement("button");b.type="button";b.className="ref-termo"+(c&&ehNome(c)?" ref-nome":"");b.dataset.act="termo-ir";b.dataset.termo=c?c.termo:txt;b.title=c&&ehNome(c)?"Abrir nome":"Abrir conceito";return b});
+  return box.innerHTML;
+}
+/* envolve cada ocorrência de conceito ou nome registrado num elemento criado por criar(conceito,texto) */
+function realcarNo(box,criar){
+  const re=regexTermos();if(!re)return;
+  const w=document.createTreeWalker(box,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest("button,a,code,pre,.pg-marca,.termo-lt")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
   const nos=[];let n;while((n=w.nextNode()))nos.push(n);
   for(const no of nos){
     const t=no.nodeValue;re.lastIndex=0;if(!re.test(t))continue;re.lastIndex=0;
     const frag=document.createDocumentFragment();let pos=0,m;
     while((m=re.exec(t))){
       if(m.index>pos)frag.appendChild(document.createTextNode(t.slice(pos,m.index)));
-      const c=achaTermo(m[1]),b=document.createElement("button");
-      b.type="button";b.className="ref-termo"+(c&&ehNome(c)?" ref-nome":"");b.dataset.act="termo-ir";b.dataset.termo=c?c.termo:m[1];b.title=c&&ehNome(c)?"Abrir nome":"Abrir conceito";b.textContent=m[1];
+      const c=achaTermo(m[1]),b=criar(c,m[1]);b.textContent=m[1];
       frag.appendChild(b);pos=m.index+m[1].length;
     }
     if(pos<t.length)frag.appendChild(document.createTextNode(t.slice(pos)));
     no.parentNode.replaceChild(frag,no);
   }
-  return box.innerHTML;
 }
+/* ---------- no leitor de textos (imprensa, tópicos, PDF convertido) ----------
+   destaque discreto; o toque mostra um cartão com a definição, sem sair da leitura */
+function realcarNaLeitura(corpo){
+  realcarNo(corpo,(c,txt)=>{const s=document.createElement("span");s.className="termo-lt"+(c&&ehNome(c)?" nome":"");s.dataset.act="termo-pop";s.dataset.termo=c?c.termo:txt;return s});
+  R.chaveTermos=_reTermos.chave;
+}
+function repintarTermosLeitor(){
+  if(!R.web||!$("mt-corpo"))return;regexTermos();
+  if(R.chaveTermos===_reTermos.chave)return;
+  const sc=$("rd-scroll"),top=sc?sc.scrollTop:0;pintarMarcas();if(sc)sc.scrollTop=top;
+}
+function fecharTermoPop(){const p=$("termo-pop");if(p)p.remove()}
+function mostrarTermoPop(el){
+  if(selecaoNaMateria())return;
+  fecharTermoPop();
+  const c=achaTermo(el.dataset.termo);if(!c)return;
+  const def=String(c.definicao||"").replace(/\[\[|\]\]/g,"").replace(/[*#>]/g,"").trim(),marca=el.closest("mark.mt-m");
+  const nCit=(c.citacoes||[]).length;
+  const p=document.createElement("div");p.id="termo-pop";p.className="termo-pop";p.setAttribute("role","dialog");p.setAttribute("aria-label",c.termo);
+  p.innerHTML='<div class="spread"><strong>'+esc(c.termo)+'</strong><span class="pill soft">'+(ehNome(c)?"Nome":"Conceito")+'</span></div>'
+    +'<p class="small">'+(def?esc(def.length>260?def.slice(0,260).replace(/\s+\S*$/,"")+"…":def):'<span class="muted">Ainda sem definição.</span>')+'</p>'
+    +(nCit?'<p class="small muted">'+nCit+(nCit>1?" citações":" citação")+' registrada'+(nCit>1?"s":"")+'</p>':'')
+    +'<div class="row"><button class="btn sm" data-act="termo-abrir" data-termo="'+esc(c.termo)+'">Abrir '+(ehNome(c)?"nome":"conceito")+'</button>'
+    +(marca?'<button class="btn sm ghost" data-act="mt-marca" data-id="'+marca.dataset.id+'">Marcação</button>':'')
+    +'<button class="btn sm ghost" data-act="termo-pop-fechar">Fechar</button></div>';
+  document.body.appendChild(p);
+  const r=el.getBoundingClientRect(),w=Math.min(320,window.innerWidth-16);p.style.width=w+"px";
+  p.style.left=Math.max(8,Math.min(window.innerWidth-w-8,r.left+r.width/2-w/2))+"px";
+  const h=p.offsetHeight;p.style.top=(r.bottom+8+h<window.innerHeight?r.bottom+8:Math.max(8,r.top-h-8))+"px";
+}
+document.addEventListener("click",e=>{const p=$("termo-pop");if(p&&!p.contains(e.target)&&!e.target.closest(".termo-lt"))p.remove()},true);
+document.addEventListener("scroll",()=>fecharTermoPop(),true);
 function destacarNaNota(){
   const ta=$("ne-texto");if(!ta)return;
   let a=ta.selectionStart||0,b=ta.selectionEnd||0;const v=ta.value;
@@ -3068,6 +3110,7 @@ function render(){
   if(S.view==="caderno"){if(S.cadTab==="tudo")pintarTudo();else if(S.cadTab==="conceitos"||S.cadTab==="nomes"){pintarListaConceitos();pintarNotasDoConceito()}else pintarListaNotas()}
   if(S.view==="busca"){pintarBusca();const q=$("bq");if(q&&document.activeElement!==q&&!S.bq)q.focus()}
   pintarCronometro();
+  repintarTermosLeitor();
 }
 
 /* =====================================================================
@@ -3139,7 +3182,7 @@ const ACOES={
   "tx-converter":el=>{fecharModal();const id=el.dataset.id||R.livroId;if(R.livroId===id)fecharLeitor();converterLivroEmTexto(id,{abrirDepois:true})},
   "ler-pdf":el=>{fecharModal();abrirLeitor(el.dataset.id)},
   "mt-marcar":el=>marcarTrecho(el.dataset.cor),
-  "mt-marca":el=>{if(selecaoNaMateria())return;dialogoMarca(el.dataset.id)},
+  "mt-marca":el=>{if(selecaoNaMateria())return;fecharTermoPop();dialogoMarca(el.dataset.id)},
   "mk-cor":el=>{R.corDialogo=el.dataset.cor;document.querySelectorAll('[data-act="mk-cor"]').forEach(b=>b.setAttribute("aria-pressed",String(b===el)))},
   "mk-salvar":el=>salvarMarca(el.dataset.id),
   "mk-apagar":el=>confirmar(el,"Confirmar",()=>apagarMarca(el.dataset.id)),
@@ -3221,7 +3264,10 @@ const ACOES={
   "backup-confirmar":()=>{const d=S.pendingRestore;S.pendingRestore=null;fecharModal();if(d)restaurar(d)},
   "agenda-baixar":()=>baixarAgenda(),
   /* leitor */
-  "rd-fechar":()=>fecharLeitor(),
+  "rd-fechar":()=>{fecharTermoPop();fecharLeitor()},
+  "termo-pop":el=>mostrarTermoPop(el),
+  "termo-pop-fechar":()=>fecharTermoPop(),
+  "termo-abrir":el=>{const t=el.dataset.termo;fecharTermoPop();fecharLeitor();irParaTermo(t)},
   "rd-ferramenta":el=>{R.tool=el.dataset.tool;document.querySelector(".reader").dataset.tool=R.tool;document.querySelectorAll(".reader .tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tool===R.tool)))},
   "rd-cor":el=>{R.cor=el.dataset.cor;document.querySelectorAll(".reader .swl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.cor===R.cor)))},
   "rd-zoom":el=>{const i=ZOOMS.indexOf(R.zoom),j=Math.max(0,Math.min(ZOOMS.length-1,i+Number(el.dataset.dir)));if(j===i)return;const pag=R.cur;R.zoom=ZOOMS[j];aplicarZoom();setTimeout(()=>{const pg=R.pages[pag-1];if(pg)pg.el.scrollIntoView({block:"start"})},30)},
